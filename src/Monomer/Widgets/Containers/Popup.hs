@@ -49,6 +49,8 @@ module Monomer.Widgets.Containers.Popup (
   PopupCfg,
   popupDisableClose,
   popupDisableClose_,
+  popupAlignToWindow,
+  popupAlignToWindow_,
   popupOffset,
   popupOpenAtClick,
   popupOpenAtClick_,
@@ -85,6 +87,9 @@ Configuration options for popup:
 data PopupCfg s e = PopupCfg {
   _ppcOpenAtClickPos :: Maybe Bool,
   _ppcDisableClose :: Maybe Bool,
+  _ppcAlignToWindow :: Maybe Bool,
+  _ppcAlignH :: Maybe AlignH,
+  _ppcAlignV :: Maybe AlignV,
   _ppcOffset :: Maybe Point,
   _ppcOnChangeReq :: [Bool -> WidgetRequest s e]
 }
@@ -93,6 +98,9 @@ instance Default (PopupCfg s e) where
   def = PopupCfg {
     _ppcOpenAtClickPos = Nothing,
     _ppcDisableClose = Nothing,
+    _ppcAlignToWindow = Nothing,
+    _ppcAlignH = Nothing,
+    _ppcAlignV = Nothing,
     _ppcOffset = Nothing,
     _ppcOnChangeReq = []
   }
@@ -101,12 +109,51 @@ instance Semigroup (PopupCfg s e) where
   (<>) t1 t2 = PopupCfg {
     _ppcOpenAtClickPos = _ppcOpenAtClickPos t2 <|> _ppcOpenAtClickPos t1,
     _ppcDisableClose = _ppcDisableClose t2 <|> _ppcDisableClose t1,
+    _ppcAlignToWindow = _ppcAlignToWindow t2 <|> _ppcAlignToWindow t1,
+    _ppcAlignH = _ppcAlignH t2 <|> _ppcAlignH t1,
+    _ppcAlignV = _ppcAlignV t2 <|> _ppcAlignV t1,
     _ppcOffset = _ppcOffset t2 <|> _ppcOffset t1,
     _ppcOnChangeReq = _ppcOnChangeReq t1 <> _ppcOnChangeReq t2
   }
 
 instance Monoid (PopupCfg s e) where
   mempty = def
+
+instance CmbAlignLeft (PopupCfg s e) where
+  alignLeft_ False = def
+  alignLeft_ True = def {
+    _ppcAlignH = Just ALeft
+  }
+
+instance CmbAlignCenter (PopupCfg s e) where
+  alignCenter_ False = def
+  alignCenter_ True = def {
+    _ppcAlignH = Just ACenter
+  }
+
+instance CmbAlignRight (PopupCfg s e) where
+  alignRight_ False = def
+  alignRight_ True = def {
+    _ppcAlignH = Just ARight
+  }
+
+instance CmbAlignTop (PopupCfg s e) where
+  alignTop_ False = def
+  alignTop_ True = def {
+    _ppcAlignV = Just ATop
+  }
+
+instance CmbAlignMiddle (PopupCfg s e) where
+  alignMiddle_ False = def
+  alignMiddle_ True = def {
+    _ppcAlignV = Just AMiddle
+  }
+
+instance CmbAlignBottom (PopupCfg s e) where
+  alignBottom_ False = def
+  alignBottom_ True = def {
+    _ppcAlignV = Just ABottom
+  }
 
 instance WidgetEvent e => CmbOnChange (PopupCfg s e) Bool e where
   onChange fn = def {
@@ -129,6 +176,14 @@ popupDisableClose = popupDisableClose_ True
 popupDisableClose_ :: Bool -> PopupCfg s e
 popupDisableClose_ close = def {
   _ppcDisableClose = Just close
+}
+
+popupAlignToWindow :: PopupCfg s e
+popupAlignToWindow = popupAlignToWindow_ True
+
+popupAlignToWindow_ :: Bool -> PopupCfg s e
+popupAlignToWindow_ align = def {
+  _ppcAlignToWindow = Just align
 }
 
 popupOffset :: Point -> PopupCfg s e
@@ -271,12 +326,29 @@ makePopup field config state = widget where
     Point sx sy = _ppsClickPos state
     Point ox oy = fromMaybe def (_ppcOffset config)
 
-    openAtMouse = fromMaybe False (_ppcOpenAtClickPos config)
+    openAtMouse = _ppcOpenAtClickPos config == Just True
+    alignWin = _ppcAlignToWindow config == Just True
+    alignH = _ppcAlignH config
+    alignV = _ppcAlignV config
     child = Seq.index children 0
 
-    (cx, cy)
-      | openAtMouse = (sx, sy)
-      | otherwise = (px, py)
+    Rect ax ay aw ah
+      | alignWin = wenv ^. L.viewport
+      | otherwise = viewport
+    cx
+      | openAtMouse = sx
+      | alignH == Just ALeft = ax
+      | alignH == Just ACenter = ax + (aw - cw) / 2
+      | alignH == Just ARight = ax + aw - cw
+      | otherwise = px
+
+    cy
+      | openAtMouse = sy
+      | alignV == Just ATop = ay
+      | alignV == Just AMiddle = ay + (ah - ch) / 2
+      | alignV == Just ABottom = ay + ah - ch
+      | otherwise = py
+
     cw = sizeReqMaxBounded (child ^. L.info . L.sizeReqW)
     ch = sizeReqMaxBounded (child ^. L.info . L.sizeReqH)
     carea = Rect (cx + ox) (cy + oy) cw ch
