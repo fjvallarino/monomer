@@ -196,9 +196,8 @@ instance CmbOnChangeReq (PopupCfg s e) s e Bool where
     _ppcOnChangeReq = [req]
   }
 
-data PopupState = PopupState {
-  _ppsClickPos :: Point,
-  _ppsOffset :: Point
+newtype PopupState = PopupState {
+  _ppsClickPos :: Point
 } deriving (Eq, Show)
 
 popupDisableClose :: PopupCfg s e
@@ -289,7 +288,7 @@ popupD_
   -> WidgetNode s e
 popupD_ wdata configs managed = makeNode widget managed where
   config = mconcat configs
-  state = PopupState def def
+  state = PopupState def
   widget = makePopup wdata config state
 
 makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e
@@ -304,25 +303,17 @@ makePopup
   -> PopupState
   -> Widget s e
 makePopup field config state = widget where
-  container = def {
+  baseWidget = createContainer state def {
     containerAddStyleReq = False,
-    containerChildrenOffset = Just (_ppsOffset state),
-    containerCreateContainerFromModel = createContainerFromModel,
     containerInit = init,
     containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
-  baseWidget = createContainer state container
   widget = baseWidget {
     widgetRender = render
   }
-
-  createContainerFromModel wenv node state = Just newContainer where
-    newContainer = container {
-      containerChildrenOffset = Just (_ppsOffset state)
-    }
 
   init wenv node = result where
     result = checkPopup field config state wenv node
@@ -340,10 +331,9 @@ makePopup field config state = widget where
       isVisible = widgetDataGet (wenv ^. L.model) field
       disableClose = _ppcDisableClose config == Just True
       isCloseable = isVisible && not disableClose
-      offset = _ppsOffset state
 
       child = Seq.index (node ^. L.children) 0
-      cviewport = moveRect offset (child ^. L.info . L.viewport)
+      cviewport = child ^. L.info . L.viewport
       insidePopup point = pointInRect point cviewport
 
   getSizeReq wenv node children = (newReqW, newReqH) where
@@ -382,42 +372,36 @@ makePopup field config state = widget where
 
     cw = sizeReqMaxBounded (child ^. L.info . L.sizeReqW)
     ch = sizeReqMaxBounded (child ^. L.info . L.sizeReqH)
-    carea = Rect (cx + ox) (cy + oy) cw ch
+    tmpArea = Rect (cx + ox) (cy + oy) cw ch
 
-    newState = state {
-      _ppsOffset = calcPopupOffset wenv carea
-    }
-    newNode = node
-      & L.widget .~ makePopup field config newState
+    winOffset = calcPopupOffset wenv tmpArea
+    carea = moveRect winOffset tmpArea
 
     assignedAreas = Seq.fromList [carea]
-    resized = (resultNode newNode, assignedAreas)
-
-  calcPopupOffset wenv viewport = Point offsetX offsetY where
-    Size winW winH = _weWindowSize wenv
-    Rect cx cy cw ch = moveRect (wenv ^. L.offset) viewport
-
-    offsetX
-      | cx + cw > winW = winW - cx - cw
-      | otherwise = 0
-    offsetY
-      | cy + ch > winH = winH - cy - ch
-      | otherwise = 0
+    resized = (resultNode node, assignedAreas)
 
   render wenv node renderer =
     when isVisible $
       createOverlay renderer $
-        drawInTranslation renderer totalOffset $
-          widgetRender (child ^. L.widget) cwenv child renderer
+        widgetRender (child ^. L.widget) wenv child renderer
     where
       child = Seq.index (node ^. L.children) 0
       cviewport = child ^. L.info . L.viewport
       isVisible = widgetDataGet (wenv ^. L.model) field
-      scOffset = wenv ^. L.offset
-      offset = _ppsOffset state
-      totalOffset = addPoint scOffset offset
-      cwenv = updateWenvOffset container wenv node cviewport
-        & L.viewport .~ cviewport
+
+calcPopupOffset :: WidgetEnv s e -> Rect -> Point
+calcPopupOffset wenv viewport = Point offsetX offsetY where
+  Size winW winH = wenv ^. L.windowSize
+  Rect cx cy cw ch = moveRect (wenv ^. L.offset) viewport
+
+  offsetX
+    | cx < 0 = -cx
+    | cx + cw > winW = winW - cx - cw
+    | otherwise = 0
+  offsetY
+    | cy < 0 = -cy
+    | cy + ch > winH = winH - cy - ch
+    | otherwise = 0
 
 checkPopup
   :: WidgetModel s
