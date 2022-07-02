@@ -9,22 +9,22 @@ Portability : non-portable
 Popup widget, used to display content overlaid on top of the active widget tree.
 When the popup is open events will not reach the widgets below it.
 
-Besides the content to display when open, a popup requires a lens or value to
-indicate if the content should be visible or not. This flag can be used to
-programatically open/close the popup. The popup can also be closed by clicking
-outside its content.
+In addition to the content that is displayed when open, a popup requires a
+boolean lens or value to indicate if the content should be visible. This flag
+can be used to programatically open/close the popup. The popup can also be
+closed by clicking outside its content.
 
 In general it is a good idea to set a background color to the top level content
 widget, since by default most widgets have a transparent background; this is
 true in particular for containers.
 
 @
-popup visiblePopup $  -- visiblePopup is a lens to a field in the model
+popup visiblePopup $  -- visiblePopup is a lens to a Bool field in the model
   label "This will appear on top of the widget tree"
     `styleBasic` [bgColor gray, padding 10]
 @
 
-By default the popup will be open at the top-left location the widget would be,
+By default the popup will be open at the top-left location the widget would be
 if it was directly embedded in the widget tree. One common pattern is having a
 popup open when clicking a button, and the expectation is it will open below the
 button. This can be achieved with:
@@ -34,6 +34,35 @@ vstack [
   button "Open" OpenPopup,
   popup visiblePopup (label "Content")
 ]
+@
+
+The popup's content can be aligned relative to the location of the popup widget
+in the widget tree:
+
+@
+popup_ visiblePopup [alignTop, alignCenter] $
+  label "This will appear on top of the widget tree"
+    `styleBasic` [bgColor gray, padding 10]
+@
+
+Alternatively, aligning relative to the application's window is possible. It can
+be useful for displaying notifications:
+
+@
+popup_ visiblePopup [popupAlignWindow, alignTop, alignCenter] $
+  label "This will appear on top of the widget tree"
+    `styleBasic` [bgColor gray, padding 10]
+@
+
+It's also possible to add an offset to the location of the popup, and it can be
+combined with alignment options:
+
+@
+cfgs = [popupAlignWindow, alignTop, alignCenter, popupOffset (Point 0 5)]
+
+popup_ visiblePopup cfgs $
+  label "This will appear on top of the widget tree"
+    `styleBasic` [bgColor gray, padding 10]
 @
 
 For an example of popup's use, check 'Monomer.Widgets.Singles.ColorPopup'.
@@ -78,9 +107,11 @@ import qualified Monomer.Lens as L
 {-|
 Configuration options for popup:
 
+- 'popupDisableClose': do not close the popup when clicking outside the content.
+- 'popupAlignToWindow': align the popup to the application's window.
+- 'popupOffset': offset to add to the default location of the popup.
 - 'popupOpenAtClick': whether to open the content at the location of the mouse
   pointer.
-- 'popupOffset': offset to add to the default location of the popup.
 - 'onChange': event to raise when the popup is opened/closed.
 - 'onChangeReq': 'WidgetRequest' to generate when the popup is opened/closed.
 -}
