@@ -7,14 +7,14 @@ Stability   : experimental
 Portability : non-portable
 
 Popup widget, used to display content overlaid on top of the active widget tree.
-When the popup is open events will not reach the widgets below it.
+When the popup is open, events will not reach the widgets below it.
 
 In addition to the content that is displayed when open, a popup requires a
 boolean lens or value to indicate if the content should be visible. This flag
 can be used to programatically open/close the popup. The popup can also be
 closed by clicking outside its content.
 
-In general it is a good idea to set a background color to the top level content
+In general, it is a good idea to set a background color to the top level content
 widget, since by default most widgets have a transparent background; this is
 true in particular for containers.
 
@@ -50,7 +50,7 @@ be useful for displaying notifications:
 
 @
 popup_ visiblePopup [popupAlignWindow, alignTop, alignCenter] $
-  label "This will appear on top of the widget tree"
+  label "This will appear centered at the top of the main window"
     `styleBasic` [bgColor gray, padding 10]
 @
 
@@ -61,7 +61,7 @@ combined with alignment options:
 cfgs = [popupAlignWindow, alignTop, alignCenter, popupOffset (Point 0 5)]
 
 popup_ visiblePopup cfgs $
-  label "This will appear on top of the widget tree"
+  label "This will appear centered almost at the top of the main window"
     `styleBasic` [bgColor gray, padding 10]
 @
 
@@ -81,8 +81,8 @@ module Monomer.Widgets.Containers.Popup (
   popupAlignToWindow,
   popupAlignToWindow_,
   popupOffset,
-  popupOpenAtClick,
-  popupOpenAtClick_,
+  popupOpenAtCursor,
+  popupOpenAtCursor_,
 
   -- * Constructors
   popup,
@@ -110,13 +110,18 @@ Configuration options for popup:
 - 'popupDisableClose': do not close the popup when clicking outside the content.
 - 'popupAlignToWindow': align the popup to the application's window.
 - 'popupOffset': offset to add to the default location of the popup.
-- 'popupOpenAtClick': whether to open the content at the location of the mouse
-  pointer.
+- 'popupOpenAtCursor': whether to open the content at the cursor position.
+- 'alignLeft': left align relative to the widget location or main window.
+- 'alignRight': right align relative to the widget location or main window.
+- 'alignCenter': center align relative to the widget location or main window.
+- 'alignTop': top align relative to the widget location or main window.
+- 'alignMiddle': middle align relative to the widget location or main window.
+- 'alignBottom': bottom align relative to the widget location or main window.
 - 'onChange': event to raise when the popup is opened/closed.
 - 'onChangeReq': 'WidgetRequest' to generate when the popup is opened/closed.
 -}
 data PopupCfg s e = PopupCfg {
-  _ppcOpenAtClickPos :: Maybe Bool,
+  _ppcOpenAtCursor :: Maybe Bool,
   _ppcDisableClose :: Maybe Bool,
   _ppcAlignToWindow :: Maybe Bool,
   _ppcAlignH :: Maybe AlignH,
@@ -127,7 +132,7 @@ data PopupCfg s e = PopupCfg {
 
 instance Default (PopupCfg s e) where
   def = PopupCfg {
-    _ppcOpenAtClickPos = Nothing,
+    _ppcOpenAtCursor = Nothing,
     _ppcDisableClose = Nothing,
     _ppcAlignToWindow = Nothing,
     _ppcAlignH = Nothing,
@@ -138,7 +143,7 @@ instance Default (PopupCfg s e) where
 
 instance Semigroup (PopupCfg s e) where
   (<>) t1 t2 = PopupCfg {
-    _ppcOpenAtClickPos = _ppcOpenAtClickPos t2 <|> _ppcOpenAtClickPos t1,
+    _ppcOpenAtCursor = _ppcOpenAtCursor t2 <|> _ppcOpenAtCursor t1,
     _ppcDisableClose = _ppcDisableClose t2 <|> _ppcDisableClose t1,
     _ppcAlignToWindow = _ppcAlignToWindow t2 <|> _ppcAlignToWindow t1,
     _ppcAlignH = _ppcAlignH t2 <|> _ppcAlignH t1,
@@ -200,33 +205,43 @@ newtype PopupState = PopupState {
   _ppsClickPos :: Point
 } deriving (Eq, Show)
 
+-- | Clicking outside the popup's content will not close it.
 popupDisableClose :: PopupCfg s e
 popupDisableClose = popupDisableClose_ True
 
+-- | Sets whether clicking outside the popup's content will not close it.
 popupDisableClose_ :: Bool -> PopupCfg s e
 popupDisableClose_ close = def {
   _ppcDisableClose = Just close
 }
 
+-- | Alignment will be relative to the application's main window.
 popupAlignToWindow :: PopupCfg s e
 popupAlignToWindow = popupAlignToWindow_ True
 
+-- | Sets whether alignment will be relative to the application's main window.
 popupAlignToWindow_ :: Bool -> PopupCfg s e
 popupAlignToWindow_ align = def {
   _ppcAlignToWindow = Just align
 }
 
+{-|
+Offset to be applied to the location of the popup. It is applied after alignment
+options but before adjusting for screen boundaries.
+-}
 popupOffset :: Point -> PopupCfg s e
 popupOffset point = def {
   _ppcOffset = Just point
 }
 
-popupOpenAtClick :: PopupCfg s e
-popupOpenAtClick = popupOpenAtClick_ True
+-- | The popup will open at the current cursor position.
+popupOpenAtCursor :: PopupCfg s e
+popupOpenAtCursor = popupOpenAtCursor_ True
 
-popupOpenAtClick_ :: Bool -> PopupCfg s e
-popupOpenAtClick_ open = def {
-  _ppcOpenAtClickPos = Just open
+-- | Sets whether the popup will open at the current cursor position.
+popupOpenAtCursor_ :: Bool -> PopupCfg s e
+popupOpenAtCursor_ open = def {
+  _ppcOpenAtCursor = Just open
 }
 
 -- | Creates a popup with the given lens to determine its visibility.
@@ -347,7 +362,7 @@ makePopup field config state = widget where
     Point sx sy = _ppsClickPos state
     Point ox oy = fromMaybe def (_ppcOffset config)
 
-    openAtMouse = _ppcOpenAtClickPos config == Just True
+    openAtCursor = _ppcOpenAtCursor config == Just True
     alignWin = _ppcAlignToWindow config == Just True
     alignH = _ppcAlignH config
     alignV = _ppcAlignV config
@@ -357,14 +372,14 @@ makePopup field config state = widget where
       | alignWin = wenv ^. L.viewport
       | otherwise = viewport
     cx
-      | openAtMouse = sx
+      | openAtCursor = sx
       | alignH == Just ALeft = ax
       | alignH == Just ACenter = ax + (aw - cw) / 2
       | alignH == Just ARight = ax + aw - cw
       | otherwise = px
 
     cy
-      | openAtMouse = sy
+      | openAtCursor = sy
       | alignV == Just ATop = ay
       | alignV == Just AMiddle = ay + (ah - ch) / 2
       | alignV == Just ABottom = ay + ah - ch
