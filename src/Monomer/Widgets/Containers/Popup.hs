@@ -341,6 +341,8 @@ makePopup field config state = widget where
       | isCloseable && isKeyEscape code -> Just (closePopup field node)
     ButtonAction point button BtnPressed clicks
       | isCloseable && not (insidePopup point) -> Just (closePopup field node)
+    Click point button clicks
+      | isCloseable && not (insidePopup point) -> Just (closePopup field node)
     _ -> Nothing
     where
       isVisible = widgetDataGet (wenv ^. L.model) field

@@ -460,6 +460,7 @@ test-suite monomer-test
       Monomer.Widgets.Containers.DropdownSpec
       Monomer.Widgets.Containers.GridSpec
       Monomer.Widgets.Containers.KeystrokeSpec
+      Monomer.Widgets.Containers.PopupSpec
       Monomer.Widgets.Containers.ScrollSpec
       Monomer.Widgets.Containers.SelectListSpec
       Monomer.Widgets.Containers.SplitSpec
