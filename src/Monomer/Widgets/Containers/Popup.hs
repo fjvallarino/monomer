@@ -338,12 +338,16 @@ makePopup field config state = widget where
 
   handleEvent wenv node target evt = case evt of
     KeyAction mod code KeyPressed
-      | isCloseable && isKeyEscape code -> Just (closePopup field node)
+      | isCloseable && isKeyEscape code -> Just closeResult
+
     ButtonAction point button BtnPressed clicks
-      | isCloseable && not (insidePopup point) -> Just (closePopup field node)
+      | isCloseable && not (insidePopup point) -> Just closeResult
+
     Click point button clicks
-      | isCloseable && not (insidePopup point) -> Just (closePopup field node)
+      | isCloseable && not (insidePopup point) -> Just closeResult
+
     _ -> Nothing
+
     where
       isVisible = widgetDataGet (wenv ^. L.model) field
       disableClose = _ppcDisableClose config == Just True
@@ -352,6 +356,8 @@ makePopup field config state = widget where
       child = Seq.index (node ^. L.children) 0
       cviewport = child ^. L.info . L.viewport
       insidePopup point = pointInRect point cviewport
+
+      closeResult = closePopup field config wenv node
 
   getSizeReq wenv node children = (newReqW, newReqH) where
     -- Width and height do not matter, only location is important.
@@ -438,7 +444,7 @@ checkPopup field config state wenv node = result where
 
   result
     | shouldDisplay && not isOverlay = showPopup field config state wenv node
-    | not shouldDisplay && isOverlay = hidePopup node
+    | not shouldDisplay && isOverlay = hidePopup config node
     | otherwise = resultNode (useNewState node)
 
 showPopup
@@ -453,34 +459,51 @@ showPopup field config state wenv node = result where
   widgetId = node ^. L.info . L.widgetId
   path = node ^. L.info . L.path
   mousePos = wenv ^. L.inputStatus . L.mousePos
+  onChangeReqs = fmap ($ True) (_ppcOnChangeReq config)
+  showReqs = [
+      ResizeWidgets widgetId,
+      SetOverlay widgetId path,
+      MoveFocus (Just widgetId) FocusFwd
+    ]
+
   newState = state {
     _ppsClickPos = mousePos
   }
   newNode = node
     & L.widget .~ makePopup field config newState
-  reqs = [
-      ResizeWidgets widgetId,
-      SetOverlay widgetId path,
-      MoveFocus (Just widgetId) FocusFwd
-    ]
+  reqs = mconcat [showReqs, onChangeReqs]
   result = resultReqs newNode reqs
 
-hidePopup :: WidgetNode s e -> WidgetResult s e
-hidePopup node = result where
+hidePopup :: PopupCfg s e -> WidgetNode s e -> WidgetResult s e
+hidePopup config node = result where
   widgetId = node ^. L.info . L.widgetId
-  reqs = [
+  onChangeReqs = fmap ($ False) (_ppcOnChangeReq config)
+  hideReqs = [
       ResetOverlay widgetId,
       MoveFocus (Just widgetId) FocusBwd
     ]
+
+  reqs = mconcat [hideReqs, onChangeReqs]
   result = resultReqs node reqs
 
-closePopup :: WidgetData s Bool -> WidgetNode s e -> WidgetResult s e
-closePopup field node = result where
+closePopup
+  :: WidgetData s Bool
+  -> PopupCfg s e
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetResult s e
+closePopup field config wenv node = result where
   widgetId = node ^. L.info . L.widgetId
   toggleShow = widgetDataSet field False
-  reqs = [
+  isOverlay = isNodeInOverlay wenv node
+  onChangeReqs
+    | isOverlay = fmap ($ False) (_ppcOnChangeReq config)
+    | otherwise = []
+  closeReqs = [
       IgnoreChildrenEvents,
       ResetOverlay widgetId,
       MoveFocus (Just widgetId) FocusBwd
-    ] ++ toggleShow
+    ]
+
+  reqs = mconcat [closeReqs, toggleShow, onChangeReqs]
   result = resultReqs node reqs
