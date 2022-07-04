@@ -42,7 +42,7 @@ data TestModel = TestModel {
 makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
-spec = fdescribe "Popup"
+spec = describe "Popup"
   handleEvent
 
 handleEvent :: Spec
