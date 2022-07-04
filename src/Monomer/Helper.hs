@@ -95,4 +95,6 @@ headMay [] = Nothing
 headMay (x : _) = Just x
 
 putStrLnErr :: String -> IO ()
-putStrLnErr msg = hPutStrLn stderr msg
+putStrLnErr msg = catchAny
+  (hPutStrLn stderr msg)
+  (const $ putStrLn msg)

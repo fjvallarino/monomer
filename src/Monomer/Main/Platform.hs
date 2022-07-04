@@ -28,12 +28,15 @@ import Control.Monad.Extra (whenJust)
 import Control.Monad.State
 import Data.Maybe
 import Data.Text (Text)
+import Data.Word
 import Foreign (alloca, peek)
 import Foreign.C (peekCString, withCString)
 import Foreign.C.Types
 import SDL (($=))
 
+import qualified Codec.Picture as P
 import qualified Data.Text as T
+import qualified Data.Vector.Storable as V
 import qualified Foreign.C.String as STR
 import qualified SDL
 import qualified SDL.Input.Mouse as Mouse
@@ -57,9 +60,14 @@ defaultWindowSize = (800, 600)
 initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double, SDL.GLContext)
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
-  SDL.HintRenderScaleQuality $= SDL.ScaleLinear
-  setDisableCompositorHint compositingFlag
 
+  setDisableCompositorHint disableCompositingFlag
+
+  if disableScreensaverFlag
+    then Raw.disableScreenSaver
+    else Raw.enableScreenSaver
+
+  SDL.HintRenderScaleQuality $= SDL.ScaleLinear
   renderQuality <- SDL.get SDL.HintRenderScaleQuality
 
   when (renderQuality /= SDL.ScaleLinear) $
@@ -130,9 +138,12 @@ initSDLWindow config = do
       SDL.glProfile = SDL.Core SDL.Normal 3 2,
       SDL.glMultisampleSamples = 1
     }
-    compositingFlag = fromMaybe False (_apcDisableCompositing config)
-    userScaleFactor = fromMaybe 1 (_apcScaleFactor config)
+
+    disableCompositingFlag = _apcDisableCompositing config == Just True
+    disableScreensaverFlag = _apcDisableScreensaver config == Just True
     disableAutoScale = _apcDisableAutoScale config == Just True
+    userScaleFactor = fromMaybe 1 (_apcScaleFactor config)
+
     (baseW, baseH) = case _apcWindowState config of
       Just (MainWindowNormal size) -> size
       _ -> defaultWindowSize
@@ -149,7 +160,7 @@ setWindowIcon :: SDL.Window -> AppConfig e -> IO ()
 setWindowIcon (SIT.Window winPtr) config =
   forM_ (_apcWindowIcon config) $ \iconPath ->
     flip catchAny handleException $ do
-      iconSurface <- SVR.loadBMP (T.unpack iconPath)
+      iconSurface <- loadImgToSurface (T.unpack iconPath)
       let SVR.Surface iconSurfacePtr _ = iconSurface
       finally
         -- Note: this can use the high-level setWindowIcon once it is available (https://github.com/haskell-game/sdl2/pull/243)
@@ -245,9 +256,28 @@ getDisplayDPIFactor = do
   return (hdpi / 96)
 
 setDisableCompositorHint :: Bool -> IO ()
-setDisableCompositorHint disable = void $
-  withCString "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR" $ \cHintNameStr ->
-    withCString disableStr $ \cDisableStr ->
-      Raw.setHint cHintNameStr cDisableStr
+setDisableCompositorHint disable =
+  setBooleanHintSDL "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR" disable
+
+setBooleanHintSDL :: String -> Bool -> IO ()
+setBooleanHintSDL flagName value = void $
+  withCString flagName $ \cHintNameStr ->
+    withCString valueStr $ \cValueStr ->
+      Raw.setHint cHintNameStr cValueStr
   where
-    disableStr = if disable then "1" else "0"
+    valueStr = if value then "1" else "0"
+
+readImageRGBA8 :: FilePath -> IO (P.Image P.PixelRGBA8)
+readImageRGBA8 path = P.readImage path
+  >>= either fail (return . P.convertRGBA8)
+
+loadImgToSurface :: FilePath -> IO SDL.Surface
+loadImgToSurface path = do
+  rgba8 <- readImageRGBA8 path
+  imgData <- V.thaw (P.imageData rgba8)
+
+  let width = fromIntegral $ P.imageWidth rgba8
+      height = fromIntegral $ P.imageHeight rgba8
+      imgSize = SDL.V2 width height
+
+  SDL.createRGBSurfaceFrom imgData imgSize (4 * width) SDL.ABGR8888

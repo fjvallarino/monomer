@@ -94,7 +94,7 @@ main = do
   where
     config = [
       appWindowTitle "OpenGL",
-      appWindowIcon "./assets/images/icon.bmp",
+      appWindowIcon "./assets/images/icon.png",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent AppInit
