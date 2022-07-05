@@ -68,6 +68,7 @@ import Debug.Trace
 import Control.Applicative ((<|>))
 import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens (ALens', (&), (^.), (^?), (.~), (%~), (<>~), at, ix, non)
+import Control.Monad (when)
 import Data.Default
 import Data.List (foldl')
 import Data.Map.Strict (Map)
@@ -858,8 +859,9 @@ compositeRender
   -> Renderer
   -> IO ()
 compositeRender comp state wenv widgetComp renderer =
-  drawStyledAction renderer viewport style $ \_ ->
-    widgetRender widget cwenv _cpsRoot renderer
+  when (isWidgetVisible wenv widgetComp) $
+    drawStyledAction renderer viewport style $ \_ ->
+      widgetRender widget cwenv _cpsRoot renderer
   where
     CompositeState{..} = state
     widget = _cpsRoot ^. L.widget

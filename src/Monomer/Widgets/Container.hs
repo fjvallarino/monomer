@@ -1155,24 +1155,24 @@ renderWrapper
   -> Renderer
   -> IO ()
 renderWrapper container wenv !node !renderer =
-  drawInScissor renderer useScissor viewport $
-    drawStyledAction_ renderer drawDecorations viewport style $ \_ -> do
-      renderBefore wenv node renderer
+  when (isWidgetVisible wenv node) $
+    drawInScissor renderer useScissor viewport $
+      drawStyledAction_ renderer drawDecorations viewport style $ \_ -> do
+        renderBefore wenv node renderer
 
-      drawInScissor renderer useChildrenScissor childrenScissorRect $ do
-        when (isJust offset) $ do
-          saveContext renderer
-          setTranslation renderer (fromJust offset)
+        drawInScissor renderer useChildrenScissor childrenScissorRect $ do
+          when (isJust offset) $ do
+            saveContext renderer
+            setTranslation renderer (fromJust offset)
 
-        forM_ pairs $ \(idx, child) ->
-          when (isWidgetVisible (cwenv child idx) child) $
+          forM_ pairs $ \(idx, child) ->
             widgetRender (child ^. L.widget) (cwenv child idx) child renderer
 
-        when (isJust offset) $
-          restoreContext renderer
+          when (isJust offset) $
+            restoreContext renderer
 
-      -- Outside children scissor
-      renderAfter wenv node renderer
+        -- Outside children scissor
+        renderAfter wenv node renderer
   where
     style = containerGetCurrentStyle container wenv node
     updateCWenv = getUpdateCWenv container

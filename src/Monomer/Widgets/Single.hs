@@ -41,6 +41,7 @@ module Monomer.Widgets.Single (
 
 import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens ((&), (^.), (^?), (.~), (%~), _Just)
+import Control.Monad (when)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
@@ -600,9 +601,10 @@ renderWrapper
   -> Renderer
   -> IO ()
 renderWrapper single wenv node renderer =
-  drawInScissor renderer useScissor viewport $
-    drawStyledAction_ renderer drawDecorations viewport style $ \_ ->
-      handler wenv node renderer
+  when (isWidgetVisible wenv node) $
+    drawInScissor renderer useScissor viewport $
+      drawStyledAction_ renderer drawDecorations viewport style $ \_ ->
+        handler wenv node renderer
   where
     handler = singleRender single
     drawDecorations = singleDrawDecorations single
