@@ -362,8 +362,8 @@ makePopup field config state = widget where
 
   getSizeReq wenv node children = (newReqW, newReqH) where
     -- Width and height do not matter, only location is important.
-    newReqW = flexWidth 0
-    newReqH = flexHeight 0
+    newReqW = flexWidth 0.01
+    newReqH = flexHeight 0.01
 
   resize :: ContainerResizeHandler s e
   resize wenv node viewport children = resized where
@@ -376,7 +376,10 @@ makePopup field config state = widget where
     alignWin = _ppcAlignToWindow config == Just True
     alignH = _ppcAlignH config
     alignV = _ppcAlignV config
+
     child = Seq.index children 0
+    cw = sizeReqMaxBounded (child ^. L.info . L.sizeReqW)
+    ch = sizeReqMaxBounded (child ^. L.info . L.sizeReqH)
 
     Rect ax ay aw ah
       | alignWin = Rect 0 0 ww wh
@@ -395,10 +398,7 @@ makePopup field config state = widget where
       | alignV == Just ABottom = ay + ah - ch
       | otherwise = py
 
-    cw = sizeReqMaxBounded (child ^. L.info . L.sizeReqW)
-    ch = sizeReqMaxBounded (child ^. L.info . L.sizeReqH)
     tmpArea = Rect (cx + ox) (cy + oy) cw ch
-
     winOffset = calcWindowOffset wenv config tmpArea
     carea = moveRect winOffset tmpArea
 
