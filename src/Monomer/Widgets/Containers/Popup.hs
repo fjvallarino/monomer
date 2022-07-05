@@ -318,7 +318,7 @@ makePopup
   -> PopupState
   -> Widget s e
 makePopup field config state = widget where
-  baseWidget = createContainer state def {
+  container = def {
     containerAddStyleReq = False,
     containerInit = init,
     containerMerge = merge,
@@ -326,6 +326,7 @@ makePopup field config state = widget where
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
+  baseWidget = createContainer state container
   widget = baseWidget {
     widgetRender = render
   }
@@ -366,6 +367,7 @@ makePopup field config state = widget where
 
   resize :: ContainerResizeHandler s e
   resize wenv node viewport children = resized where
+    Size ww wh = wenv ^. L.windowSize
     Rect px py pw ph = viewport
     Point sx sy = _ppsClickPos state
     Point ox oy = fromMaybe def (_ppcOffset config)
@@ -377,7 +379,7 @@ makePopup field config state = widget where
     child = Seq.index children 0
 
     Rect ax ay aw ah
-      | alignWin = wenv ^. L.viewport
+      | alignWin = Rect 0 0 ww wh
       | otherwise = viewport
     cx
       | openAtCursor = sx
@@ -397,7 +399,7 @@ makePopup field config state = widget where
     ch = sizeReqMaxBounded (child ^. L.info . L.sizeReqH)
     tmpArea = Rect (cx + ox) (cy + oy) cw ch
 
-    winOffset = calcPopupOffset wenv tmpArea
+    winOffset = calcWindowOffset wenv config tmpArea
     carea = moveRect winOffset tmpArea
 
     assignedAreas = Seq.fromList [carea]
@@ -406,16 +408,30 @@ makePopup field config state = widget where
   render wenv node renderer =
     when isVisible $
       createOverlay renderer $
-        widgetRender (child ^. L.widget) wenv child renderer
+        drawInTranslation renderer scrollOffset $ do
+          widgetRender (child ^. L.widget) cwenv child renderer
     where
-      child = Seq.index (node ^. L.children) 0
-      cviewport = child ^. L.info . L.viewport
       isVisible = widgetDataGet (wenv ^. L.model) field
 
-calcPopupOffset :: WidgetEnv s e -> Rect -> Point
-calcPopupOffset wenv viewport = Point offsetX offsetY where
+      alignWin = _ppcAlignToWindow config == Just True
+      scrollOffset
+        | alignWin = def
+        | otherwise = wenv ^. L.offset
+
+      child = Seq.index (node ^. L.children) 0
+      childVp = child ^. L.info . L.viewport
+
+      cwenv = updateWenvOffset container wenv node childVp
+        & L.viewport .~ childVp
+
+calcWindowOffset :: WidgetEnv s e -> PopupCfg s e -> Rect -> Point
+calcWindowOffset wenv config viewport = Point offsetX offsetY where
+  alignWin = _ppcAlignToWindow config == Just True
+
   Size winW winH = wenv ^. L.windowSize
-  Rect cx cy cw ch = moveRect (wenv ^. L.offset) viewport
+  Rect cx cy cw ch
+    | alignWin = viewport
+    | otherwise = moveRect (wenv ^. L.offset) viewport
 
   offsetX
     | cx < 0 = -cx
