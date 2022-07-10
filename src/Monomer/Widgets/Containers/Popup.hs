@@ -80,13 +80,15 @@ module Monomer.Widgets.Containers.Popup (
   -- * Configuration
   PopupCfg,
   popupAnchor,
-  popupDisableClose,
-  popupDisableClose_,
+  popupAlignToOuter,
+  popupAlignToOuter_,
   popupAlignToWindow,
   popupAlignToWindow_,
   popupOffset,
   popupOpenAtCursor,
   popupOpenAtCursor_,
+  popupDisableClose,
+  popupDisableClose_,
 
   -- * Constructors
   popup,
@@ -112,10 +114,12 @@ import qualified Monomer.Lens as L
 {-|
 Configuration options for popup:
 
-- 'popupDisableClose': do not close the popup when clicking outside the content.
+- 'popupAnchor': a widget to be used as a reference for positioning the popup.
+- 'popupAlignToOuter': align the popup to the anchor's outer borders.
 - 'popupAlignToWindow': align the popup to the application's window.
 - 'popupOffset': offset to add to the default location of the popup.
 - 'popupOpenAtCursor': whether to open the content at the cursor position.
+- 'popupDisableClose': do not close the popup when clicking outside the content.
 - 'alignLeft': left align relative to the widget location or main window.
 - 'alignRight': right align relative to the widget location or main window.
 - 'alignCenter': center align relative to the widget location or main window.
@@ -127,36 +131,39 @@ Configuration options for popup:
 -}
 data PopupCfg s e = PopupCfg {
   _ppcAnchor :: Maybe (WidgetNode s e),
-  _ppcOpenAtCursor :: Maybe Bool,
-  _ppcDisableClose :: Maybe Bool,
+  _ppcAlignToOuter :: Maybe Bool,
   _ppcAlignToWindow :: Maybe Bool,
   _ppcAlignH :: Maybe AlignH,
   _ppcAlignV :: Maybe AlignV,
   _ppcOffset :: Maybe Point,
+  _ppcOpenAtCursor :: Maybe Bool,
+  _ppcDisableClose :: Maybe Bool,
   _ppcOnChangeReq :: [Bool -> WidgetRequest s e]
 }
 
 instance Default (PopupCfg s e) where
   def = PopupCfg {
     _ppcAnchor = Nothing,
-    _ppcOpenAtCursor = Nothing,
-    _ppcDisableClose = Nothing,
+    _ppcAlignToOuter = Nothing,
     _ppcAlignToWindow = Nothing,
     _ppcAlignH = Nothing,
     _ppcAlignV = Nothing,
     _ppcOffset = Nothing,
+    _ppcOpenAtCursor = Nothing,
+    _ppcDisableClose = Nothing,
     _ppcOnChangeReq = []
   }
 
 instance Semigroup (PopupCfg s e) where
   (<>) t1 t2 = PopupCfg {
     _ppcAnchor = _ppcAnchor t2 <|> _ppcAnchor t1,
-    _ppcOpenAtCursor = _ppcOpenAtCursor t2 <|> _ppcOpenAtCursor t1,
-    _ppcDisableClose = _ppcDisableClose t2 <|> _ppcDisableClose t1,
+    _ppcAlignToOuter = _ppcAlignToOuter t2 <|> _ppcAlignToOuter t1,
     _ppcAlignToWindow = _ppcAlignToWindow t2 <|> _ppcAlignToWindow t1,
     _ppcAlignH = _ppcAlignH t2 <|> _ppcAlignH t1,
     _ppcAlignV = _ppcAlignV t2 <|> _ppcAlignV t1,
     _ppcOffset = _ppcOffset t2 <|> _ppcOffset t1,
+    _ppcOpenAtCursor = _ppcOpenAtCursor t2 <|> _ppcOpenAtCursor t1,
+    _ppcDisableClose = _ppcDisableClose t2 <|> _ppcDisableClose t1,
     _ppcOnChangeReq = _ppcOnChangeReq t1 <> _ppcOnChangeReq t2
   }
 
@@ -224,14 +231,24 @@ popupAnchor node = def {
   _ppcAnchor = Just node
 }
 
--- | Clicking outside the popup's content will not close it.
-popupDisableClose :: PopupCfg s e
-popupDisableClose = popupDisableClose_ True
+{-
+Align the popup to the outer edges of the anchor. It only applies to left,
+right, top and bottom alignments.
 
--- | Sets whether clicking outside the popup's content will not close it.
-popupDisableClose_ :: Bool -> PopupCfg s e
-popupDisableClose_ close = def {
-  _ppcDisableClose = Just close
+This option does not work with 'popupAlignToWindow'.
+-}
+popupAlignToOuter :: PopupCfg s e
+popupAlignToOuter = popupAlignToOuter_ True
+
+{-|
+Sets whether to align the popup to the outer edges of the anchor. It only
+applies to left, right, top and bottom alignments.
+
+This option does not work with 'popupAlignToWindow'.
+-}
+popupAlignToOuter_ :: Bool -> PopupCfg s e
+popupAlignToOuter_ align = def {
+  _ppcAlignToOuter = Just align
 }
 
 -- | Alignment will be relative to the application's main window.
@@ -261,6 +278,16 @@ popupOpenAtCursor = popupOpenAtCursor_ True
 popupOpenAtCursor_ :: Bool -> PopupCfg s e
 popupOpenAtCursor_ open = def {
   _ppcOpenAtCursor = Just open
+}
+
+-- | Clicking outside the popup's content will not close it.
+popupDisableClose :: PopupCfg s e
+popupDisableClose = popupDisableClose_ True
+
+-- | Sets whether clicking outside the popup's content will not close it.
+popupDisableClose_ :: Bool -> PopupCfg s e
+popupDisableClose_ close = def {
+  _ppcDisableClose = Just close
 }
 
 -- | Creates a popup with the given lens to determine its visibility.
@@ -410,10 +437,11 @@ makePopup field config state = widget where
     Point sx sy = subPoint (_ppsClickPos state) (wenv ^. L.offset)
     Point ox oy = fromMaybe def (_ppcOffset config)
 
-    openAtCursor = _ppcOpenAtCursor config == Just True
+    alignOuter = _ppcAlignToOuter config == Just True
     alignWin = _ppcAlignToWindow config == Just True
     alignH = _ppcAlignH config
     alignV = _ppcAlignV config
+    openAtCursor = _ppcOpenAtCursor config == Just True
 
     content = Seq.index children contentIdx
     cw = sizeReqMaxBounded (content ^. L.info . L.sizeReqW)
@@ -424,15 +452,19 @@ makePopup field config state = widget where
       | otherwise = viewport
     cx
       | openAtCursor = sx
+      | alignH == Just ALeft && alignOuter = ax - cw
       | alignH == Just ALeft = ax
       | alignH == Just ACenter = ax + (aw - cw) / 2
+      | alignH == Just ARight && alignOuter = ax + aw
       | alignH == Just ARight = ax + aw - cw
       | otherwise = px
 
     cy
       | openAtCursor = sy
+      | alignV == Just ATop && alignOuter = ay - ch
       | alignV == Just ATop = ay
       | alignV == Just AMiddle = ay + (ah - ch) / 2
+      | alignV == Just ABottom && alignOuter = ay + ah
       | alignV == Just ABottom = ay + ah - ch
       | otherwise = py
 
