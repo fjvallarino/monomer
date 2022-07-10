@@ -144,6 +144,12 @@ Initializes the given node. This could include rebuilding the widget in case
 internal state needs to use model/environment information, generate user
 events or make requests to the runtime.
 
+During init, a widget can return an arbitrary list of child widgets as part of
+its result, even replacing those provided by the user. For this reason, child
+widgets are initialized after this init function is complete. In case you need
+to retrieve the 'WidgetId' of a child widget, you should use 'containerInitPost'
+instead.
+
 An example can be found in "Monomer.Widgets.Containers.SelectList".
 
 Most of the current containers serve layout purposes and don't need a custom
@@ -190,6 +196,12 @@ information.
 
 In general, you want to at least keep the previous state unless the widget is
 stateless or only consumes model/environment information.
+
+During merge, a widget can return an arbitrary list of child widgets as part of
+its result, even replacing those provided by the user. For this reason, new
+child widgets are initialized after this merge function is complete. In case you
+need to retrieve the 'WidgetId' of a child widget, you should use
+'containerMergePost' instead.
 
 Examples can be found in "Monomer.Widgets.Containers.Fade" and
 "Monomer.Widgets.Containers.Tooltip". On the other hand,
