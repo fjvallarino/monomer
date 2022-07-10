@@ -66,6 +66,9 @@ popup_ visiblePopup cfgs $
 @
 
 For an example of popup's use, check 'Monomer.Widgets.Singles.ColorPopup'.
+
+Note: style settings will be ignored by this widget. The content and anchor need
+to be styled independently.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -76,6 +79,7 @@ For an example of popup's use, check 'Monomer.Widgets.Singles.ColorPopup'.
 module Monomer.Widgets.Containers.Popup (
   -- * Configuration
   PopupCfg,
+  popupAnchor,
   popupDisableClose,
   popupDisableClose_,
   popupAlignToWindow,
@@ -101,6 +105,7 @@ import Data.Maybe
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
+import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 
@@ -121,6 +126,7 @@ Configuration options for popup:
 - 'onChangeReq': 'WidgetRequest' to generate when the popup is opened/closed.
 -}
 data PopupCfg s e = PopupCfg {
+  _ppcAnchor :: Maybe (WidgetNode s e),
   _ppcOpenAtCursor :: Maybe Bool,
   _ppcDisableClose :: Maybe Bool,
   _ppcAlignToWindow :: Maybe Bool,
@@ -132,6 +138,7 @@ data PopupCfg s e = PopupCfg {
 
 instance Default (PopupCfg s e) where
   def = PopupCfg {
+    _ppcAnchor = Nothing,
     _ppcOpenAtCursor = Nothing,
     _ppcDisableClose = Nothing,
     _ppcAlignToWindow = Nothing,
@@ -143,6 +150,7 @@ instance Default (PopupCfg s e) where
 
 instance Semigroup (PopupCfg s e) where
   (<>) t1 t2 = PopupCfg {
+    _ppcAnchor = _ppcAnchor t2 <|> _ppcAnchor t1,
     _ppcOpenAtCursor = _ppcOpenAtCursor t2 <|> _ppcOpenAtCursor t1,
     _ppcDisableClose = _ppcDisableClose t2 <|> _ppcDisableClose t1,
     _ppcAlignToWindow = _ppcAlignToWindow t2 <|> _ppcAlignToWindow t1,
@@ -205,6 +213,17 @@ newtype PopupState = PopupState {
   _ppsClickPos :: Point
 } deriving (Eq, Show)
 
+{-|
+Sets the widget that will be used as the anchor for the popup. In general, this
+anchor will also act as the trigger to open the popup (e.g. a button). When the
+popup is open, the anchor will be used to position the content, taking scroll
+and window size into consideration.
+-}
+popupAnchor :: WidgetNode s e -> PopupCfg s e
+popupAnchor node = def {
+  _ppcAnchor = Just node
+}
+
 -- | Clicking outside the popup's content will not close it.
 popupDisableClose :: PopupCfg s e
 popupDisableClose = popupDisableClose_ True
@@ -250,7 +269,7 @@ popup
   => ALens' s Bool
   -> WidgetNode s e
   -> WidgetNode s e
-popup field managed = popup_ field def managed
+popup field content = popup_ field def content
 
 {-|
 Creates a popup with the given lens to determine its visibility. Accepts config.
@@ -261,8 +280,8 @@ popup_
   -> [PopupCfg s e]
   -> WidgetNode s e
   -> WidgetNode s e
-popup_ field configs managed = newNode where
-  newNode = popupD_ (WidgetLens field) configs managed
+popup_ field configs content = newNode where
+  newNode = popupD_ (WidgetLens field) configs content
 
 {-|
 Creates a popup using the given value to determine its visibility and 'onChange'
@@ -274,7 +293,7 @@ popupV
   -> (Bool -> e)
   -> WidgetNode s e
   -> WidgetNode s e
-popupV value handler managed = popupV_ value handler def managed
+popupV value handler content = popupV_ value handler def content
 
 {-|
 Creates a popup using the given value to determine its visibility and 'onChange'
@@ -287,9 +306,9 @@ popupV_
   -> [PopupCfg s e]
   -> WidgetNode s e
   -> WidgetNode s e
-popupV_ value handler configs managed = newNode where
+popupV_ value handler configs content = newNode where
   newConfigs = onChange handler : configs
-  newNode = popupD_ (WidgetValue value) newConfigs managed
+  newNode = popupD_ (WidgetValue value) newConfigs content
 
 {-|
 Creates a popup providing a 'WidgetData' instance to determine its visibility
@@ -301,15 +320,26 @@ popupD_
   -> [PopupCfg s e]
   -> WidgetNode s e
   -> WidgetNode s e
-popupD_ wdata configs managed = makeNode widget managed where
+popupD_ wdata configs content = makeNode widget anchor content where
   config = mconcat configs
   state = PopupState def
   widget = makePopup wdata config state
 
-makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e
-makeNode widget managedWidget = defaultWidgetNode "popup" widget
+  anchor = case _ppcAnchor config of
+    Just node -> node
+    Nothing -> spacer
+      `styleBasic` [flexWidth 0.01]
+
+makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e -> WidgetNode s e
+makeNode widget anchor content = defaultWidgetNode "popup" widget
   & L.info . L.focusable .~ False
-  & L.children .~ Seq.singleton managedWidget
+  & L.children .~ Seq.fromList [anchor, content]
+
+anchorIdx :: Int
+anchorIdx = 0
+
+contentIdx :: Int
+contentIdx = 1
 
 makePopup
   :: forall s e . WidgetModel s
@@ -320,8 +350,8 @@ makePopup
 makePopup field config state = widget where
   container = def {
     containerAddStyleReq = False,
-    containerInit = init,
-    containerMerge = merge,
+    containerInitPost = initPost,
+    containerMergePost = mergePost,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
@@ -331,45 +361,53 @@ makePopup field config state = widget where
     widgetRender = render
   }
 
-  init wenv node = result where
-    result = checkPopup field config state wenv node
+  initPost wenv node newState result = newResult where
+    newResult = checkPopup field config newState wenv result
 
-  merge wenv node oldNode oldState = result where
-    result = checkPopup field config oldState wenv node
+  mergePost wenv node oldNode oldState newState result = newResult where
+    newResult = checkPopup field config newState wenv result
 
   handleEvent wenv node target evt = case evt of
     KeyAction mod code KeyPressed
       | isCloseable && isKeyEscape code -> Just closeResult
 
-    ButtonAction point button BtnPressed clicks
-      | isCloseable && not (insidePopup point) -> Just closeResult
-
     Click point button clicks
       | isCloseable && not (insidePopup point) -> Just closeResult
 
-    _ -> Nothing
+    {-
+    This check is needed because the anchor is inside the overlay, and otherwise
+    it would receive events when the popup is open.
+    -}
+    _
+      | isVisible && not isContentTarget -> Just ignoreResult
+      | otherwise -> Nothing
 
     where
-      isVisible = widgetDataGet (wenv ^. L.model) field
+      path = node ^. L.info . L.path
+
       disableClose = _ppcDisableClose config == Just True
+      isVisible = widgetDataGet (wenv ^. L.model) field
+      isContentTarget = isPathParent (path |> contentIdx) target
       isCloseable = isVisible && not disableClose
 
-      child = Seq.index (node ^. L.children) 0
-      cviewport = child ^. L.info . L.viewport
+      content = Seq.index (node ^. L.children) contentIdx
+      cviewport = content ^. L.info . L.viewport
       insidePopup point = pointInRect point cviewport
 
       closeResult = closePopup field config wenv node
+      ignoreResult = resultReqs node [IgnoreChildrenEvents]
 
+  getSizeReq :: ContainerGetSizeReqHandler s e
   getSizeReq wenv node children = (newReqW, newReqH) where
-    -- Width and height do not matter, only location is important.
-    newReqW = flexWidth 0.01
-    newReqH = flexHeight 0.01
+    anchor = Seq.index children anchorIdx
+    newReqW = anchor ^. L.info . L.sizeReqW
+    newReqH = anchor ^. L.info . L.sizeReqH
 
   resize :: ContainerResizeHandler s e
   resize wenv node viewport children = resized where
     Size ww wh = wenv ^. L.windowSize
     Rect px py pw ph = viewport
-    Point sx sy = _ppsClickPos state
+    Point sx sy = subPoint (_ppsClickPos state) (wenv ^. L.offset)
     Point ox oy = fromMaybe def (_ppcOffset config)
 
     openAtCursor = _ppcOpenAtCursor config == Just True
@@ -377,9 +415,9 @@ makePopup field config state = widget where
     alignH = _ppcAlignH config
     alignV = _ppcAlignV config
 
-    child = Seq.index children 0
-    cw = sizeReqMaxBounded (child ^. L.info . L.sizeReqW)
-    ch = sizeReqMaxBounded (child ^. L.info . L.sizeReqH)
+    content = Seq.index children contentIdx
+    cw = sizeReqMaxBounded (content ^. L.info . L.sizeReqW)
+    ch = sizeReqMaxBounded (content ^. L.info . L.sizeReqH)
 
     Rect ax ay aw ah
       | alignWin = Rect 0 0 ww wh
@@ -402,14 +440,16 @@ makePopup field config state = widget where
     winOffset = calcWindowOffset wenv config tmpArea
     carea = moveRect winOffset tmpArea
 
-    assignedAreas = Seq.fromList [carea]
+    assignedAreas = Seq.fromList [viewport, carea]
     resized = (resultNode node, assignedAreas)
 
-  render wenv node renderer =
+  render wenv node renderer = do
+    widgetRender (anchor ^. L.widget) awenv anchor renderer
+
     when isVisible $
       createOverlay renderer $
         drawInTranslation renderer scrollOffset $ do
-          widgetRender (child ^. L.widget) cwenv child renderer
+          widgetRender (content ^. L.widget) cwenv content renderer
     where
       isVisible = widgetDataGet (wenv ^. L.model) field
 
@@ -418,11 +458,21 @@ makePopup field config state = widget where
         | alignWin = def
         | otherwise = wenv ^. L.offset
 
-      child = Seq.index (node ^. L.children) 0
-      childVp = child ^. L.info . L.viewport
+      anchor = Seq.index (node ^. L.children) anchorIdx
+      anchorVp = anchor ^. L.info . L.viewport
+      content = Seq.index (node ^. L.children) contentIdx
+      contentVp = content ^. L.info . L.viewport
 
-      cwenv = updateWenvOffset container wenv node childVp
-        & L.viewport .~ childVp
+      -- Hacky solution to avoid the anchor acting as if it were top-level.
+      updateOverlay overlay
+        | isVisible = Just (content ^. L.info . L.path)
+        | otherwise = overlay
+      -- Update viewports to avoid clipping/scissoring issues.
+      awenv = updateWenvOffset container wenv node anchorVp
+        & L.viewport .~ anchorVp
+        & L.overlayPath %~ updateOverlay
+      cwenv = updateWenvOffset container wenv node contentVp
+        & L.viewport .~ contentVp
 
 calcWindowOffset :: WidgetEnv s e -> PopupCfg s e -> Rect -> Point
 calcWindowOffset wenv config viewport = Point offsetX offsetY where
@@ -448,20 +498,21 @@ checkPopup
   -> PopupCfg s e
   -> PopupState
   -> WidgetEnv s e
-  -> WidgetNode s e
   -> WidgetResult s e
-checkPopup field config state wenv node = result where
+  -> WidgetResult s e
+checkPopup field config state wenv result = newResult where
+  node = result ^. L.node
   shouldDisplay = widgetDataGet (wenv ^. L.model) field
   isOverlay = isNodeInOverlay wenv node
-  widgetId = node ^. L.info . L.widgetId
-  useNewState node = newNode where
-    newNode = node
-      & L.widget .~ makePopup field config state
 
-  result
+  (newNode, newReqs)
     | shouldDisplay && not isOverlay = showPopup field config state wenv node
     | not shouldDisplay && isOverlay = hidePopup config node
-    | otherwise = resultNode (useNewState node)
+    | otherwise = (node & L.widget .~ makePopup field config state, [])
+
+  newResult = result
+    & L.node . L.widget .~ newNode ^. L.widget
+    & L.requests <>~ Seq.fromList newReqs
 
 showPopup
   :: WidgetModel s
@@ -470,16 +521,20 @@ showPopup
   -> PopupState
   -> WidgetEnv s e
   -> WidgetNode s e
-  -> WidgetResult s e
-showPopup field config state wenv node = result where
+  -> (WidgetNode s e, [WidgetRequest s e])
+showPopup field config state wenv node = (newNode, newReqs) where
   widgetId = node ^. L.info . L.widgetId
   path = node ^. L.info . L.path
   mousePos = wenv ^. L.inputStatus . L.mousePos
+
+  anchor = Seq.index (node ^. L.children) anchorIdx
+  awidgetId = anchor ^. L.info . L.widgetId
+
   onChangeReqs = fmap ($ True) (_ppcOnChangeReq config)
   showReqs = [
       ResizeWidgets widgetId,
       SetOverlay widgetId path,
-      MoveFocus (Just widgetId) FocusFwd
+      MoveFocus (Just awidgetId) FocusFwd
     ]
 
   newState = state {
@@ -487,20 +542,21 @@ showPopup field config state wenv node = result where
   }
   newNode = node
     & L.widget .~ makePopup field config newState
-  reqs = mconcat [showReqs, onChangeReqs]
-  result = resultReqs newNode reqs
+  newReqs = mconcat [showReqs, onChangeReqs]
 
-hidePopup :: PopupCfg s e -> WidgetNode s e -> WidgetResult s e
-hidePopup config node = result where
+hidePopup
+  :: PopupCfg s e -> WidgetNode s e -> (WidgetNode s e, [WidgetRequest s e])
+hidePopup config node = (node, onChangeReqs <> hideReqs) where
   widgetId = node ^. L.info . L.widgetId
+
+  content = Seq.index (node ^. L.children) contentIdx
+  cwidgetId = content ^. L.info . L.widgetId
+
   onChangeReqs = fmap ($ False) (_ppcOnChangeReq config)
   hideReqs = [
       ResetOverlay widgetId,
-      MoveFocus (Just widgetId) FocusBwd
+      MoveFocus (Just cwidgetId) FocusBwd
     ]
-
-  reqs = mconcat [hideReqs, onChangeReqs]
-  result = resultReqs node reqs
 
 closePopup
   :: WidgetData s Bool
@@ -512,13 +568,17 @@ closePopup field config wenv node = result where
   widgetId = node ^. L.info . L.widgetId
   toggleShow = widgetDataSet field False
   isOverlay = isNodeInOverlay wenv node
+
+  content = Seq.index (node ^. L.children) contentIdx
+  cwidgetId = content ^. L.info . L.widgetId
+
   onChangeReqs
     | isOverlay = fmap ($ False) (_ppcOnChangeReq config)
     | otherwise = []
   closeReqs = [
       IgnoreChildrenEvents,
       ResetOverlay widgetId,
-      MoveFocus (Just widgetId) FocusBwd
+      MoveFocus (Just cwidgetId) FocusBwd
     ]
 
   reqs = mconcat [closeReqs, toggleShow, onChangeReqs]
