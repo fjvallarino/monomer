@@ -41,7 +41,7 @@ in the widget tree:
 
 @
 popup_ visiblePopup [alignTop, alignCenter] $
-  label "This will appear on top of the widget tree"
+  label "This will appear on top of the widget tree, aligned to the top-center"
     `styleBasic` [bgColor gray, padding 10]
 @
 
@@ -49,7 +49,7 @@ Alternatively, aligning relative to the application's window is possible. It can
 be useful for displaying notifications:
 
 @
-popup_ visiblePopup [popupAlignWindow, alignTop, alignCenter] $
+popup_ visiblePopup [popupAlignToWindow, alignTop, alignCenter] $
   label "This will appear centered at the top of the main window"
     `styleBasic` [bgColor gray, padding 10]
 @
@@ -58,10 +58,23 @@ It's also possible to add an offset to the location of the popup, and it can be
 combined with alignment options:
 
 @
-cfgs = [popupAlignWindow, alignTop, alignCenter, popupOffset (Point 0 5)]
+cfgs = [popupAlignToWindow, alignTop, alignCenter, popupOffset (Point 0 5)]
 
 popup_ visiblePopup cfgs $
   label "This will appear centered almost at the top of the main window"
+    `styleBasic` [bgColor gray, padding 10]
+@
+
+Alternatively, a widget can be provided as an anchor. This is not too different
+than the previous examples, but opens up more alignment options since the
+popup's content can now be aligned to the outer edges of the anchor widget.
+
+@
+anchor = toggleButton "Show popup" visiblePopup
+cfgs = [popupAnchor = anchor, popupAlignToOuterV, alignTop, alignCenter]
+
+popup_ visiblePopup cfgs $
+  label "The bottom of the content will be aligned to the top of the anchor"
     `styleBasic` [bgColor gray, padding 10]
 @
 
@@ -80,8 +93,10 @@ module Monomer.Widgets.Containers.Popup (
   -- * Configuration
   PopupCfg,
   popupAnchor,
-  popupAlignToOuter,
-  popupAlignToOuter_,
+  popupAlignToOuterH,
+  popupAlignToOuterH_,
+  popupAlignToOuterV,
+  popupAlignToOuterV_,
   popupAlignToWindow,
   popupAlignToWindow_,
   popupOffset,
@@ -131,7 +146,8 @@ Configuration options for popup:
 -}
 data PopupCfg s e = PopupCfg {
   _ppcAnchor :: Maybe (WidgetNode s e),
-  _ppcAlignToOuter :: Maybe Bool,
+  _ppcAlignToOuterH :: Maybe Bool,
+  _ppcAlignToOuterV :: Maybe Bool,
   _ppcAlignToWindow :: Maybe Bool,
   _ppcAlignH :: Maybe AlignH,
   _ppcAlignV :: Maybe AlignV,
@@ -144,7 +160,8 @@ data PopupCfg s e = PopupCfg {
 instance Default (PopupCfg s e) where
   def = PopupCfg {
     _ppcAnchor = Nothing,
-    _ppcAlignToOuter = Nothing,
+    _ppcAlignToOuterH = Nothing,
+    _ppcAlignToOuterV = Nothing,
     _ppcAlignToWindow = Nothing,
     _ppcAlignH = Nothing,
     _ppcAlignV = Nothing,
@@ -157,7 +174,8 @@ instance Default (PopupCfg s e) where
 instance Semigroup (PopupCfg s e) where
   (<>) t1 t2 = PopupCfg {
     _ppcAnchor = _ppcAnchor t2 <|> _ppcAnchor t1,
-    _ppcAlignToOuter = _ppcAlignToOuter t2 <|> _ppcAlignToOuter t1,
+    _ppcAlignToOuterH = _ppcAlignToOuterH t2 <|> _ppcAlignToOuterH t1,
+    _ppcAlignToOuterV = _ppcAlignToOuterV t2 <|> _ppcAlignToOuterV t1,
     _ppcAlignToWindow = _ppcAlignToWindow t2 <|> _ppcAlignToWindow t1,
     _ppcAlignH = _ppcAlignH t2 <|> _ppcAlignH t1,
     _ppcAlignV = _ppcAlignV t2 <|> _ppcAlignV t1,
@@ -232,23 +250,45 @@ popupAnchor node = def {
 }
 
 {-
-Align the popup to the outer edges of the anchor. It only applies to left,
-right, top and bottom alignments.
+Align the popup to the horizontal outer edges of the anchor. It only works with
+'alignLeft' and 'alignRight', which need to be specified separately.
 
-This option does not work with 'popupAlignToWindow'.
+This option only works when 'popupAnchor' is set.
 -}
-popupAlignToOuter :: PopupCfg s e
-popupAlignToOuter = popupAlignToOuter_ True
+popupAlignToOuterH :: PopupCfg s e
+popupAlignToOuterH = popupAlignToOuterH_ True
 
 {-|
-Sets whether to align the popup to the outer edges of the anchor. It only
-applies to left, right, top and bottom alignments.
+Sets whether to align the popup to the horizontal outer edges of the anchor. It
+only works with 'alignLeft' and 'alignRight', which need to be specified
+separately.
 
-This option does not work with 'popupAlignToWindow'.
+This option only works when 'popupAnchor' is set.
 -}
-popupAlignToOuter_ :: Bool -> PopupCfg s e
-popupAlignToOuter_ align = def {
-  _ppcAlignToOuter = Just align
+popupAlignToOuterH_ :: Bool -> PopupCfg s e
+popupAlignToOuterH_ align = def {
+  _ppcAlignToOuterH = Just align
+}
+
+{-
+Align the popup vertically to the outer edges of the anchor. It only works with
+'alignTop' and 'alignBottom', which need to be specified separately.
+
+This option only works when 'popupAnchor' is set.
+-}
+popupAlignToOuterV :: PopupCfg s e
+popupAlignToOuterV = popupAlignToOuterV_ True
+
+{-|
+Sets whether to align the popup vertically to the outer edges of the anchor. It
+only works with 'alignTop' and 'alignBottom', which need to be specified
+separately.
+
+This option only works when 'popupAnchor' is set.
+-}
+popupAlignToOuterV_ :: Bool -> PopupCfg s e
+popupAlignToOuterV_ align = def {
+  _ppcAlignToOuterV = Just align
 }
 
 -- | Alignment will be relative to the application's main window.
@@ -437,7 +477,8 @@ makePopup field config state = widget where
     Point sx sy = subPoint (_ppsClickPos state) (wenv ^. L.offset)
     Point ox oy = fromMaybe def (_ppcOffset config)
 
-    alignOuter = _ppcAlignToOuter config == Just True
+    alignOuterH = _ppcAlignToOuterH config == Just True
+    alignOuterV = _ppcAlignToOuterV config == Just True
     alignWin = _ppcAlignToWindow config == Just True
     alignH = _ppcAlignH config
     alignV = _ppcAlignV config
@@ -452,19 +493,19 @@ makePopup field config state = widget where
       | otherwise = viewport
     cx
       | openAtCursor = sx
-      | alignH == Just ALeft && alignOuter = ax - cw
+      | alignH == Just ALeft && alignOuterH = ax - cw
       | alignH == Just ALeft = ax
       | alignH == Just ACenter = ax + (aw - cw) / 2
-      | alignH == Just ARight && alignOuter = ax + aw
+      | alignH == Just ARight && alignOuterH = ax + aw
       | alignH == Just ARight = ax + aw - cw
       | otherwise = px
 
     cy
       | openAtCursor = sy
-      | alignV == Just ATop && alignOuter = ay - ch
+      | alignV == Just ATop && alignOuterV = ay - ch
       | alignV == Just ATop = ay
       | alignV == Just AMiddle = ay + (ah - ch) / 2
-      | alignV == Just ABottom && alignOuter = ay + ah
+      | alignV == Just ABottom && alignOuterV = ay + ah
       | alignV == Just ABottom = ay + ah - ch
       | otherwise = py
 
