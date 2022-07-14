@@ -234,10 +234,6 @@ instance CmbOnChangeReq (PopupCfg s e) s e Bool where
     _ppcOnChangeReq = [req]
   }
 
-newtype PopupState = PopupState {
-  _ppsClickPos :: Point
-} deriving (Eq, Show)
-
 {-|
 Sets the widget that will be used as the anchor for the popup. In general, this
 anchor will also act as the trigger to open the popup (e.g. a button). When the
@@ -330,6 +326,11 @@ popupDisableClose_ close = def {
   _ppcDisableClose = Just close
 }
 
+data PopupState = PopupState {
+  _ppsClickPos :: Point,
+  _ppsReleaseMs :: Millisecond
+} deriving (Eq, Show)
+
 -- | Creates a popup with the given lens to determine its visibility.
 popup
   :: WidgetModel s
@@ -389,13 +390,13 @@ popupD_
   -> WidgetNode s e
 popupD_ wdata configs content = makeNode widget anchor content where
   config = mconcat configs
-  state = PopupState def
+  state = PopupState def def
   widget = makePopup wdata config state
 
   anchor = case _ppcAnchor config of
     Just node -> node
     Nothing -> spacer
-      `styleBasic` [flexWidth 0.01]
+      `styleBasic` [maxWidth 0.01, maxHeight 0.01]
 
 makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e -> WidgetNode s e
 makeNode widget anchor content = defaultWidgetNode "popup" widget
@@ -432,36 +433,37 @@ makePopup field config state = widget where
     newResult = checkPopup field config newState wenv result
 
   mergePost wenv node oldNode oldState newState result = newResult where
-    newResult = checkPopup field config newState wenv result
+    newResult = checkPopup field config oldState wenv result
 
   handleEvent wenv node target evt = case evt of
     KeyAction mod code KeyPressed
       | isCloseable && isKeyEscape code -> Just closeResult
 
+    ButtonAction point button BtnReleased clicks
+      | isCloseable && not isContentTarget -> Just closeResult
+
     Click point button clicks
-      | isCloseable && not (insidePopup point) -> Just closeResult
+      | isCloseable && not isContentTarget -> Just closeResult
 
     {-
     This check is needed because the anchor is inside the overlay, and otherwise
     it would receive events when the popup is open.
     -}
     _
-      | isVisible && not isContentTarget -> Just ignoreResult
+      | (isVisible && not isContentTarget) || matchMs -> Just ignoreResult
       | otherwise -> Nothing
 
     where
       path = node ^. L.info . L.path
 
       disableClose = _ppcDisableClose config == Just True
+      matchMs = _ppsReleaseMs state == wenv ^. L.timestamp
+
       isVisible = widgetDataGet (wenv ^. L.model) field
       isContentTarget = isPathParent (path |> contentIdx) target
       isCloseable = isVisible && not disableClose
 
-      content = Seq.index (node ^. L.children) contentIdx
-      cviewport = content ^. L.info . L.viewport
-      insidePopup point = pointInRect point cviewport
-
-      closeResult = closePopup field config wenv node
+      closeResult = closePopup field config state wenv node
       ignoreResult = resultReqs node [IgnoreChildrenEvents]
 
   getSizeReq :: ContainerGetSizeReqHandler s e
@@ -632,12 +634,14 @@ hidePopup config node = (node, onChangeReqs <> hideReqs) where
     ]
 
 closePopup
-  :: WidgetData s Bool
+  :: WidgetModel s
+  => WidgetData s Bool
   -> PopupCfg s e
+  -> PopupState
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetResult s e
-closePopup field config wenv node = result where
+closePopup field config state wenv node = result where
   widgetId = node ^. L.info . L.widgetId
   toggleShow = widgetDataSet field False
   isOverlay = isNodeInOverlay wenv node
@@ -654,5 +658,11 @@ closePopup field config wenv node = result where
       MoveFocus (Just cwidgetId) FocusBwd
     ]
 
+  newState = state {
+    _ppsReleaseMs = wenv ^. L.timestamp
+  }
+  newNode = node
+    & L.widget .~ makePopup field config newState
+
   reqs = mconcat [closeReqs, toggleShow, onChangeReqs]
-  result = resultReqs node reqs
+  result = resultReqs newNode reqs
