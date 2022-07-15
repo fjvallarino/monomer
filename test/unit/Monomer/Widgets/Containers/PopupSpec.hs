@@ -118,6 +118,14 @@ handleEvent = describe "handleEvent" $ do
       ]
     popupNode cfgs = composite "popupNode" id (buildUI cfgs) handleEvent
 
+    nodeHandleEventModel wenv steps node = _weModel wenv2 where
+      stepEvts = (: []) <$> steps
+      (wenv2, _, _) = fst $ nodeHandleEventsSteps wenv WInit stepEvts node
+
+    nodeHandleEventEvts wenv steps node = eventsFromReqs reqs where
+      stepEvts = (: []) <$> steps
+      (_, _, reqs) = fst $ nodeHandleEventsSteps wenv WInit stepEvts node
+
     modelBase es = nodeHandleEventModel wenv es (popupNode [])
     modelDisable es = nodeHandleEventModel wenv es (popupNode [popupDisableClose])
     modelAlign cfgs es = nodeHandleEventModel wenv es (popupNode (popupDisableClose : cfgs))
