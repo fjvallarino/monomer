@@ -390,7 +390,7 @@ popupD_
   -> WidgetNode s e
 popupD_ wdata configs content = makeNode widget anchor content where
   config = mconcat configs
-  state = PopupState def def
+  state = PopupState def (-1)
   widget = makePopup wdata config state
 
   anchor = case _ppcAnchor config of
@@ -440,10 +440,10 @@ makePopup field config state = widget where
       | isCloseable && isKeyEscape code -> Just closeResult
 
     ButtonAction point button BtnReleased clicks
-      | isCloseable && not isContentTarget -> Just closeResult
+      | isCloseable && not (insidePopup point) -> Just closeResult
 
     Click point button clicks
-      | isCloseable && not isContentTarget -> Just closeResult
+      | isCloseable && not (insidePopup point) -> Just closeResult
 
     {-
     This check is needed because the anchor is inside the overlay, and otherwise
@@ -462,6 +462,10 @@ makePopup field config state = widget where
       isVisible = widgetDataGet (wenv ^. L.model) field
       isContentTarget = isPathParent (path |> contentIdx) target
       isCloseable = isVisible && not disableClose
+
+      content = Seq.index (node ^. L.children) contentIdx
+      cviewport = content ^. L.info . L.viewport
+      insidePopup point = pointInRect point cviewport
 
       closeResult = closePopup field config state wenv node
       ignoreResult = resultReqs node [IgnoreChildrenEvents]
