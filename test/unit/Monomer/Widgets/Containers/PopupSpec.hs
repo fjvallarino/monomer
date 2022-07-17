@@ -9,6 +9,7 @@ module Monomer.Widgets.Containers.PopupSpec where
 
 import Control.Lens
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
+import Data.Sequence (Seq)
 import Data.Text (Text)
 import Test.Hspec
 
@@ -42,8 +43,9 @@ data TestModel = TestModel {
 makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
-spec = describe "Popup"
+spec = describe "Popup" $ do
   handleEvent
+  handleEventAnchor
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -111,25 +113,77 @@ handleEvent = describe "handleEvent" $ do
     buildUI cfgs wenv model = vstack [
         toggleButton "Open" open,
         popup_ open cfgs $ hgrid [
-            toggleButton "Open" open,
+            toggleButton "Close" open,
             toggleButton "Test" popupToggle
           ],
         filler
       ]
     popupNode cfgs = composite "popupNode" id (buildUI cfgs) handleEvent
 
-    nodeHandleEventModel wenv steps node = _weModel wenv2 where
-      stepEvts = (: []) <$> steps
-      (wenv2, _, _) = fst $ nodeHandleEventsSteps wenv WInit stepEvts node
+    modelBase es = localHandleEventModel wenv es (popupNode [])
+    modelDisable es = localHandleEventModel wenv es (popupNode [popupDisableClose])
+    modelAlign cfgs es = localHandleEventModel wenv es (popupNode (popupDisableClose : cfgs))
 
-    nodeHandleEventEvts wenv steps node = eventsFromReqs reqs where
-      stepEvts = (: []) <$> steps
-      (_, _, reqs) = fst $ nodeHandleEventsSteps wenv WInit stepEvts node
+    eventsBase es = localHandleEventEvts wenv es (popupNode [onChange OnPopupChange])
+    eventsDisable es = localHandleEventEvts wenv es (popupNode [onChange OnPopupChange, popupDisableClose])
+    eventsAlign cfgs es = localHandleEventEvts wenv es (popupNode (onChange OnPopupChange : popupDisableClose : cfgs))
 
-    modelBase es = nodeHandleEventModel wenv es (popupNode [])
-    modelDisable es = nodeHandleEventModel wenv es (popupNode [popupDisableClose])
-    modelAlign cfgs es = nodeHandleEventModel wenv es (popupNode (popupDisableClose : cfgs))
+handleEventAnchor :: Spec
+handleEventAnchor = describe "handleEventAnchor" $ do
+  describe "alignment outer border" $ do
+    it "should toggle the popupToggle button when aligned above the widget" $ do
+      let cfgs = [popupAlignToOuterV, alignTop, alignRight]
+      let evts = [evtClick (Point 50 110), evtClick (Point 600 80)]
 
-    eventsBase es = nodeHandleEventEvts wenv es (popupNode [onChange OnPopupChange])
-    eventsDisable es = nodeHandleEventEvts wenv es (popupNode [onChange OnPopupChange, popupDisableClose])
-    eventsAlign cfgs es = nodeHandleEventEvts wenv es (popupNode (onChange OnPopupChange : popupDisableClose : cfgs))
+      modelAlign cfgs evts `shouldBe` TestModel True True
+      eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True]
+
+    it "should toggle the popupToggle button when aligned below the widget" $ do
+      let cfgs = [popupAlignToOuterV, alignBottom, alignRight]
+      let evts = [evtClick (Point 50 110), evtClick (Point 600 140)]
+
+      modelAlign cfgs evts `shouldBe` TestModel True True
+      eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True]
+
+    it "should close the popup when aligned above the widget and the toggle button is clicked" $ do
+      let cfgs = [popupAlignToOuterV, alignTop, alignRight]
+      let evts = [evtClick (Point 50 110), evtClick (Point 520 80)]
+
+      modelAlign cfgs evts `shouldBe` TestModel False False
+      eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True, OnPopupChange False]
+
+    it "should close the popup when aligned below the widget and the toggle button is clicked" $ do
+      let cfgs = [popupAlignToOuterV, alignBottom, alignRight]
+      let evts = [evtClick (Point 50 110), evtClick (Point 520 140)]
+
+      modelAlign cfgs evts `shouldBe` TestModel False False
+      eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True, OnPopupChange False]
+
+  where
+    wenv = mockWenv (TestModel False False)
+      & L.theme .~ darkTheme
+    handleEvent :: EventHandler TestModel TestEvent TestModel TestEvent
+    handleEvent wenv node model evt = [ Report evt ]
+    buildUI cfgs wenv model = vstack [
+        spacer `styleBasic` [height 100],
+        popup_ open cfgs $ hgrid [
+            toggleButton "Close" open,
+            toggleButton "Test" popupToggle
+          ],
+        filler
+      ]
+    popupNode cfgs = composite "popupNode" id (buildUI cfgs) handleEvent
+    baseCfgs = [popupAnchor (toggleButton "Open" open), onChange OnPopupChange]
+
+    modelAlign cfgs es = localHandleEventModel wenv es (popupNode (popupDisableClose : (baseCfgs ++ cfgs)))
+    eventsAlign cfgs es = localHandleEventEvts wenv es (popupNode (popupDisableClose : (baseCfgs ++ cfgs)))
+
+localHandleEventModel :: (Eq s, WidgetModel s) => WidgetEnv s e -> [SystemEvent] -> WidgetNode s e -> s
+localHandleEventModel wenv steps node = _weModel wenv2 where
+  stepEvts = (: []) <$> steps
+  (wenv2, _, _) = fst $ nodeHandleEventsSteps wenv WInit stepEvts node
+
+localHandleEventEvts :: Eq s => WidgetEnv s e -> [SystemEvent] -> WidgetNode s e -> Seq e
+localHandleEventEvts wenv steps node = eventsFromReqs reqs where
+  stepEvts = (: []) <$> steps
+  (_, _, reqs) = fst $ nodeHandleEventsSteps wenv WInit stepEvts node
