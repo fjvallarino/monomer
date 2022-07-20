@@ -329,9 +329,17 @@ isResizeImmediateResult result = isJust resizeReq where
 isResizeAnyResult :: Maybe (WidgetResult s e) -> Bool
 isResizeAnyResult res = isResizeResult res || isResizeImmediateResult res
 
+-- | Checks if the platform is Linux
+isLinux :: WidgetEnv s e -> Bool
+isLinux wenv = _weOs wenv == "Linux"
+
 -- | Checks if the platform is macOS
 isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _weOs wenv == "Mac OS X"
+
+-- | Checks if the platform is Windows
+isWindows :: WidgetEnv s e -> Bool
+isWindows wenv = _weOs wenv == "Windows"
 
 {-|
 Returns the current time in milliseconds. Adds appStartTs and timestamp fields
