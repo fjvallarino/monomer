@@ -19,12 +19,12 @@ module Monomer.Graphics.FFI where
 
 import Control.Monad (forM)
 import Data.ByteString (useAsCString, useAsCStringLen, ByteString)
-import Data.ByteString.Char8 (useAsCStringLen)
+import Data.ByteString.Char8 (useAsCStringLen, unpack)
 import Data.Text (Text)
 import Data.Text.Foreign (withCStringLen)
 import Data.Sequence (Seq)
 import Foreign
-import Foreign.C (CString, castCharToCUChar)
+import Foreign.C (CString, castCharToCUChar, newCAStringLen)
 import Foreign.C.Types
 import Foreign.Marshal.Alloc
 import Foreign.Ptr
@@ -120,7 +120,9 @@ withNull :: (Ptr a -> b) -> b
 withNull f = f nullPtr
 
 toUString :: ByteString -> ((Ptr CChar, CInt) -> IO a) -> IO a
-toUString bs continuation = Data.ByteString.Char8.useAsCStringLen bs $ \(ptr, len) -> do 
+toUString bs continuation = do
+  -- not freeing the new string, as FMContext frees the fonts upon destruction
+  (ptr, len) <- newCAStringLen (unpack bs)
   let args = (ptr, fromIntegral len)
   continuation args
 
