@@ -11,6 +11,7 @@ Main module for the 'Todo' example.
 {-# LANGUAGE BinaryLiterals #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Main where
 
@@ -26,6 +27,8 @@ import TodoTypes
 
 import qualified Monomer.Lens as L
 import qualified Data.Text as T
+import Data.FileEmbed (embedFile)
+import Monomer.Main.Types (appFontDefMem)
 
 type TodoWenv = WidgetEnv TodoModel TodoEvt
 type TodoNode = WidgetNode TodoModel TodoEvt
@@ -248,7 +251,7 @@ main = do
       appWindowIcon "./assets/images/icon.png",
       appTheme customDarkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
-      appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",
+      appFontDefMem "Medium" $(embedFile "./assets/fonts/Roboto-Medium.ttf"),
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
       appFontDef "Remix" "./assets/fonts/remixicon.ttf",
       appInitEvent TodoInit

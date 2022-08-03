@@ -81,6 +81,7 @@ executables:
       - -threaded
     dependencies:
       - monomer
+      - file-embed
 
   books:
     main: Main.hs

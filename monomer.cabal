@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.7.
 --
 -- see: https://github.com/sol/hpack
 
@@ -375,6 +375,7 @@ executable todo
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , file-embed
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
