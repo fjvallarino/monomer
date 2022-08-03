@@ -110,7 +110,7 @@ loadFont ctx fonts fontDef = do
     else putStrLnErr ("Failed to load font: " ++ T.unpack name) >> return fonts
   where
     name = fontDef ^. fontName
-    createFont FontDefPath{} = fmCreateFont ctx name (fontDef ^. fontPath)
+    createFont FontDefFile{} = fmCreateFont ctx name (fontDef ^. fontPath)
     createFont FontDefMem{} = fmCreateFontMem ctx name (fontDef ^. fontBytes)
 
 setFont :: FMContext -> Double -> Font -> FontSize -> FontSpace -> IO ()

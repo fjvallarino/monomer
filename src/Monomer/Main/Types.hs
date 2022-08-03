@@ -386,10 +386,16 @@ appDisableAutoScale disable = def {
 Available fonts to the application. An empty list will make it impossible to
 render text.
 -}
-appFontDef :: Text -> Text -> AppConfig e
-appFontDef name path = def {
-  _apcFonts = [ FontDefPath name path ]
+appFontDefFile :: Text -> Text -> AppConfig e
+appFontDefFile name path = def {
+  _apcFonts = [ FontDefFile name path ]
 }
+
+{- |
+Alias for 'appFontDefFile' for backwards compatibility.
+-}
+appFontDef = appFontDefFile
+{-# DEPRECATED appFontDef "Use appFontDefFile directly" #-}
 
 {-|
 Available fonts to the application. An empty list will make it impossible to

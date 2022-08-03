@@ -49,7 +49,7 @@ instance Default Color where
   def = Color 255 255 255 1.0
 
 data FontDef
-  = FontDefPath
+  = FontDefFile
     { _fntFontName :: !Text  -- ^ The logic name. Will be used when defining styles.
     , _fntFontPath :: !Text  -- ^ The path in the filesystem.
     }
