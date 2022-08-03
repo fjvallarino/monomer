@@ -10,7 +10,10 @@ Basic types for Graphics.
 
 Angles are always expressed in degrees, not radians.
 -}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE Strict #-}
 
 module Monomer.Graphics.Types where
@@ -45,11 +48,16 @@ data Color = Color {
 instance Default Color where
   def = Color 255 255 255 1.0
 
--- | The definition of a font.
-data FontDef = FontDef {
-  _fntName :: !Text,  -- ^ The logic name. Will be used when defining styles.
-  _fntPath :: !Text   -- ^ The path in the filesystem.
-} deriving (Eq, Show, Generic)
+data FontDef
+  = FontDefPath
+    { _fntFontName :: !Text  -- ^ The logic name. Will be used when defining styles.
+    , _fntFontPath :: !Text  -- ^ The path in the filesystem.
+    }
+  | FontDefMem
+    { _fntFontName :: !Text         -- ^ The logic name. Will be used when defining styles.
+    , _fntFontBytes :: !ByteString  -- ^ The bytes of the loaded font.
+    }
+  deriving (Eq, Show, Generic)
 
 -- | The name of a loaded font.
 newtype Font

@@ -53,6 +53,12 @@ int fmCreateFont(FMcontext* ctx, const char* name, const char* filename)
 	return fonsAddFont(ctx->fs, name, filename, 0);
 }
 
+int fmCreateFontMem(FMcontext* ctx, const char* name, const char* data, int dataSize)
+{
+	unsigned char* udata = data;
+	return fonsAddFontMem(ctx->fs, name, udata, dataSize, 1, 0);
+}
+
 void fmSetScale(FMcontext* ctx, float scale) {
 	ctx->scale = scale;
 }

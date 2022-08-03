@@ -39,6 +39,9 @@ FMcontext* fmInit(float dpr);
 
 int fmCreateFont(FMcontext* ctx, const char* name, const char* filename);
 
+// TODO: data was originally unsigned char*
+int fmCreateFontMem(FMcontext* ctx, const char* name, const char* data, int dataSize);
+
 void fmSetScale(FMcontext* ctx, float scale);
 
 void fmFontFace(FMcontext* ctx, const char* font);

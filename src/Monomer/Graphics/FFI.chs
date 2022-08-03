@@ -18,12 +18,13 @@ Based on code from cocreature's https://github.com/cocreature/nanovg-hs
 module Monomer.Graphics.FFI where
 
 import Control.Monad (forM)
-import Data.ByteString (useAsCString)
+import Data.ByteString (useAsCString, useAsCStringLen, ByteString)
+import Data.ByteString.Char8 (useAsCStringLen)
 import Data.Text (Text)
 import Data.Text.Foreign (withCStringLen)
 import Data.Sequence (Seq)
 import Foreign
-import Foreign.C (CString)
+import Foreign.C (CString, castCharToCUChar)
 import Foreign.C.Types
 import Foreign.Marshal.Alloc
 import Foreign.Ptr
@@ -118,6 +119,11 @@ withText t = useAsCString (T.encodeUtf8 t)
 withNull :: (Ptr a -> b) -> b
 withNull f = f nullPtr
 
+toUString :: ByteString -> ((Ptr CChar, CInt) -> IO a) -> IO a
+toUString bs continuation = Data.ByteString.Char8.useAsCStringLen bs $ \(ptr, len) -> do 
+  let args = (ptr, fromIntegral len)
+  continuation args
+
 -- Common
 {# pointer *FMcontext as FMContext newtype #}
 deriving instance Storable FMContext
@@ -125,6 +131,8 @@ deriving instance Storable FMContext
 {# fun unsafe fmInit {`Double'} -> `FMContext' #}
 
 {# fun unsafe fmCreateFont {`FMContext', withCString*`Text', withCString*`Text'} -> `Int' #}
+
+{# fun unsafe fmCreateFontMem {`FMContext', withCString*`Text', toUString*`ByteString'&} -> `Int' #}
 
 {# fun unsafe fmSetScale {`FMContext', `Double'} -> `()' #}
 

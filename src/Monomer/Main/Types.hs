@@ -41,6 +41,7 @@ import Monomer.Core.ThemeTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
+import Data.ByteString (ByteString)
 
 -- | Main Monomer monad.
 type MonomerM s e m = (Eq s, MonadState (MonomerCtx s e) m, MonadCatch m, MonadIO m)
@@ -387,7 +388,16 @@ render text.
 -}
 appFontDef :: Text -> Text -> AppConfig e
 appFontDef name path = def {
-  _apcFonts = [ FontDef name path ]
+  _apcFonts = [ FontDefPath name path ]
+}
+
+{-|
+Available fonts to the application. An empty list will make it impossible to
+render text.
+-}
+appFontDefMem :: Text -> ByteString -> AppConfig e
+appFontDefMem name bytes = def {
+  _apcFonts = [ FontDefMem name bytes ]
 }
 
 -- | Initial theme.
