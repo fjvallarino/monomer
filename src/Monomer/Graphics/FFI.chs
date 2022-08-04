@@ -18,13 +18,13 @@ Based on code from cocreature's https://github.com/cocreature/nanovg-hs
 module Monomer.Graphics.FFI where
 
 import Control.Monad (forM)
-import Data.ByteString (useAsCString, useAsCStringLen, ByteString)
-import Data.ByteString.Char8 (useAsCStringLen, unpack)
+import Data.ByteString (useAsCString, ByteString)
+import Data.ByteString.Char8 (unpack)
 import Data.Text (Text)
 import Data.Text.Foreign (withCStringLen)
 import Data.Sequence (Seq)
 import Foreign
-import Foreign.C (CString, castCharToCUChar, newCAStringLen)
+import Foreign.C (CString, castCharToCUChar)
 import Foreign.C.Types
 import Foreign.Marshal.Alloc
 import Foreign.Ptr

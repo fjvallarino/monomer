@@ -16,6 +16,7 @@ module Monomer.Graphics.FontManager (
 ) where
 
 import Control.Monad (foldM, when)
+import Control.Lens ((^.))
 
 import Data.Default
 import Data.Sequence (Seq)
@@ -29,7 +30,6 @@ import Monomer.Common.BasicTypes
 import Monomer.Graphics.FFI
 import Monomer.Graphics.Types
 import Monomer.Helper (putStrLnErr)
-import Control.Lens ((^.))
 import Monomer.Graphics.Lens (fontName, fontPath, fontBytes)
 
 -- | Creates a font manager instance.
