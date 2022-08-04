@@ -119,12 +119,22 @@ withText t = useAsCString (T.encodeUtf8 t)
 withNull :: (Ptr a -> b) -> b
 withNull f = f nullPtr
 
-allocCAString :: ByteString -> ((Ptr CChar, CInt) -> IO a) -> IO a
-allocCAString bs continuation = do
+allocCUString :: ByteString -> ((Ptr CUChar, CInt) -> IO a) -> IO a
+allocCUString bs continuation =
   -- not freeing the new string, as FMContext frees the fonts upon destruction
-  (ptr, len) <- newCAStringLen (unpack bs)
-  let args = (ptr, fromIntegral len)
-  continuation args
+  newCUStringLen (unpack bs) >>= continuation
+
+-- copied newCAStringLen from base (Foreign.C.String) and modified to alloc a CUChar array
+newCUStringLen :: String -> IO ((Ptr CUChar, CInt))
+newCUStringLen str = do
+  ptr <- mallocArray0 len
+  let
+        go [] n     = n `seq` return () -- make it strict in n
+        go (c:cs) n = do pokeElemOff ptr n (castCharToCUChar c); go cs (n+1)
+  go str 0
+  return (ptr, fromIntegral len)
+  where
+    len = length str
 
 -- Common
 {# pointer *FMcontext as FMContext newtype #}
@@ -134,7 +144,7 @@ deriving instance Storable FMContext
 
 {# fun unsafe fmCreateFont {`FMContext', withCString*`Text', withCString*`Text'} -> `Int' #}
 
-{# fun unsafe fmCreateFontMem {`FMContext', withCString*`Text', allocCAString*`ByteString'&} -> `Int' #}
+{# fun unsafe fmCreateFontMem {`FMContext', withCString*`Text', allocCUString*`ByteString'&} -> `Int' #}
 
 {# fun unsafe fmSetScale {`FMContext', `Double'} -> `()' #}
 

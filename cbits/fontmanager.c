@@ -53,12 +53,9 @@ int fmCreateFont(FMcontext* ctx, const char* name, const char* filename)
 	return fonsAddFont(ctx->fs, name, filename, 0);
 }
 
-int fmCreateFontMem(FMcontext* ctx, const char* name, const char* data, int dataSize)
+int fmCreateFontMem(FMcontext* ctx, const char* name, unsigned char* data, int dataSize)
 {
-	// Pointer cast, as it was hard to create a Ptr CUChar in Haskell.
-	// Could be why it doesn't work.
-	const unsigned char* udata = data;
-	return fonsAddFontMem(ctx->fs, name, udata, dataSize, 1, 0);
+	return fonsAddFontMem(ctx->fs, name, data, dataSize, 1, 0);
 }
 
 void fmSetScale(FMcontext* ctx, float scale) {

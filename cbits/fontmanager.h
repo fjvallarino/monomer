@@ -39,7 +39,7 @@ FMcontext* fmInit(float dpr);
 
 int fmCreateFont(FMcontext* ctx, const char* name, const char* filename);
 
-int fmCreateFontMem(FMcontext* ctx, const char* name, const char* data, int dataSize);
+int fmCreateFontMem(FMcontext* ctx, const char* name, unsigned char* data, int dataSize);
 
 void fmSetScale(FMcontext* ctx, float scale);
 
