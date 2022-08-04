@@ -10,10 +10,7 @@ Basic types for Graphics.
 
 Angles are always expressed in degrees, not radians.
 -}
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE Strict #-}
 
 module Monomer.Graphics.Types where
