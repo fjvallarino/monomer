@@ -18,14 +18,22 @@ git clone https://github.com/fjvallarino/monomer-starter.git <your-app-name>
 
 ### macOS
 
-In case you don't have Homebrew installed, visit [Homebrew](https://brew.sh)
+In case you don't have Homebrew installed, visit [Homebrew](https://brew.sh).
 
 ```bash
 brew install sdl2
 brew install glew
 ```
 
-#### Notes
+#### Notes: pkg-config
+
+You may need to install `pkg-config`, in case it was not previously installed:
+
+```bash
+brew install pkg-config
+```
+
+#### Notes: M1
 
 The standard build process currently fails on M1 Macs. This issue should be
 fixed when support for `GHC 9.2` is added to `stack`, since that version of GHC
@@ -65,7 +73,8 @@ pacman -S glew
 #### Fedora
 
 ```bash
-sudo dnf install SDL2-devel glew-devel
+sudo dnf install SDL2-devel
+sudo dnf install glew-devel
 ```
 
 ### Windows
