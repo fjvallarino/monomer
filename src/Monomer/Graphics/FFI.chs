@@ -119,8 +119,8 @@ withText t = useAsCString (T.encodeUtf8 t)
 withNull :: (Ptr a -> b) -> b
 withNull f = f nullPtr
 
-toUString :: ByteString -> ((Ptr CChar, CInt) -> IO a) -> IO a
-toUString bs continuation = do
+allocCAString :: ByteString -> ((Ptr CChar, CInt) -> IO a) -> IO a
+allocCAString bs continuation = do
   -- not freeing the new string, as FMContext frees the fonts upon destruction
   (ptr, len) <- newCAStringLen (unpack bs)
   let args = (ptr, fromIntegral len)
@@ -134,7 +134,7 @@ deriving instance Storable FMContext
 
 {# fun unsafe fmCreateFont {`FMContext', withCString*`Text', withCString*`Text'} -> `Int' #}
 
-{# fun unsafe fmCreateFontMem {`FMContext', withCString*`Text', toUString*`ByteString'&} -> `Int' #}
+{# fun unsafe fmCreateFontMem {`FMContext', withCString*`Text', allocCAString*`ByteString'&} -> `Int' #}
 
 {# fun unsafe fmSetScale {`FMContext', `Double'} -> `()' #}
 
