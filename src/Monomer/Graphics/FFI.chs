@@ -17,9 +17,8 @@ Based on code from cocreature's https://github.com/cocreature/nanovg-hs
 
 module Monomer.Graphics.FFI where
 
-import Control.Monad (forM)
-import Data.ByteString (useAsCString, ByteString)
-import Data.ByteString.Char8 (unpack)
+import Control.Monad (forM, (>=>))
+import Data.ByteString (useAsCStringLen, useAsCString, ByteString)
 import Data.Text (Text)
 import Data.Text.Foreign (withCStringLen)
 import Data.Sequence (Seq)
@@ -119,22 +118,21 @@ withText t = useAsCString (T.encodeUtf8 t)
 withNull :: (Ptr a -> b) -> b
 withNull f = f nullPtr
 
-allocCUString :: ByteString -> ((Ptr CUChar, CInt) -> IO a) -> IO a
-allocCUString bs continuation =
-  -- not freeing the new string, as FMContext frees the fonts upon destruction
-  newCUStringLen (unpack bs) >>= continuation
+type CUStringLen = (Ptr CUChar, CInt)
 
--- copied newCAStringLen from base (Foreign.C.String) and modified to alloc a CUChar array
-newCUStringLen :: String -> IO ((Ptr CUChar, CInt))
-newCUStringLen str = do
-  ptr <- mallocArray0 len
-  let
-        go [] n     = n `seq` return () -- make it strict in n
-        go (c:cs) n = do pokeElemOff ptr n (castCharToCUChar c); go cs (n+1)
-  go str 0
-  return (ptr, fromIntegral len)
-  where
-    len = length str
+allocCUStringLen :: ByteString -> (CUStringLen -> IO a) -> IO a
+allocCUStringLen bs f = useAsCUStringLen bs (copyCUStringLenMemory >=> f)
+
+useAsCUStringLen :: ByteString -> (CUStringLen -> IO a) -> IO a
+useAsCUStringLen bs f = useAsCStringLen bs (\(ptr, len) -> f (castPtr ptr, fromIntegral len))
+
+copyCUStringLenMemory :: CUStringLen -> IO CUStringLen
+copyCUStringLenMemory (from, len) =
+  let intLen = fromIntegral len
+  in do
+    to <- mallocBytes intLen
+    copyBytes to from intLen
+    return (to, len)
 
 -- Common
 {# pointer *FMcontext as FMContext newtype #}
@@ -144,7 +142,7 @@ deriving instance Storable FMContext
 
 {# fun unsafe fmCreateFont {`FMContext', withCString*`Text', withCString*`Text'} -> `Int' #}
 
-{# fun unsafe fmCreateFontMem {`FMContext', withCString*`Text', allocCUString*`ByteString'&} -> `Int' #}
+{# fun unsafe fmCreateFontMem {`FMContext', withCString*`Text', allocCUStringLen*`ByteString'&} -> `Int' #}
 
 {# fun unsafe fmSetScale {`FMContext', `Double'} -> `()' #}
 
