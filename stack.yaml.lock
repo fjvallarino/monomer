@@ -5,15 +5,19 @@
 
 packages:
 - completed:
-    hackage: nanovg-0.8.0.0@sha256:0183b4295ccc2dfb94a7eca977fb45759e1480652578936aa7b71bb4b9626480,4742
+    name: nanovg
     pantry-tree:
-      size: 2558
-      sha256: 0acd44b6f4f50d20bb162084895e052d9437e4de18f988c06e5acf9f85497e1c
+      sha256: f08bd06a2cf3d4e9d98defa2520ad18ab697bd75745af2909c00d5c648759a0b
+      size: 5655
+    commit: ba20939212e8856209c344b6841d59b8e1349f1b
+    git: https://github.com/klausweiss/nanovg-hs
+    version: 0.8.0.0
   original:
-    hackage: nanovg-0.8.0.0@sha256:0183b4295ccc2dfb94a7eca977fb45759e1480652578936aa7b71bb4b9626480,4742
+    commit: ba20939212e8856209c344b6841d59b8e1349f1b
+    git: https://github.com/klausweiss/nanovg-hs
 snapshots:
 - completed:
+    sha256: 79a786674930a89301b0e908fad2822a48882f3d01486117693c377b8edffdbe
     size: 590102
     url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/27.yaml
-    sha256: 79a786674930a89301b0e908fad2822a48882f3d01486117693c377b8edffdbe
   original: lts-18.27
