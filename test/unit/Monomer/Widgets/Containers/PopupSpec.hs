@@ -135,48 +135,59 @@ handleEventAnchor = describe "handleEventAnchor" $ do
       let cfgs = [popupAlignToOuterV, alignTop, alignRight]
       let evts = [evtClick (Point 50 110), evtClick (Point 600 80)]
 
-      modelAlign cfgs evts `shouldBe` TestModel True True
-      eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True]
+      modelAlign cfgs [] evts `shouldBe` TestModel True True
+      eventsAlign cfgs [] evts `shouldBe` Seq.fromList [OnPopupChange True]
 
     it "should toggle the popupToggle button when aligned below the widget" $ do
       let cfgs = [popupAlignToOuterV, alignBottom, alignRight]
       let evts = [evtClick (Point 50 110), evtClick (Point 600 140)]
 
-      modelAlign cfgs evts `shouldBe` TestModel True True
-      eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True]
+      modelAlign cfgs [] evts `shouldBe` TestModel True True
+      eventsAlign cfgs [] evts `shouldBe` Seq.fromList [OnPopupChange True]
 
     it "should close the popup when aligned above the widget and the toggle button is clicked" $ do
       let cfgs = [popupAlignToOuterV, alignTop, alignRight]
       let evts = [evtClick (Point 50 110), evtClick (Point 520 80)]
 
-      modelAlign cfgs evts `shouldBe` TestModel False False
-      eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True, OnPopupChange False]
+      modelAlign cfgs [] evts `shouldBe` TestModel False False
+      eventsAlign cfgs [] evts `shouldBe` Seq.fromList [OnPopupChange True, OnPopupChange False]
 
     it "should close the popup when aligned below the widget and the toggle button is clicked" $ do
       let cfgs = [popupAlignToOuterV, alignBottom, alignRight]
       let evts = [evtClick (Point 50 110), evtClick (Point 520 140)]
 
-      modelAlign cfgs evts `shouldBe` TestModel False False
-      eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True, OnPopupChange False]
+      modelAlign cfgs [] evts `shouldBe` TestModel False False
+      eventsAlign cfgs [] evts `shouldBe` Seq.fromList [OnPopupChange True, OnPopupChange False]
+
+    describe "Re align outer" $ do
+      it "should re-locate the anchor below the widget, because it did not fit above" $ do
+        let cfgs = [popupAlignToOuterV, alignTop, alignRight]
+        let styles = [height 200]
+        let evts = [evtClick (Point 50 110), evtClick (Point 600 140)]
+
+        modelAlign cfgs styles evts `shouldBe` TestModel True True
+        eventsAlign cfgs styles evts `shouldBe` Seq.fromList [OnPopupChange True]
 
   where
     wenv = mockWenv (TestModel False False)
       & L.theme .~ darkTheme
     handleEvent :: EventHandler TestModel TestEvent TestModel TestEvent
     handleEvent wenv node model evt = [ Report evt ]
-    buildUI cfgs wenv model = vstack [
+    buildUI cfgs styles wenv model = vstack [
         spacer `styleBasic` [height 100],
         popup_ open cfgs $ hgrid [
             toggleButton "Close" open,
             toggleButton "Test" popupToggle
-          ],
+          ] `styleBasic` styles,
         filler
       ]
-    popupNode cfgs = composite "popupNode" id (buildUI cfgs) handleEvent
+    popupNode cfgs styles = composite "popupNode" id (buildUI cfgs styles) handleEvent
     baseCfgs = [popupAnchor (toggleButton "Open" open), onChange OnPopupChange]
 
-    modelAlign cfgs es = localHandleEventModel wenv es (popupNode (popupDisableClose : (baseCfgs ++ cfgs)))
-    eventsAlign cfgs es = localHandleEventEvts wenv es (popupNode (popupDisableClose : (baseCfgs ++ cfgs)))
+    modelAlign cfgs styles es = localHandleEventModel wenv es $
+      popupNode (popupDisableClose : (baseCfgs ++ cfgs)) styles
+    eventsAlign cfgs styles es = localHandleEventEvts wenv es $
+      popupNode (popupDisableClose : (baseCfgs ++ cfgs)) styles
 
 localHandleEventModel :: (Eq s, WidgetModel s) => WidgetEnv s e -> [SystemEvent] -> WidgetNode s e -> s
 localHandleEventModel wenv steps node = _weModel wenv2 where

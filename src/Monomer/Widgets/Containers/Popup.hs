@@ -71,7 +71,7 @@ popup's content can now be aligned to the outer edges of the anchor widget.
 
 @
 anchor = toggleButton "Show popup" visiblePopup
-cfgs = [popupAnchor = anchor, popupAlignToOuterV, alignTop, alignCenter]
+cfgs = [popupAnchor anchor, popupAlignToOuterV, alignTop, alignCenter]
 
 popup_ visiblePopup cfgs $
   label "The bottom of the content will be aligned to the top of the anchor"
@@ -494,25 +494,38 @@ makePopup field config state = widget where
     cw = sizeReqMaxBounded (content ^. L.info . L.sizeReqW)
     ch = sizeReqMaxBounded (content ^. L.info . L.sizeReqH)
 
+    (alignL, alignR) = (alignH == Just ALeft, alignH == Just ARight)
+    (alignT, alignB) = (alignV == Just ATop, alignV == Just ABottom)
+    (alignC, alignM) = (alignH == Just ACenter, alignV == Just AMiddle)
+
+    (atx, arx) = (ax - cw + ox, ax + aw + ox)
+    (aty, aby) = (ay - ch + oy, ay + ah + oy)
+
+    Point olx oty = calcWindowOffset wenv config (Rect atx aty cw ch)
+    Point orx oby = calcWindowOffset wenv config (Rect arx aby cw ch)
+
+    (fitL, fitR) = (abs olx < 0.01, abs orx < 0.01)
+    (fitT, fitB) = (abs oty < 0.01, abs oby < 0.01)
+
     Rect ax ay aw ah
       | alignWin = Rect 0 0 ww wh
       | otherwise = viewport
     cx
       | openAtCursor = sx
-      | alignH == Just ALeft && alignOuterH = ax - cw
-      | alignH == Just ALeft = ax
-      | alignH == Just ACenter = ax + (aw - cw) / 2
-      | alignH == Just ARight && alignOuterH = ax + aw
-      | alignH == Just ARight = ax + aw - cw
+      | alignOuterH && (alignL && (fitL || not fitR) || alignR && fitL && not fitR) = atx
+      | alignOuterH && (alignR && (fitR || not fitL) || alignL && fitR && not fitL) = arx
+      | alignL = ax
+      | alignC = ax + (aw - cw) / 2
+      | alignR = ax + aw - cw
       | otherwise = px
 
     cy
       | openAtCursor = sy
-      | alignV == Just ATop && alignOuterV = ay - ch
-      | alignV == Just ATop = ay
-      | alignV == Just AMiddle = ay + (ah - ch) / 2
-      | alignV == Just ABottom && alignOuterV = ay + ah
-      | alignV == Just ABottom = ay + ah - ch
+      | alignOuterV && (alignT && (fitT || not fitB) || alignB && fitT && not fitB) = aty
+      | alignOuterV && (alignB && (fitB || not fitT) || alignT && fitB && not fitT) = aby
+      | alignT = ay
+      | alignM = ay + (ah - ch) / 2
+      | alignB = ay + ah - ch
       | otherwise = py
 
     tmpArea = Rect (cx + ox) (cy + oy) cw ch
