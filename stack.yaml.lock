@@ -7,13 +7,13 @@ packages:
 - completed:
     name: nanovg
     pantry-tree:
-      sha256: f08bd06a2cf3d4e9d98defa2520ad18ab697bd75745af2909c00d5c648759a0b
+      sha256: c7da9d0a4dd81af1b96953d9a9c1ea4bbc6070ef8b9c447839baac56259372c1
       size: 5655
-    commit: ba20939212e8856209c344b6841d59b8e1349f1b
+    commit: ef790d952da6f8ddacb802996337511607690b08
     git: https://github.com/klausweiss/nanovg-hs
     version: 0.8.0.0
   original:
-    commit: ba20939212e8856209c344b6841d59b8e1349f1b
+    commit: ef790d952da6f8ddacb802996337511607690b08
     git: https://github.com/klausweiss/nanovg-hs
 snapshots:
 - completed:
