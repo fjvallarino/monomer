@@ -500,10 +500,10 @@ makePopup field config state = widget where
 
     (atx, arx)
       | alignOuterH = (ax - cw + ox, ax + aw + ox)
-      | otherwise = (ax, ax + aw - cw)
+      | otherwise = (ax + ox, ax + aw - cw + ox)
     (aty, aby)
       | alignOuterV = (ay - ch + oy, ay + ah + oy)
-      | otherwise = (ay, ay + ah - ch)
+      | otherwise = (ay + oy, ay + ah - ch + oy)
 
     Point olx oty = calcWindowOffset wenv config (Rect atx aty cw ch)
     Point orx oby = calcWindowOffset wenv config (Rect arx aby cw ch)
@@ -517,15 +517,15 @@ makePopup field config state = widget where
     cx
       | openAtCursor = sx
       | alignC = ax + (aw - cw) / 2
-      | alignL && (fitL || not fitR) || alignR && fitL && not fitR = atx
-      | alignR && (fitR || not fitL) || alignL && fitR && not fitL = arx
+      | alignL && (fitL || not fitR) || alignR && fitL && not fitR = atx - ox
+      | alignR && (fitR || not fitL) || alignL && fitR && not fitL = arx - ox
       | otherwise = px
 
     cy
       | openAtCursor = sy
       | alignM = ay + (ah - ch) / 2
-      | alignT && (fitT || not fitB) || alignB && fitT && not fitB = aty
-      | alignB && (fitB || not fitT) || alignT && fitB && not fitT = aby
+      | alignT && (fitT || not fitB) || alignB && fitT && not fitB = aty - oy
+      | alignB && (fitB || not fitT) || alignT && fitB && not fitT = aby - oy
       | otherwise = py
 
     tmpArea = Rect (cx + ox) (cy + oy) cw ch
