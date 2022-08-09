@@ -498,8 +498,12 @@ makePopup field config state = widget where
     (alignT, alignB) = (alignV == Just ATop, alignV == Just ABottom)
     (alignC, alignM) = (alignH == Just ACenter, alignV == Just AMiddle)
 
-    (atx, arx) = (ax - cw + ox, ax + aw + ox)
-    (aty, aby) = (ay - ch + oy, ay + ah + oy)
+    (atx, arx)
+      | alignOuterH = (ax - cw + ox, ax + aw + ox)
+      | otherwise = (ax, ax + aw - cw)
+    (aty, aby)
+      | alignOuterV = (ay - ch + oy, ay + ah + oy)
+      | otherwise = (ay, ay + ah - ch)
 
     Point olx oty = calcWindowOffset wenv config (Rect atx aty cw ch)
     Point orx oby = calcWindowOffset wenv config (Rect arx aby cw ch)
@@ -512,20 +516,16 @@ makePopup field config state = widget where
       | otherwise = viewport
     cx
       | openAtCursor = sx
-      | alignOuterH && (alignL && (fitL || not fitR) || alignR && fitL && not fitR) = atx
-      | alignOuterH && (alignR && (fitR || not fitL) || alignL && fitR && not fitL) = arx
-      | alignL = ax
       | alignC = ax + (aw - cw) / 2
-      | alignR = ax + aw - cw
+      | alignL && (fitL || not fitR) || alignR && fitL && not fitR = atx
+      | alignR && (fitR || not fitL) || alignL && fitR && not fitL = arx
       | otherwise = px
 
     cy
       | openAtCursor = sy
-      | alignOuterV && (alignT && (fitT || not fitB) || alignB && fitT && not fitB) = aty
-      | alignOuterV && (alignB && (fitB || not fitT) || alignT && fitB && not fitT) = aby
-      | alignT = ay
       | alignM = ay + (ah - ch) / 2
-      | alignB = ay + ah - ch
+      | alignT && (fitT || not fitB) || alignB && fitT && not fitB = aty
+      | alignB && (fitB || not fitT) || alignT && fitB && not fitT = aby
       | otherwise = py
 
     tmpArea = Rect (cx + ox) (cy + oy) cw ch
