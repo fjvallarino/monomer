@@ -88,19 +88,19 @@ handleEvent = describe "handleEvent" $ do
 
   describe "alignment" $ do
     it "should toggle the popupToggle button when aligned center to the widget" $ do
-      let cfgs = [alignCenter]
+      let cfgs = [popupOffset (Point 10 10), alignCenter]
       let evts = [evtClick (Point 50 10), evtClick (Point 340 60)]
       modelAlign cfgs evts `shouldBe` TestModel True True
       eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True]
 
     it "should toggle the popupToggle button when aligned top-center to the window" $ do
-      let cfgs = [popupAlignToWindow, alignTop, alignCenter]
+      let cfgs = [popupAlignToWindow, popupOffset (Point 10 10), alignTop, alignCenter]
       let evts = [evtClick (Point 50 10), evtClick (Point 340 10)]
       modelAlign cfgs evts `shouldBe` TestModel True True
       eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True]
 
     it "should toggle the popupToggle button when aligned bottom-right to the window" $ do
-      let cfgs = [popupAlignToWindow, alignBottom, alignRight]
+      let cfgs = [popupAlignToWindow, popupOffset (Point 10 10), alignBottom, alignRight]
       let evts = [evtClick (Point 50 10), evtClick (Point 620 460)]
       modelAlign cfgs evts `shouldBe` TestModel True True
       eventsAlign cfgs evts `shouldBe` Seq.fromList [OnPopupChange True]

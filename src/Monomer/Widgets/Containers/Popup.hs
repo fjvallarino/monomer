@@ -45,8 +45,8 @@ popup_ visiblePopup [alignTop, alignCenter] $
     `styleBasic` [bgColor gray, padding 10]
 @
 
-Alternatively, aligning relative to the application's window is possible. It can
-be useful for displaying notifications:
+Alternatively, aligning relative to the application's window is possible. This
+can be useful for displaying notifications:
 
 @
 popup_ visiblePopup [popupAlignToWindow, alignTop, alignCenter] $
@@ -54,8 +54,8 @@ popup_ visiblePopup [popupAlignToWindow, alignTop, alignCenter] $
     `styleBasic` [bgColor gray, padding 10]
 @
 
-It's also possible to add an offset to the location of the popup, and it can be
-combined with alignment options:
+It's possible to add an offset to the location of the popup, and also combine it
+with alignment options:
 
 @
 cfgs = [popupAlignToWindow, alignTop, alignCenter, popupOffset (Point 0 5)]
@@ -66,8 +66,9 @@ popup_ visiblePopup cfgs $
 @
 
 Alternatively, a widget can be provided as an anchor. This is not too different
-than the previous examples, but opens up more alignment options since the
-popup's content can now be aligned to the outer edges of the anchor widget.
+than the previous examples but opens up more alignment options, since the
+popup's content can now be aligned relative to the outer side of the edges of
+the anchor widget.
 
 @
 anchor = toggleButton "Show popup" visiblePopup
@@ -498,6 +499,10 @@ makePopup field config state = widget where
     (alignT, alignB) = (alignV == Just ATop, alignV == Just ABottom)
     (alignC, alignM) = (alignH == Just ACenter, alignV == Just AMiddle)
 
+    Rect ax ay aw ah
+      | alignWin = Rect 0 0 ww wh
+      | otherwise = viewport
+
     (atx, arx)
       | alignOuterH = (ax - cw + ox, ax + aw + ox)
       | otherwise = (ax + ox, ax + aw - cw + ox)
@@ -508,25 +513,23 @@ makePopup field config state = widget where
     Point olx oty = calcWindowOffset wenv config (Rect atx aty cw ch)
     Point orx oby = calcWindowOffset wenv config (Rect arx aby cw ch)
 
-    (fitL, fitR) = (abs olx < 0.01, abs orx < 0.01)
-    (fitT, fitB) = (abs oty < 0.01, abs oby < 0.01)
+    fits offset = abs offset < 0.01 || alignWin
+    (fitL, fitR) = (fits olx, fits orx)
+    (fitT, fitB) = (fits oty, fits oby)
 
-    Rect ax ay aw ah
-      | alignWin = Rect 0 0 ww wh
-      | otherwise = viewport
     cx
       | openAtCursor = sx
       | alignC = ax + (aw - cw) / 2
       | alignL && (fitL || not fitR) || alignR && fitL && not fitR = atx - ox
       | alignR && (fitR || not fitL) || alignL && fitR && not fitL = arx - ox
-      | otherwise = px
+      | otherwise = ax
 
     cy
       | openAtCursor = sy
       | alignM = ay + (ah - ch) / 2
       | alignT && (fitT || not fitB) || alignB && fitT && not fitB = aty - oy
       | alignB && (fitB || not fitT) || alignT && fitB && not fitT = aby - oy
-      | otherwise = py
+      | otherwise = ay
 
     tmpArea = Rect (cx + ox) (cy + oy) cw ch
     winOffset = calcWindowOffset wenv config tmpArea
