@@ -70,11 +70,12 @@ Checks if the node is active, optionally including children. An active node was
 clicked with the main button and has the pointer inside its viewport.
 -}
 isNodeInfoActive :: Bool -> WidgetEnv s e -> WidgetNodeInfo -> Bool
-isNodeInfoActive includeChildren wenv info = validPos && pressed where
+isNodeInfoActive checkChildren wenv info = validPos && pressed && topLevel where
   viewport = info ^. L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInRect mousePos viewport
-  pressed = isNodeInfoPressed includeChildren wenv info
+  pressed = isNodeInfoPressed checkChildren wenv info
+  topLevel = isNodeInfoTopLevel wenv info
 
 {-|
 Checks if the node is pressed, optionally including children. A pressed node was

@@ -15,6 +15,7 @@ module Monomer.Widgets.Util.Focus (
   isNodeInfoFocused,
   isNodeParentOfFocused,
   parentPath,
+  isPathParent,
   nextTargetStep,
   isFocusCandidate,
   isTargetReached,
@@ -56,6 +57,11 @@ isNodeParentOfFocused wenv node = seqStartsWith parentPath focusedPath where
 parentPath :: WidgetNode s e -> Path
 parentPath node = Seq.take (Seq.length path - 1) path where
   path = node ^. L.info . L.path
+
+-- | Returns whether the first path is parent of the second path.
+isPathParent :: Path -> Path -> Bool
+isPathParent path childPath = path == basePath where
+  basePath = Seq.take (Seq.length path) childPath
 
 -- | Returns the index of the child matching the next step implied by target.
 nextTargetStep :: WidgetNode s e -> Path -> Maybe PathStep

@@ -93,6 +93,7 @@ library
       Monomer.Widgets.Containers.DropTarget
       Monomer.Widgets.Containers.Grid
       Monomer.Widgets.Containers.Keystroke
+      Monomer.Widgets.Containers.Popup
       Monomer.Widgets.Containers.Scroll
       Monomer.Widgets.Containers.SelectList
       Monomer.Widgets.Containers.Split
@@ -459,6 +460,7 @@ test-suite monomer-test
       Monomer.Widgets.Containers.DropdownSpec
       Monomer.Widgets.Containers.GridSpec
       Monomer.Widgets.Containers.KeystrokeSpec
+      Monomer.Widgets.Containers.PopupSpec
       Monomer.Widgets.Containers.ScrollSpec
       Monomer.Widgets.Containers.SelectListSpec
       Monomer.Widgets.Containers.SplitSpec
