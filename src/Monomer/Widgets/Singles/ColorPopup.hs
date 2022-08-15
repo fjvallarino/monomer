@@ -1,3 +1,26 @@
+{-|
+Module      : Monomer.Widgets.Singles.ColorPopup
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Color popup, displayed inside its parent container as a colored square. When
+clicked, it opens a color picker overlay.
+
+Shows sliders for the color components.
+
+@
+colorPopup colorLens
+@
+
+Optionally shows a slider for the alpha channel.
+
+@
+colorPopup_ colorLens [showAlpha]
+@
+-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
