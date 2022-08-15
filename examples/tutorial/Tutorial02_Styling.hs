@@ -68,7 +68,8 @@ buildUI wenv model = widgetTree where
       titleText "Font color",
       hstack [
         labeledCheckbox "Show color picker " showPicker,
-        filler
+        filler,
+        colorPopup fontColor
       ] `styleBasic` [paddingT 10, paddingB 5],
       colorPicker fontColor
         `nodeVisible` (model ^. showPicker)

@@ -176,8 +176,7 @@ buildUI
   -> ColorPopupModel
   -> ColorPopupNode
 buildUI config wenv model = widgetTree where
-  clearBg = wenv ^. L.theme . L.clearColor
-  sectionBg = wenv ^. L.theme . L.sectionColor
+  containerStyle = collectTheme wenv L.colorPopupStyle
   selColor = model ^. popupColor
 
   toggleStyle = mergeBasicStyle $ def
@@ -192,7 +191,7 @@ buildUI config wenv model = widgetTree where
 
   pickerCfg = _cpcColorPickerCfg config
   picker = colorPicker_ popupColor [pickerCfg, onChange ColorChanged]
-    `styleBasic` [width 400, padding 10, bgColor sectionBg, radius 4]
+    & L.info . L.style .~ containerStyle
 
   popupCfg = [popupAlignToOuterV, popupOffset (Point 0 10), alignBottom, alignLeft]
   widgetTree = popup_ popupShowColor (popupAnchor toggle : popupCfg) picker

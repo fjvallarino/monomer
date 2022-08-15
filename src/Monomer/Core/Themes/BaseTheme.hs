@@ -139,6 +139,11 @@ titleFont = def
   & L.fontSize ?~ FontSize 20
   & L.fontSpaceV ?~ FontSpace 2
 
+colorPopupStyle :: BaseThemeColors -> StyleState
+colorPopupStyle themeMod = popupStyle where
+  sectionBg = sectionColor themeMod
+  popupStyle = mconcat [width 400, padding 10, bgColor sectionBg, radius 4]
+
 dialogMsgBodyFont :: BaseThemeColors -> TextStyle
 dialogMsgBodyFont themeMod = fontStyle where
   fontStyle = normalFont
@@ -224,6 +229,7 @@ baseBasic themeMod = def
   & L.emptyOverlayStyle . L.padding ?~ padding 8
   & L.btnStyle .~ btnStyle themeMod
   & L.btnMainStyle .~ btnMainStyle themeMod
+  & L.colorPopupStyle .~ colorPopupStyle themeMod
   & L.checkboxWidth .~ 20
   & L.checkboxStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.checkboxStyle . L.hlColor ?~ inputHlBasic themeMod
