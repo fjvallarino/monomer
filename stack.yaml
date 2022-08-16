@@ -44,8 +44,7 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
-  - git: https://github.com/klausweiss/nanovg-hs
-    commit: ef790d952da6f8ddacb802996337511607690b08
+  - nanovg-0.8.1.0@sha256:9131db15822c6593aa73946b56593eb0a14a0d044395bcdfd4fe2d3e6edb6759,4742
 
 # Override default flag values for local packages and extra-deps
 flags:
