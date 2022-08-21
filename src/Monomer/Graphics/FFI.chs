@@ -118,14 +118,19 @@ withText t = useAsCString (T.encodeUtf8 t)
 withNull :: (Ptr a -> b) -> b
 withNull f = f nullPtr
 
+-- | Same as CStringLen, but for strings of unsigned char* array type.
 type CUStringLen = (Ptr CUChar, CInt)
 
-allocCUStringLen :: ByteString -> (CUStringLen -> IO a) -> IO a
-allocCUStringLen bs f = useAsCUStringLen bs (copyCUStringLenMemory >=> f)
-
+-- | Same as 'useAsCStringLen', but works with unsigned char* arrays.
 useAsCUStringLen :: ByteString -> (CUStringLen -> IO a) -> IO a
 useAsCUStringLen bs f = useAsCStringLen bs (\(ptr, len) -> f (castPtr ptr, fromIntegral len))
 
+-- | Same as 'useAsCUStringLen', but copies the underlying memory, leaving freeing it to the C code.
+allocCUStringLen :: ByteString -> (CUStringLen -> IO a) -> IO a
+allocCUStringLen bs f = useAsCUStringLen bs (copyCUStringLenMemory >=> f)
+
+-- | Copy memory under given pointer to a new address.
+-- The allocated memory is not garbage-collected and needs to be freed manually later.
 copyCUStringLenMemory :: CUStringLen -> IO CUStringLen
 copyCUStringLenMemory (from, len) =
   let intLen = fromIntegral len
