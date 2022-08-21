@@ -383,8 +383,8 @@ appDisableAutoScale disable = def {
 }
 
 {-|
-Available fonts to the application. An empty list will make it impossible to
-render text.
+Available fonts to the application, loaded from the specified path. 
+Specifying no fonts will make it impossible to render text.
 -}
 appFontDefFile :: Text -> Text -> AppConfig e
 appFontDefFile name path = def {
@@ -398,8 +398,8 @@ appFontDef = appFontDefFile
 {-# DEPRECATED appFontDef "Use appFontDefFile directly" #-}
 
 {-|
-Available fonts to the application. An empty list will make it impossible to
-render text.
+Available fonts to the application, loaded from the bytes in memory. 
+Specifying no fonts will make it impossible to render text.
 -}
 appFontDefMem :: Text -> ByteString -> AppConfig e
 appFontDefMem name bytes = def {
