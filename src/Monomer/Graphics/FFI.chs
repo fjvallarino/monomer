@@ -23,7 +23,7 @@ import Data.Text (Text)
 import Data.Text.Foreign (withCStringLen)
 import Data.Sequence (Seq)
 import Foreign
-import Foreign.C (CString, castCharToCUChar)
+import Foreign.C (CString)
 import Foreign.C.Types
 import Foreign.Marshal.Alloc
 import Foreign.Ptr
