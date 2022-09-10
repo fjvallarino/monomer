@@ -56,6 +56,7 @@ lightThemeColors = BaseThemeColors {
   dialogText = black,
   dialogTitleText = black,
   emptyOverlay = gray07 & L.a .~ 0.8,
+  shadow = gray00 & L.a .~ 0.2,
 
   externalLinkBasic = blue07,
   externalLinkHover = blue08,
@@ -155,6 +156,7 @@ darkThemeColors = BaseThemeColors {
   dialogText = white,
   dialogTitleText = white,
   emptyOverlay = gray05 & L.a .~ 0.8,
+  shadow = gray00 & L.a .~ 0.33,
 
   externalLinkBasic = blue07,
   externalLinkHover = blue08,

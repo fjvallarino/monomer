@@ -333,6 +333,11 @@ data Renderer = Renderer {
   -}
   setStrokeRadialGradient :: Point -> Double -> Double -> Color -> Color -> IO (),
   {-|
+  Sets a box gradient stroke with box area, corner radius, feather, inner and
+  outer Color
+  -}
+  setStrokeBoxGradient :: Rect -> Double -> Double -> Color -> Color -> IO (),
+  {-|
   Sets an image pattern stroke, with top given by Point, size of a single image
   given by size, rotation and alpha.
   -}
@@ -348,6 +353,11 @@ data Renderer = Renderer {
   inner and outer Color.
   -}
   setFillRadialGradient :: Point -> Double -> Double -> Color -> Color -> IO (),
+  {-|
+  Sets a box gradient fill with box area, corner radius, feather, inner and
+  outer Color
+  -}
+  setFillBoxGradient :: Rect -> Double -> Double -> Color -> Color -> IO (),
   {-|
   Sets an image pattern fill, with top given by Point, size of a single image
   given by size, rotation and alpha.
