@@ -46,14 +46,8 @@ instance Default Color where
   def = Color 255 255 255 1.0
 
 data FontDef
-  = FontDefFile
-    { _fntFontName :: !Text  -- ^ The logic name. Will be used when defining styles.
-    , _fntFontPath :: !Text  -- ^ The path in the filesystem.
-    }
-  | FontDefMem
-    { _fntFontName :: !Text         -- ^ The logic name. Will be used when defining styles.
-    , _fntFontBytes :: !ByteString  -- ^ The bytes of the loaded font.
-    }
+  = FontDefFile !Text !Text -- ^ Associates a font name with a filesystem path.
+  | FontDefMem !Text !ByteString -- ^ Associates a font name with a font loaded in memory.
   deriving (Eq, Show, Generic)
 
 -- | The name of a loaded font.

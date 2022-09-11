@@ -30,7 +30,8 @@ import Monomer.Common.BasicTypes
 import Monomer.Graphics.FFI
 import Monomer.Graphics.Types
 import Monomer.Helper (putStrLnErr)
-import Monomer.Graphics.Lens (fontName, fontPath, fontBytes)
+
+import qualified Monomer.Graphics.Lens as L
 
 -- | Creates a font manager instance.
 makeFontManager
@@ -109,9 +110,9 @@ loadFont ctx fonts fontDef = do
     then return $ name : fonts
     else putStrLnErr ("Failed to load font: " ++ T.unpack name) >> return fonts
   where
-    name = fontDef ^. fontName
-    createFont FontDefFile{} = fmCreateFont ctx name (fontDef ^. fontPath)
-    createFont FontDefMem{} = fmCreateFontMem ctx name (fontDef ^. fontBytes)
+    name = fontDef ^. L.name
+    createFont (FontDefFile name path) = fmCreateFont ctx name path
+    createFont (FontDefMem name bytes) = fmCreateFontMem ctx name bytes
 
 setFont :: FMContext -> Double -> Font -> FontSize -> FontSpace -> IO ()
 setFont ctx scale (Font name) (FontSize size) (FontSpace spaceH) = do
