@@ -401,8 +401,8 @@ appFontDef = appFontDefFile
 Available fonts to the application, loaded from the bytes in memory. 
 Specifying no fonts will make it impossible to render text.
 -}
-appFontDefMemory :: Text -> ByteString -> AppConfig e
-appFontDefMemory name bytes = def {
+appFontDefMem :: Text -> ByteString -> AppConfig e
+appFontDefMem name bytes = def {
   _apcFonts = [ FontDefMem name bytes ]
 }
 
