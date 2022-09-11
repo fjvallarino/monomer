@@ -171,7 +171,7 @@ library
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
     , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
+    , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
@@ -217,7 +217,7 @@ executable books
     , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
+    , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
@@ -258,7 +258,7 @@ executable generative
     , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
+    , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , random >=1.1 && <1.3
     , sdl2 >=2.5.0 && <2.6
@@ -298,7 +298,7 @@ executable opengl
     , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
+    , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , random >=1.1 && <1.3
     , sdl2 >=2.5.0 && <2.6
@@ -340,7 +340,7 @@ executable ticker
     , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
+    , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
@@ -381,7 +381,7 @@ executable todo
     , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
+    , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
@@ -427,7 +427,7 @@ executable tutorial
     , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
+    , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , random >=1.1 && <1.3
     , sdl2 >=2.5.0 && <2.6
@@ -516,7 +516,7 @@ test-suite monomer-test
     , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
+    , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*

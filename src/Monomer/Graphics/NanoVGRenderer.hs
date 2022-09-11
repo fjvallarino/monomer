@@ -353,11 +353,15 @@ newRenderer c rdpr envRef = Renderer {..} where
     req = ImageReq name def Nothing ImageDelete []
 
 loadFont :: VG.Context -> Set Text -> FontDef -> IO (Set Text)
-loadFont c fonts (FontDef name path) = do
-  res <- VG.createFont c name (VG.FileName path)
+loadFont c fonts fontDef = do
+  res <- createFont fontDef
   case res of
     Just{} -> return $ Set.insert name fonts
     _ -> putStrLnErr ("Failed to load font: " ++ T.unpack name) >> return fonts
+  where
+    name = fontDef ^. L.fontName
+    createFont FontDefFile{} = VG.createFont c name (VG.FileName $ fontDef ^. L.fontPath)
+    createFont FontDefMem{} = VG.createFontMem c name (fontDef ^. L.fontBytes)
 
 setFont
   :: VG.Context
