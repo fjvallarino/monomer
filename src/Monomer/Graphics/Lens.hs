@@ -14,9 +14,7 @@ Lenses for the Graphics types.
 
 module Monomer.Graphics.Lens where
 
-import Control.Lens (lens)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
-import Data.Text (Text)
 
 import Monomer.Common.Lens
 import Monomer.Core.Lens
@@ -28,11 +26,3 @@ makeLensesWith abbreviatedFields ''GlyphPos
 makeLensesWith abbreviatedFields ''ImageDef
 makeLensesWith abbreviatedFields ''TextMetrics
 makeLensesWith abbreviatedFields ''TextLine
-
-instance HasName FontDef Text where
-  name = lens getName setName
-    where
-      getName (FontDefFile name _) = name
-      getName (FontDefMem name _) = name
-      setName (FontDefFile _ path) name = FontDefFile name path
-      setName (FontDefMem _ bytes) name = FontDefMem name bytes

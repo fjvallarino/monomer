@@ -359,9 +359,9 @@ loadFont c fonts fontDef = do
     Just{} -> return $ Set.insert name fonts
     _ -> putStrLnErr ("Failed to load font: " ++ T.unpack name) >> return fonts
   where
-    name = fontDef ^. L.name
-    createFont (FontDefFile name path) = VG.createFont c name (VG.FileName path)
-    createFont (FontDefMem name bytes) = VG.createFontMem c name bytes
+    name = fontDef ^. L.fontName
+    createFont FontDefFile{} = VG.createFont c name (VG.FileName $ fontDef ^. L.fontPath)
+    createFont FontDefMem{} = VG.createFontMem c name (fontDef ^. L.fontBytes)
 
 setFont
   :: VG.Context
