@@ -400,6 +400,12 @@ appFontDef = appFontDefFile
 {-|
 Available fonts to the application, loaded from the bytes in memory. 
 Specifying no fonts will make it impossible to render text.
+
+One use case for this function is to embed fonts in the application, without the need to distribute the font files.
+The [file-embed](https://hackage.haskell.org/package/file-embed-0.0.15.0/docs/Data-FileEmbed.html) library can be used for this.
+@
+appFontDefMemory "memoryFont" $(embedFile "dirName/fileName")
+@
 -}
 appFontDefMem :: Text -> ByteString -> AppConfig e
 appFontDefMem name bytes = def {
