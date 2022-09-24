@@ -68,11 +68,11 @@ boxShadow = boxShadow_ def
 
 -- | Creates a boxShadow around the provided content. Accepts config.
 boxShadow_
-  :: BoxShadowCfg    -- ^ The config options for the boxShadow.
+  :: [BoxShadowCfg]  -- ^ The config options for the boxShadow.
   -> WidgetNode s e  -- ^ The content to display inside the boxShadow.
   -> WidgetNode s e  -- ^ The created boxShadow.
 boxShadow_ config child =
-  defaultWidgetNode "boxShadow" (boxShadowWidget config)
+  defaultWidgetNode "boxShadow" (boxShadowWidget (mconcat config))
    & L.children .~ Seq.singleton child
 
 boxShadowWidget :: BoxShadowCfg -> Widget s e
