@@ -37,27 +37,75 @@ import qualified Monomer.Lens as L
 Configuration options for boxShadow:
 
 - 'radius': the radius of the corners of the shadow.
+- 'alignLeft': aligns the shadow to the left.
+- 'alignCenter': aligns the shadow to the horizontal center.
+- 'alignRight': aligns the shadow to the right.
+- 'alignTop': aligns the shadow to the top.
+- 'alignMiddle': aligns the shadow to the vertical middle.
+- 'alignBottom': aligns the shadow to the bottom.
 -}
-newtype BoxShadowCfg = BoxShadowCfg {
-  _bscRadius :: Maybe Double
+data BoxShadowCfg = BoxShadowCfg {
+  _bscRadius :: Maybe Double,
+  _bscAlignH :: Maybe AlignH,
+  _bscAlignV :: Maybe AlignV
 }
 
 instance Default BoxShadowCfg where
   def = BoxShadowCfg {
-    _bscRadius = Nothing
+    _bscRadius = Nothing,
+    _bscAlignH = Nothing,
+    _bscAlignV = Nothing
   }
 
 instance Semigroup BoxShadowCfg where
   (<>) c1 c2 = BoxShadowCfg {
-    _bscRadius = _bscRadius c1 <|> _bscRadius c2
+    _bscRadius = _bscRadius c1 <|> _bscRadius c2,
+    _bscAlignH = _bscAlignH c1 <|> _bscAlignH c2,
+    _bscAlignV = _bscAlignV c1 <|> _bscAlignV c2
   }
 
 instance Monoid BoxShadowCfg where
   mempty = def
 
 instance CmbRadius BoxShadowCfg where
-  radius r = BoxShadowCfg {
+  radius r = def {
     _bscRadius = Just r
+  }
+
+instance CmbAlignLeft BoxShadowCfg where
+  alignLeft_ False = def
+  alignLeft_ True = def {
+    _bscAlignH = Just ALeft
+  }
+
+instance CmbAlignCenter BoxShadowCfg where
+  alignCenter_ False = def
+  alignCenter_ True = def {
+    _bscAlignH = Just ACenter
+  }
+
+instance CmbAlignRight BoxShadowCfg where
+  alignRight_ False = def
+  alignRight_ True = def {
+    _bscAlignH = Just ARight
+  }
+
+instance CmbAlignTop BoxShadowCfg where
+  alignTop_ False = def
+  alignTop_ True = def {
+    _bscAlignV = Just ATop
+  }
+
+instance CmbAlignMiddle BoxShadowCfg where
+  alignMiddle_ False = def
+  alignMiddle_ True = def {
+    _bscAlignV = Just AMiddle
+  }
+
+instance CmbAlignBottom BoxShadowCfg where
+  alignBottom_ False = def
+  alignBottom_ True = def {
+    _bscAlignV = Just ABottom
   }
 
 -- | Creates a boxShadow around the provided content.
@@ -95,12 +143,26 @@ boxShadowWidget config = widget where
   resize wenv node viewport children = (resultNode node, fmap assignArea children) where
     style = currentStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
-    offset = -shadowRadius / 4 -- so the light appears to be coming from the top center, like in MacOS
+    
     assignArea child
-      | visible = moveRect (Point 0 offset) (subtractShadow contentArea)
+      | visible = moveRect childOffset (subtractShadow contentArea)
       | otherwise = def
       where
         visible = (_wniVisible . _wnInfo) child
+    
+    childOffset = Point offsetX offsetY where
+      theme = currentTheme wenv node
+      shadowAlignH = fromMaybe (theme ^. L.shadowAlignH) (_bscAlignH config)
+      shadowAlignV = fromMaybe (theme ^. L.shadowAlignV) (_bscAlignV config)
+      offset = shadowRadius / 4
+      offsetX = case shadowAlignH of
+        ALeft -> offset
+        ACenter -> 0
+        ARight -> -offset
+      offsetY = case shadowAlignV of
+        ATop -> offset
+        AMiddle -> 0
+        ABottom -> -offset
   
   render wenv node renderer = do
     beginPath renderer

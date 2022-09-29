@@ -54,6 +54,8 @@ instance Default Theme where
 data ThemeState = ThemeState {
   _thsEmptyOverlayStyle :: StyleState,
   _thsShadowColor :: Color,
+  _thsShadowAlignH :: AlignH,
+  _thsShadowAlignV :: AlignV,
   _thsBtnStyle :: StyleState,
   _thsBtnMainStyle :: StyleState,
   _thsCheckboxStyle :: StyleState,
@@ -112,6 +114,8 @@ instance Default ThemeState where
   def = ThemeState {
     _thsEmptyOverlayStyle = def,
     _thsShadowColor = darkGray { _colorA = 0.2 },
+    _thsShadowAlignH = ACenter,
+    _thsShadowAlignV = ABottom,
     _thsBtnStyle = def,
     _thsBtnMainStyle = def,
     _thsCheckboxStyle = def,
@@ -170,6 +174,8 @@ instance Semigroup ThemeState where
   (<>) t1 t2 = ThemeState {
     _thsEmptyOverlayStyle = _thsEmptyOverlayStyle t1 <> _thsEmptyOverlayStyle t2,
     _thsShadowColor = _thsShadowColor t2,
+    _thsShadowAlignH = _thsShadowAlignH t2,
+    _thsShadowAlignV = _thsShadowAlignV t2,
     _thsBtnStyle = _thsBtnStyle t1 <> _thsBtnStyle t2,
     _thsBtnMainStyle = _thsBtnMainStyle t1 <> _thsBtnMainStyle t2,
     _thsCheckboxStyle = _thsCheckboxStyle t1 <> _thsCheckboxStyle t2,

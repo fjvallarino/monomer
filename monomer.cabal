@@ -455,6 +455,7 @@ test-suite monomer-test
       Monomer.Widgets.Animation.SlideSpec
       Monomer.Widgets.CompositeSpec
       Monomer.Widgets.Containers.AlertSpec
+      Monomer.Widgets.Containers.BoxShadowSpec
       Monomer.Widgets.Containers.BoxSpec
       Monomer.Widgets.Containers.ConfirmSpec
       Monomer.Widgets.Containers.DragDropSpec
