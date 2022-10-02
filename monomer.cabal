@@ -87,6 +87,7 @@ library
       Monomer.Widgets.Containers.Alert
       Monomer.Widgets.Containers.Base.LabeledItem
       Monomer.Widgets.Containers.Box
+      Monomer.Widgets.Containers.BoxShadow
       Monomer.Widgets.Containers.Confirm
       Monomer.Widgets.Containers.Draggable
       Monomer.Widgets.Containers.Dropdown
@@ -454,6 +455,7 @@ test-suite monomer-test
       Monomer.Widgets.Animation.SlideSpec
       Monomer.Widgets.CompositeSpec
       Monomer.Widgets.Containers.AlertSpec
+      Monomer.Widgets.Containers.BoxShadowSpec
       Monomer.Widgets.Containers.BoxSpec
       Monomer.Widgets.Containers.ConfirmSpec
       Monomer.Widgets.Containers.DragDropSpec

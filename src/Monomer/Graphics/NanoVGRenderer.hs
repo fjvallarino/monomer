@@ -237,6 +237,10 @@ newRenderer c rdpr envRef = Renderer {..} where
     gradient <- makeRadialGradient c dpr p1 rad1 rad2 color1 color2
     VG.strokePaint c gradient
 
+  setStrokeBoxGradient rect rad feather color1 color2 = do
+    gradient <- makeBoxGradient c dpr rect rad feather color1 color2
+    VG.strokePaint c gradient
+
   setStrokeImagePattern name topLeft size angle alpha = do
     env <- readIORef envRef
 
@@ -257,6 +261,10 @@ newRenderer c rdpr envRef = Renderer {..} where
 
   setFillRadialGradient p1 rad1 rad2 color1 color2 = do
     gradient <- makeRadialGradient c dpr p1 rad1 rad2 color1 color2
+    VG.fillPaint c gradient
+
+  setFillBoxGradient rect rad feather color1 color2 = do
+    gradient <- makeBoxGradient c dpr rect rad feather color1 color2
     VG.fillPaint c gradient
 
   setFillImagePattern name topLeft size angle alpha = do
@@ -400,6 +408,17 @@ makeRadialGradient c dpr center rad1 rad2 color1 color2 = do
     CPoint cx cy = pointToCPoint center dpr
     crad1 = realToFrac rad1
     crad2 = realToFrac rad2
+    col1 = colorToPaint color1
+    col2 = colorToPaint color2
+
+makeBoxGradient
+  :: VG.Context -> Double -> Rect -> Double -> Double -> Color -> Color -> IO VG.Paint
+makeBoxGradient c dpr rect rad feather color1 color2 =
+  VG.boxGradient c cx cy cw ch crad cfeather col1 col2
+  where
+    CRect cx cy cw ch = rectToCRect rect dpr
+    crad = realToFrac $ rad * dpr
+    cfeather = realToFrac $ feather * dpr
     col1 = colorToPaint color1
     col2 = colorToPaint color2
 
