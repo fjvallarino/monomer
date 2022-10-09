@@ -41,6 +41,7 @@ import Monomer.Core.ThemeTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
+import Data.ByteString (ByteString)
 
 -- | Main Monomer monad.
 type MonomerM s e m = (Eq s, MonadState (MonomerCtx s e) m, MonadCatch m, MonadIO m)
@@ -382,12 +383,27 @@ appDisableAutoScale disable = def {
 }
 
 {-|
-Available fonts to the application. An empty list will make it impossible to
-render text.
+Available fonts to the application, loaded from the specified path. 
+Specifying no fonts will make it impossible to render text.
 -}
 appFontDef :: Text -> Text -> AppConfig e
 appFontDef name path = def {
-  _apcFonts = [ FontDef name path ]
+  _apcFonts = [ FontDefFile name path ]
+}
+
+{-|
+Available fonts to the application, loaded from the bytes in memory. 
+Specifying no fonts will make it impossible to render text.
+
+One use case for this function is to embed fonts in the application, without the need to distribute the font files.
+The [file-embed](https://hackage.haskell.org/package/file-embed-0.0.15.0/docs/Data-FileEmbed.html) library can be used for this.
+@
+appFontDefMemory "memoryFont" $(embedFile "dirName/fileName")
+@
+-}
+appFontDefMem :: Text -> ByteString -> AppConfig e
+appFontDefMem name bytes = def {
+  _apcFonts = [ FontDefMem name bytes ]
 }
 
 -- | Initial theme.

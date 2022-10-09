@@ -43,7 +43,7 @@ handleEvent = describe "handleEvent" $ do
     events (Point 500 280) `shouldBe` Seq.singleton AcceptClick
 
   it "should generate a Cancel event when clicking the Cancel button" $
-    events (Point 600 280) `shouldBe` Seq.singleton CancelClick
+    events (Point 590 280) `shouldBe` Seq.singleton CancelClick
 
   it "should not generate a close event when clicking the dialog" $
     events (Point 300 200) `shouldBe` Seq.empty

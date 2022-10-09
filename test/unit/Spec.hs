@@ -22,11 +22,13 @@ import qualified Monomer.Widgets.Animation.SlideSpec as AnimationSlideSpec
 
 import qualified Monomer.Widgets.Containers.AlertSpec as AlertSpec
 import qualified Monomer.Widgets.Containers.BoxSpec as BoxSpec
+import qualified Monomer.Widgets.Containers.BoxShadowSpec as BoxShadowSpec
 import qualified Monomer.Widgets.Containers.ConfirmSpec as ConfirmSpec
 import qualified Monomer.Widgets.Containers.DragDropSpec as DragDropSpec
 import qualified Monomer.Widgets.Containers.DropdownSpec as DropdownSpec
 import qualified Monomer.Widgets.Containers.GridSpec as GridSpec
 import qualified Monomer.Widgets.Containers.KeystrokeSpec as KeystrokeSpec
+import qualified Monomer.Widgets.Containers.PopupSpec as PopupSpec
 import qualified Monomer.Widgets.Containers.ScrollSpec as ScrollSpec
 import qualified Monomer.Widgets.Containers.SelectListSpec as SelectListSpec
 import qualified Monomer.Widgets.Containers.SplitSpec as SplitSpec
@@ -114,11 +116,13 @@ containers :: Spec
 containers = describe "Containers" $ do
   AlertSpec.spec
   BoxSpec.spec
+  BoxShadowSpec.spec
   ConfirmSpec.spec
   DragDropSpec.spec
   DropdownSpec.spec
   GridSpec.spec
   KeystrokeSpec.spec
+  PopupSpec.spec
   ScrollSpec.spec
   SelectListSpec.spec
   SplitSpec.spec

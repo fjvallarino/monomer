@@ -221,7 +221,9 @@ runAppLoop window glCtx channel widgetRoot config = do
   case setupRes of
     RenderSetupMulti -> do
       liftIO . atomically $ writeTChan channel (MsgInit newWenv newRoot)
-      liftIO $ watchWindowResize channel
+
+      unless (isLinux newWenv) $
+        liftIO $ watchWindowResize channel
     _ -> return ()
 
   let loopArgs = MainLoopArgs {

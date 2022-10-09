@@ -14,7 +14,7 @@ module Monomer.TestUtil where
 
 import Control.Concurrent (newMVar)
 import Control.Concurrent.STM.TChan (newTChanIO)
-import Control.Lens ((&), (^.), (.~), (.=))
+import Control.Lens ((&), (^.), (.~), (.=), (+~))
 import Control.Monad.State
 import Data.Default
 import Data.Maybe
@@ -134,12 +134,14 @@ mockRenderer = Renderer {
   setStrokeWidth = \width -> return (),
   setStrokeLinearGradient = \p1 p2 c1 c2 -> return (),
   setStrokeRadialGradient = \p1 a1 a2 c1 c2 -> return (),
+  setStrokeBoxGradient = \a r f c1 c2 -> return (),
   setStrokeImagePattern = \n1 p1 s1 w1 h1 -> return (),
   -- Fill
   fill = return (),
   setFillColor = \color -> return (),
   setFillLinearGradient = \p1 p2 c1 c2 -> return (),
   setFillRadialGradient = \p1 a1 a2 c1 c2 -> return (),
+  setFillBoxGradient = \a r f c1 c2 -> return (),
   setFillImagePattern = \n1 p1 s1 w1 h1 -> return (),
   -- Drawing
   moveTo = \point -> return (),
@@ -326,10 +328,20 @@ nodeHandleEvents
   -> WidgetNode s e
   -> (HandlerStep s e, MonomerCtx s e)
 nodeHandleEvents wenv init evts node = result where
+  result = nodeHandleEventsSteps wenv init [evts] node
+
+nodeHandleEventsSteps
+  :: (Eq s)
+  => WidgetEnv s e
+  -> InitWidget
+  -> [[SystemEvent]]
+  -> WidgetNode s e
+  -> (HandlerStep s e, MonomerCtx s e)
+nodeHandleEventsSteps wenv init eventSteps node = result where
   steps = case init of
-    WInit -> tail $ nodeHandleEvents_ wenv init [evts] node
-    WInitKeepFirst -> nodeHandleEvents_ wenv WInit [evts] node
-    _ -> nodeHandleEvents_ wenv init [evts] node
+    WInit -> tail $ nodeHandleEvents_ wenv init eventSteps node
+    WInitKeepFirst -> nodeHandleEvents_ wenv WInit eventSteps node
+    _ -> nodeHandleEvents_ wenv init eventSteps node
   result = foldl1 stepper steps
   stepper step1 step2 = result where
     ((_, _, reqs1), _) = step1
@@ -381,7 +393,10 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
       & L.info . L.path .~ rootPath
       & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
     runStep (wenv, root, accum) evts = do
-      step <- handleSystemEvents wenv root evts
+      let newWenv = wenv
+            & L.timestamp +~ 1
+
+      step <- handleSystemEvents newWenv root evts
       ctx <- get
       let (wenv2, root2, reqs2) = step
 

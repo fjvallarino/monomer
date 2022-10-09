@@ -40,16 +40,20 @@ module Monomer.Widgets.Containers.Alert (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (.~))
+import Control.Lens ((&), (.~), (%~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+
+import qualified Data.Sequence as Seq
 
 import Monomer.Core
 import Monomer.Core.Combinators
 
 import Monomer.Widgets.Composite
+import Monomer.Widgets.Container
 import Monomer.Widgets.Containers.Box
+import Monomer.Widgets.Containers.BoxShadow
 import Monomer.Widgets.Containers.Keystroke
 import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.Button
@@ -165,7 +169,7 @@ buildUI dialogBody cancelEvt config wenv model = mainTree where
       box_ [alignRight] dismissButton
         & L.info . L.style .~ collectTheme wenv L.dialogButtonsStyle
     ] & L.info . L.style .~ collectTheme wenv L.dialogFrameStyle
-  alertBox = box_ [onClickEmpty cancelEvt] alertTree
+  alertBox = box_ [onClickEmpty cancelEvt] (boxShadow alertTree)
     & L.info . L.style .~ emptyOverlay
   mainTree = keystroke [("Esc", cancelEvt)] alertBox
 

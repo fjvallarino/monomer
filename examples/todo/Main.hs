@@ -119,7 +119,9 @@ todoEdit wenv model = editNode where
 buildUI :: TodoWenv -> TodoModel -> TodoNode
 buildUI wenv model = widgetTree where
   sectionBg = wenv ^. L.theme . L.sectionColor
-  isEditing = model ^. action /= TodoNone
+  isEditing
+    | TodoEditing _ <- model ^. action = True
+    | otherwise = False
 
   countLabel = label caption `styleBasic` styles where
     caption = "Tasks (" <> showt (length $ model ^. todos) <> ")"
@@ -142,6 +144,12 @@ buildUI wenv model = widgetTree where
         filler
       ] `styleBasic` [bgColor (grayDark & L.a .~ 0.5)]
 
+  confirmDeleteLayer = case model ^.action of
+    TodoConfirmingDelete idx todo -> [popup] where
+      popup = confirmMsg msg (TodoConfirmDelete idx todo) TodoCancelDelete
+      msg = "Are you sure you want to delete '" <> (todo ^. description) <> "' ?"
+    _ -> []
+
   mainLayer = vstack [
       countLabel,
       scroll_ [] (todoList `styleBasic` [padding 20, paddingT 5]),
@@ -150,10 +158,10 @@ buildUI wenv model = widgetTree where
         `styleBasic` [bgColor sectionBg, padding 20]
     ]
 
-  widgetTree = zstack [
+  widgetTree = zstack ([
       mainLayer,
       editLayer `nodeVisible` isEditing
-    ]
+    ] <> confirmDeleteLayer)
 
 handleEvent
   :: TodoWenv
@@ -190,12 +198,17 @@ handleEvent wenv node model evt = case evt of
     SetFocusOnKey "todoNew"]
 
   TodoDeleteBegin idx todo -> [
+    Model (model & action .~ TodoConfirmingDelete idx todo)]
+
+  TodoConfirmDelete idx todo -> [
+    Model (model & action .~ TodoNone),
     Message (WidgetKey (todoRowKey todo)) AnimationStart]
 
+  TodoCancelDelete -> [
+    Model (model & action .~ TodoNone)]
+  
   TodoDelete idx todo -> [
-    Model $ model
-      & action .~ TodoNone
-      & todos .~ remove idx (model ^. todos),
+    Model $ model & todos .~ remove idx (model ^. todos),
     SetFocusOnKey "todoNew"]
 
   TodoCancel -> [

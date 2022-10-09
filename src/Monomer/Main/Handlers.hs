@@ -752,6 +752,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     -- Hover changes need to be handled here too
     mainPress <- use L.mainBtnPress
     draggedMsg <- getDraggedMsgInfo
+    overlay <- getOverlayPath
 
     when (btn == mainBtn) $
       L.mainBtnPress .= Nothing
@@ -761,7 +762,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     let pressed = fmap fst mainPress
     let isPressed = btn == mainBtn && target == pressed
     let clickEvt = [(Click point btn clicks, pressed) | isPressed || clicks > 1]
-    let releasedEvt = [(evt, pressed <|> target)]
+    let releasedEvt = [(evt, pressed <|> target <|> overlay)]
     let dropEvts = case draggedMsg of
           Just (path, msg) -> [(Drop point path msg, target) | not isPressed]
           _ -> []

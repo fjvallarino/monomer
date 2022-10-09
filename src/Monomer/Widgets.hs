@@ -24,6 +24,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Containers.DropTarget,
   module Monomer.Widgets.Containers.Grid,
   module Monomer.Widgets.Containers.Keystroke,
+  module Monomer.Widgets.Containers.Popup,
   module Monomer.Widgets.Containers.Scroll,
   module Monomer.Widgets.Containers.SelectList,
   module Monomer.Widgets.Containers.Split,
@@ -70,6 +71,7 @@ import Monomer.Widgets.Containers.Dropdown
 import Monomer.Widgets.Containers.DropTarget
 import Monomer.Widgets.Containers.Grid
 import Monomer.Widgets.Containers.Keystroke
+import Monomer.Widgets.Containers.Popup
 import Monomer.Widgets.Containers.Scroll
 import Monomer.Widgets.Containers.SelectList
 import Monomer.Widgets.Containers.Split

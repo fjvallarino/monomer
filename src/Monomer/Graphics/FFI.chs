@@ -17,8 +17,8 @@ Based on code from cocreature's https://github.com/cocreature/nanovg-hs
 
 module Monomer.Graphics.FFI where
 
-import Control.Monad (forM)
-import Data.ByteString (useAsCString)
+import Control.Monad (forM, (>=>))
+import Data.ByteString (useAsCStringLen, useAsCString, ByteString)
 import Data.Text (Text)
 import Data.Text.Foreign (withCStringLen)
 import Data.Sequence (Seq)
@@ -118,6 +118,27 @@ withText t = useAsCString (T.encodeUtf8 t)
 withNull :: (Ptr a -> b) -> b
 withNull f = f nullPtr
 
+-- | Same as CStringLen, but for strings of unsigned char* array type.
+type CUStringLen = (Ptr CUChar, CInt)
+
+-- | Same as 'useAsCStringLen', but works with unsigned char* arrays.
+useAsCUStringLen :: ByteString -> (CUStringLen -> IO a) -> IO a
+useAsCUStringLen bs f = useAsCStringLen bs (\(ptr, len) -> f (castPtr ptr, fromIntegral len))
+
+-- | Same as 'useAsCUStringLen', but copies the underlying memory, leaving freeing it to the C code.
+allocCUStringLen :: ByteString -> (CUStringLen -> IO a) -> IO a
+allocCUStringLen bs f = useAsCUStringLen bs (copyCUStringLenMemory >=> f)
+
+-- | Copy memory under given pointer to a new address.
+-- The allocated memory is not garbage-collected and needs to be freed manually later.
+copyCUStringLenMemory :: CUStringLen -> IO CUStringLen
+copyCUStringLenMemory (from, len) =
+  let intLen = fromIntegral len
+  in do
+    to <- mallocBytes intLen
+    copyBytes to from intLen
+    return (to, len)
+
 -- Common
 {# pointer *FMcontext as FMContext newtype #}
 deriving instance Storable FMContext
@@ -125,6 +146,8 @@ deriving instance Storable FMContext
 {# fun unsafe fmInit {`Double'} -> `FMContext' #}
 
 {# fun unsafe fmCreateFont {`FMContext', withCString*`Text', withCString*`Text'} -> `Int' #}
+
+{# fun unsafe fmCreateFontMem {`FMContext', withCString*`Text', allocCUStringLen*`ByteString'&} -> `Int' #}
 
 {# fun unsafe fmSetScale {`FMContext', `Double'} -> `()' #}
 

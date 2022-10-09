@@ -57,6 +57,7 @@ import Monomer.Core.Combinators
 
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Containers.Box
+import Monomer.Widgets.Containers.BoxShadow
 import Monomer.Widgets.Containers.Keystroke
 import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.Button
@@ -213,7 +214,7 @@ buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
       box_ [alignRight] buttons
         & L.info . L.style <>~ collectTheme wenv L.dialogButtonsStyle
     ] & L.info . L.style .~ collectTheme wenv L.dialogFrameStyle
-  confirmBox = box_ [onClickEmpty cancelEvt] confirmTree
+  confirmBox = box_ [onClickEmpty cancelEvt] (boxShadow confirmTree)
     & L.info . L.style .~ emptyOverlay
   mainTree = keystroke [("Esc", cancelEvt)] confirmBox
 

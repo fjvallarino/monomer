@@ -13,8 +13,8 @@ with super.haskellPackages.extend (self: super:
     nanovg = dontCheck (callCabal2nixWithOptions "nanovg" (fetchFromGitHub {
       owner = "cocreature";
       repo = "nanovg-hs";
-      rev = "cc8dfa0dc18a0792786c973b4e9a232fa7d3ecfd";
-      sha256 = "0vvj4l2dfjqspl80bwq4vkcql5p7s5a7l1cv7vajkak0vn1ryy70";
+      rev = "283516a337c4d3606555728df0a39294e78a7cdf";
+      sha256 = "1vggli76ijqmx633yix4yg5dv58a14p8561jnprjc061sjngphzv";
     }) "-fexamples -fstb_truetype" {
       inherit GLEW glew libGL libGLU;
       inherit (xorg) libX11;
