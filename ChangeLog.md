@@ -1,10 +1,12 @@
-## 1.5.0.0 (in development)
+## 1.5.0.0
 
 ### Added
 
 - Do not disable screensaver unless explicitly requested; add configuration flag ([PR #189](https://github.com/fjvallarino/monomer/pull/189)).
 - Conditional helpers for lists of widgets, styles and configuration options ([PR #185](https://github.com/fjvallarino/monomer/pull/185)).
 - Popup widget ([PR #191](https://github.com/fjvallarino/monomer/pull/191)).
+- Loading fonts from memory ([PR #199](https://github.com/fjvallarino/monomer/pull/199)). Thanks @klausweiss!
+- BoxShadow component ([PR #205](https://github.com/fjvallarino/monomer/pull/205)). Thanks @Dretch!
 
 ### Fixed
 
