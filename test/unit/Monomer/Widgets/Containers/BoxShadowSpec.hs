@@ -1,6 +1,6 @@
 {-|
 Module      : Monomer.Widgets.Containers.BoxShadowSpec
-Copyright   : (c) 2022 Francisco Vallarino
+Copyright   : (c) 2022 Gareth Smith, Francisco Vallarino
 License     : BSD-3-Clause (see the LICENSE file)
 Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
