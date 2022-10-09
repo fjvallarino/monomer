@@ -171,6 +171,49 @@ vstack_ [childSpacing_ 100] [
 ]
 ```
 
+#### Layout helpers
+
+Sometimes you will want to conditionally add widgets to an hstack/vstack. One
+option is using the list comprehension syntax, applying `concat` to the result:
+
+```haskell
+layout = vstack . concat $ [
+    [ label "Label 1" ],
+    [ label "Label 2" | isValid ]
+  ]
+```
+
+This works well, but in some cases it can become too verbose. An alternative is
+using the conditional helpers provided by the library:
+
+```haskell
+layout = vstack [
+    label "Label 1",
+    widgetIf isValid (label "Label 2")
+  ]
+```
+
+The `widgetIf` function receives a boolean value and a widget. When the value is
+True the widget is shown; when it's False, an invisible placeholder is used
+instead.
+
+A related function, `widgetMaybe`, takes a `Maybe a` value and a function that
+receives `a` and returns a widget. When the value is `Just` the result of
+applying function is added to the list; otherwise an invisible placeholder is
+used.
+
+Similar functions exist for styling and widget configuration:
+
+- Styling: `styleIf` and `styleMaybe`.
+- Configuration: `configIf` and `configMaybe`.
+
+```haskell
+layout = vstack_ [ configIf showSpacing childSpacing ] [
+  label "Test"
+    `styleBasic` [ textFont "Medium", styleIf invalidUser (textColor red) ]
+]
+```
+
 ### Basic widgets
 
 In the example you can see `label` and `button`, two basic building blocks which

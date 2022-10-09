@@ -3,6 +3,7 @@
 ### Added
 
 - Do not disable screensaver unless explicitly requested; add configuration flag ([PR #189](https://github.com/fjvallarino/monomer/pull/189)).
+- Conditional helpers for lists of widgets, styles and configuration options ([PR #185](https://github.com/fjvallarino/monomer/pull/185)).
 - Popup widget ([PR #191](https://github.com/fjvallarino/monomer/pull/191)).
 
 ### Fixed
