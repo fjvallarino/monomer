@@ -36,6 +36,7 @@ isActionEvent :: SDL.EventPayload -> Bool
 isActionEvent SDL.MouseButtonEvent{} = True
 isActionEvent SDL.MouseWheelEvent{} = True
 isActionEvent SDL.KeyboardEvent{} = True
+isActionEvent SDL.TextEditingEvent{} = True
 isActionEvent SDL.TextInputEvent{} = True
 isActionEvent _ = False
 
