@@ -270,7 +270,7 @@ mainLoop window fontManager config loopArgs = do
   inputStatus <- use L.inputStatus
   mousePos <- liftIO $ getCurrentMousePos epr
   currWinSize <- liftIO $ getViewportSize window dpr
-  prevRenderNeded <- use L.renderRequested
+  prevRenderNeeded <- use L.renderRequested
 
   let Size rw rh = windowSize
   let ts = startTs - _mlFrameStartTs
@@ -353,7 +353,7 @@ mainLoop window fontManager config loopArgs = do
   let windowRenderEvt = windowResized || any isWindowRenderEvent eventsPayload
   let renderNeeded = windowRenderEvt || actionEvt || renderCurrentReq
 
-  when (prevRenderNeded || renderNeeded) $ do
+  when (prevRenderNeeded || renderNeeded) $ do
     renderMethod <- use L.renderMethod
 
     case renderMethod of
