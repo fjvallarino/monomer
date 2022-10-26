@@ -52,6 +52,11 @@ dependencies:
   - vector >= 0.12 && < 0.14
   - wreq >= 0.5.2 && < 0.6
 
+flags:
+  ignore-examples:
+    default: True
+    manual: False
+
 library:
   source-dirs: src
   include-dirs: cbits
@@ -74,61 +79,87 @@ library:
         extra-libraries: GLEW
 
 executables:
+  dev-test-app:
+    main: Main.hs
+    source-dirs: dev-test-app
+    dependencies:
+      - monomer
+    ghc-options:
+      - -threaded
+
   todo:
     main: Main.hs
     source-dirs: examples/todo
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(ignore-examples)
+        buildable: False
     dependencies:
       - monomer
+    ghc-options:
+      - -threaded
 
   books:
     main: Main.hs
     source-dirs: examples/books
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(ignore-examples)
+        buildable: False
     dependencies:
       - aeson >= 1.4 && < 2.3
       - monomer
       - wreq >= 0.5.2 && < 0.6
+    ghc-options:
+      - -threaded
 
   ticker:
     main: Main.hs
     source-dirs: examples/ticker
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(ignore-examples)
+        buildable: False
     dependencies:
       - aeson >= 1.4 && < 2.3
       - monomer
       - websockets >= 0.12 && < 0.13
       - wuss >= 1.1 && < 2.3
+    ghc-options:
+      - -threaded
 
   generative:
     main: Main.hs
     source-dirs: examples/generative
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(ignore-examples)
+        buildable: False
     dependencies:
       - monomer
       - random >= 1.1 && < 1.3
+    ghc-options:
+      - -threaded
 
   opengl:
     main: Main.hs
     source-dirs: examples/opengl
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(ignore-examples)
+        buildable: False
     dependencies:
       - monomer
       - random >= 1.1 && < 1.3
+    ghc-options:
+      - -threaded
 
   tutorial:
     main: Main.hs
     source-dirs: examples/tutorial
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(ignore-examples)
+        buildable: False
     dependencies:
       - monomer
       - random >= 1.1 && < 1.3
+    ghc-options:
+      - -threaded
 
 tests:
   monomer-test:
