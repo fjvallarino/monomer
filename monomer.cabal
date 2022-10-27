@@ -31,6 +31,10 @@ source-repository head
   type: git
   location: https://github.com/fjvallarino/monomer
 
+flag examples
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Monomer
@@ -228,6 +232,48 @@ executable books
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  if flag(examples)
+    buildable: True
+  else
+    buildable: False
+  default-language: Haskell2010
+
+executable dev-test-app
+  main-is: Main.hs
+  other-modules:
+      Paths_monomer
+  hs-source-dirs:
+      dev-test-app
+  default-extensions:
+      OverloadedStrings
+  ghc-options: -threaded
+  build-depends:
+      JuicyPixels >=3.2.9 && <3.5
+    , OpenGLRaw ==3.3.*
+    , async >=2.1 && <2.3
+    , attoparsec >=0.12 && <0.15
+    , base >=4.11 && <5
+    , bytestring >=0.10 && <0.12
+    , bytestring-to-vector ==0.3.*
+    , containers >=0.5.11 && <0.7
+    , data-default >=0.5 && <0.8
+    , exceptions ==0.10.*
+    , extra >=1.6 && <1.9
+    , formatting >=6.0 && <8.0
+    , http-client >=0.6 && <0.9
+    , lens >=4.16 && <6
+    , monomer
+    , mtl >=2.1 && <2.3
+    , nanovg >=0.8.1 && <1.0
+    , process ==1.6.*
+    , sdl2 >=2.5.0 && <2.6
+    , stm ==2.5.*
+    , text >=1.2 && <2.1
+    , text-show >=3.7 && <3.10
+    , time >=1.8 && <1.16
+    , transformers >=0.5 && <0.7
+    , vector >=0.12 && <0.14
+    , wreq >=0.5.2 && <0.6
   default-language: Haskell2010
 
 executable generative
@@ -270,6 +316,10 @@ executable generative
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  if flag(examples)
+    buildable: True
+  else
+    buildable: False
   default-language: Haskell2010
 
 executable opengl
@@ -310,6 +360,10 @@ executable opengl
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  if flag(examples)
+    buildable: True
+  else
+    buildable: False
   default-language: Haskell2010
 
 executable ticker
@@ -353,6 +407,10 @@ executable ticker
     , websockets ==0.12.*
     , wreq >=0.5.2 && <0.6
     , wuss >=1.1 && <2.3
+  if flag(examples)
+    buildable: True
+  else
+    buildable: False
   default-language: Haskell2010
 
 executable todo
@@ -392,6 +450,10 @@ executable todo
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  if flag(examples)
+    buildable: True
+  else
+    buildable: False
   default-language: Haskell2010
 
 executable tutorial
@@ -439,6 +501,10 @@ executable tutorial
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  if flag(examples)
+    buildable: True
+  else
+    buildable: False
   default-language: Haskell2010
 
 test-suite monomer-test
