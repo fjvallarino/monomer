@@ -158,6 +158,8 @@ library
       cbits/dpi.c
       cbits/fontmanager.c
       cbits/glew.c
+  pkgconfig-depends:
+      glew
   build-tools:
       c2hs
   build-depends:
