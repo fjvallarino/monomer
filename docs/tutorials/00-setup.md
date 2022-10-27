@@ -83,10 +83,13 @@ Inside your project's directory:
 
 ```bash
 stack setup
+stack exec -- pacman -S msys2-keyring
 stack exec -- pacman -S mingw-w64-x86_64-pkg-config
 stack exec -- pacman -S mingw-w64-x86_64-SDL2
 stack exec -- pacman -S mingw-w64-x86_64-freeglut
 stack exec -- pacman -S mingw-w64-x86_64-glew
+stack exec -- pacman -S mingw-w64-x86_64-freetype
+stack exec -- pacman -Syu
 ```
 
 #### Notes
@@ -107,13 +110,8 @@ The second location is the directory that contains MinGW. Removing
 enough to get a working environment. If this does not work, removing
 `%STACK_ROOT%` and reinstalling Stack may be required.
 
-If the previous steps did not fix the issue, updating the keyring with the
-following commands and building again may help:
-
-```bash
-stack exec -- pacman -S msys2-keyring
-stack exec -- pacman -Syu
-```
+If the previous steps did not fix the issue, maybe the manual solution
+mentioned here can help: https://github.com/fjvallarino/monomer/issues/201.
 
 ## Build the project
 
