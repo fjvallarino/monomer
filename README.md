@@ -3,7 +3,7 @@
 <h3 align="center">A cross-platform GUI library for Haskell</h3>
 
 <p align="center">
-  <img src="assets/images/monomer-logo.svg" height=250 width=250 alt="Logo" />
+  <img src="https://github.com/fjvallarino/monomer/blob/main/assets/images/monomer-logo.svg" height=250 width=250 alt="Logo" />
 </p>
 
 <p align="center">
