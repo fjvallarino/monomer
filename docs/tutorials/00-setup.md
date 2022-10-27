@@ -135,7 +135,7 @@ git clone https://github.com/fjvallarino/monomer.git
 Then, inside the cloned directory, build the project with:
 
 ```bash
-stack build
+stack build --flag monomer:examples
 ```
 
 In case you have not followed the instructions for the starter project, you
