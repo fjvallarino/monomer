@@ -46,11 +46,16 @@ dependencies:
   - sdl2 >= 2.5.0 && < 2.6
   - stm >= 2.5 && < 2.6
   - text >= 1.2 && < 2.1
-  - text-show >= 3.7 && < 3.10
+  - text-show >= 3.7 && < 3.12
   - time >= 1.8 && < 1.16
   - transformers >= 0.5 && < 0.7
   - vector >= 0.12 && < 0.14
   - wreq >= 0.5.2 && < 0.6
+
+flags:
+  examples:
+    default: False
+    manual: True
 
 library:
   source-dirs: src
@@ -66,6 +71,7 @@ library:
     - -fPIC
   ghc-options:
     - -fwarn-incomplete-patterns
+  pkg-config-dependencies: glew
   when:
     - condition: os(windows)
       then:
@@ -74,61 +80,105 @@ library:
         extra-libraries: GLEW
 
 executables:
+  dev-test-app:
+    main: Main.hs
+    source-dirs: dev-test-app
+    dependencies:
+      - monomer
+    ghc-options:
+      - -threaded
+
   todo:
     main: Main.hs
     source-dirs: examples/todo
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(examples)
+        then:
+          buildable: True
+        else:
+          buildable: False
     dependencies:
       - monomer
+    ghc-options:
+      - -threaded
 
   books:
     main: Main.hs
     source-dirs: examples/books
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(examples)
+        then:
+          buildable: True
+        else:
+          buildable: False
     dependencies:
       - aeson >= 1.4 && < 2.3
       - monomer
       - wreq >= 0.5.2 && < 0.6
+    ghc-options:
+      - -threaded
 
   ticker:
     main: Main.hs
     source-dirs: examples/ticker
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(examples)
+        then:
+          buildable: True
+        else:
+          buildable: False
     dependencies:
       - aeson >= 1.4 && < 2.3
       - monomer
       - websockets >= 0.12 && < 0.13
       - wuss >= 1.1 && < 2.3
+    ghc-options:
+      - -threaded
 
   generative:
     main: Main.hs
     source-dirs: examples/generative
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(examples)
+        then:
+          buildable: True
+        else:
+          buildable: False
     dependencies:
       - monomer
       - random >= 1.1 && < 1.3
+    ghc-options:
+      - -threaded
 
   opengl:
     main: Main.hs
     source-dirs: examples/opengl
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(examples)
+        then:
+          buildable: True
+        else:
+          buildable: False
     dependencies:
       - monomer
       - random >= 1.1 && < 1.3
+    ghc-options:
+      - -threaded
 
   tutorial:
     main: Main.hs
     source-dirs: examples/tutorial
-    ghc-options:
-      - -threaded
+    when:
+      - condition: flag(examples)
+        then:
+          buildable: True
+        else:
+          buildable: False
     dependencies:
       - monomer
       - random >= 1.1 && < 1.3
+    ghc-options:
+      - -threaded
 
 tests:
   monomer-test:
