@@ -71,6 +71,7 @@ library:
     - -fPIC
   ghc-options:
     - -fwarn-incomplete-patterns
+  pkg-config-dependencies: glew
   when:
     - condition: os(windows)
       then:
