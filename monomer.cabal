@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -181,18 +181,18 @@ library
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
-    , text-show >=3.7 && <3.10
+    , text-show >=3.7 && <3.12
     , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  default-language: Haskell2010
   if os(windows)
     extra-libraries:
         glew32
   else
     extra-libraries:
         GLEW
-  default-language: Haskell2010
 
 executable books
   main-is: Main.hs
@@ -227,16 +227,16 @@ executable books
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
-    , text-show >=3.7 && <3.10
+    , text-show >=3.7 && <3.12
     , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  default-language: Haskell2010
   if flag(examples)
     buildable: True
   else
     buildable: False
-  default-language: Haskell2010
 
 executable dev-test-app
   main-is: Main.hs
@@ -269,7 +269,7 @@ executable dev-test-app
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
-    , text-show >=3.7 && <3.10
+    , text-show >=3.7 && <3.12
     , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
@@ -311,16 +311,16 @@ executable generative
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
-    , text-show >=3.7 && <3.10
+    , text-show >=3.7 && <3.12
     , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  default-language: Haskell2010
   if flag(examples)
     buildable: True
   else
     buildable: False
-  default-language: Haskell2010
 
 executable opengl
   main-is: Main.hs
@@ -355,16 +355,16 @@ executable opengl
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
-    , text-show >=3.7 && <3.10
+    , text-show >=3.7 && <3.12
     , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  default-language: Haskell2010
   if flag(examples)
     buildable: True
   else
     buildable: False
-  default-language: Haskell2010
 
 executable ticker
   main-is: Main.hs
@@ -400,18 +400,18 @@ executable ticker
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
-    , text-show >=3.7 && <3.10
+    , text-show >=3.7 && <3.12
     , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , websockets ==0.12.*
     , wreq >=0.5.2 && <0.6
     , wuss >=1.1 && <2.3
+  default-language: Haskell2010
   if flag(examples)
     buildable: True
   else
     buildable: False
-  default-language: Haskell2010
 
 executable todo
   main-is: Main.hs
@@ -445,16 +445,16 @@ executable todo
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
-    , text-show >=3.7 && <3.10
+    , text-show >=3.7 && <3.12
     , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  default-language: Haskell2010
   if flag(examples)
     buildable: True
   else
     buildable: False
-  default-language: Haskell2010
 
 executable tutorial
   main-is: Main.hs
@@ -496,16 +496,16 @@ executable tutorial
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
-    , text-show >=3.7 && <3.10
+    , text-show >=3.7 && <3.12
     , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
     , wreq >=0.5.2 && <0.6
+  default-language: Haskell2010
   if flag(examples)
     buildable: True
   else
     buildable: False
-  default-language: Haskell2010
 
 test-suite monomer-test
   type: exitcode-stdio-1.0
@@ -589,7 +589,7 @@ test-suite monomer-test
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
-    , text-show >=3.7 && <3.10
+    , text-show >=3.7 && <3.12
     , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , vector >=0.12 && <0.14
