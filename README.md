@@ -3,7 +3,7 @@
 <h3 align="center">A cross-platform GUI library for Haskell</h3>
 
 <p align="center">
-  <img src="https://github.com/fjvallarino/monomer/blob/main/assets/images/monomer-logo.svg" height=250 width=250 alt="Logo" />
+  <img src="https://raw.githubusercontent.com/fjvallarino/monomer/main/assets/images/monomer-logo.svg" height=250 width=250 alt="Logo" />
 </p>
 
 <p align="center">
@@ -85,6 +85,10 @@ In case you wonder why some choices were made, you can read
 
 - Stability and performance.
 - Mobile support.
+
+## Useful extensions
+
+- [Hagrid](https://github.com/Dretch/monomer-hagrid), a flexible datagrid widget.
 
 ## Contributing
 
