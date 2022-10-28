@@ -1,3 +1,14 @@
+## 1.5.1.0
+
+### Fixed
+
+- Fix rendering artifacts ([PR #215](https://github.com/fjvallarino/monomer/pull/215)).
+
+### Changed
+
+- Add "examples" flag to optionally build examples and tutorials ([PR #218](https://github.com/fjvallarino/monomer/pull/218)).
+- Use pkg-config for glew linking ([PR #219](https://github.com/fjvallarino/monomer/pull/219)).
+
 ## 1.5.0.0
 
 ### Added
