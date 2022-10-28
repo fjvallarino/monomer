@@ -105,11 +105,17 @@ will be reused on further code updates.
 -}
 data MonomerReloadData s e = MonomerReloadData {
   -- | The active window.
-  _mrdWindow :: SDL.Window,
+  _mrdWindow :: !SDL.Window,
   -- | The OpenGL context associated to the window.
-  _mrdGlContext :: SDL.GLContext,
-  -- | The latest Monomer context, including model and widget tree.
-  _mrdMonomerContext :: MonomerCtx s e
+  _mrdGlContext :: !SDL.GLContext,
+  -- | The dpr.
+  _mrdDpr :: !Double,
+  -- | The epr.
+  _mrdEpr :: !Double,
+  -- | The latest model.
+  _mrdModel :: !s,
+  -- | The latest widget tree.
+  _mrdRoot :: !(WidgetNode s e)
 }
 
 {-|
@@ -126,18 +132,18 @@ startApp
   -> AppUIBuilder s e     -- ^ The UI builder.
   -> [AppConfig e]        -- ^ The application config.
   -> IO ()                -- ^ The application action.
-startApp model eventHandler uiBuilder configs = do
+startApp newModel eventHandler uiBuilder configs = do
   (window, dpr, epr, glCtx) <- retrieveSDLWindow config
+  (model, root) <- retrieveModelAndRoot newModel newRoot
   vpSize <- getViewportSize window dpr
   channel <- newTChanIO
   isGhci <- isGhciRunning
 
-  let monomerCtx = initMonomerCtx window channel vpSize dpr epr model
-
   when isGhci $ do
-    setReloadData (MonomerReloadData window glCtx monomerCtx)
+    setReloadData (MonomerReloadData window glCtx dpr epr model newRoot)
 
-  runStateT (runAppLoop window glCtx channel appWidget config) monomerCtx
+  runStateT (runAppLoop window glCtx channel newRoot config) $
+    initMonomerCtx window channel vpSize dpr epr model
 
   unless isGhci $
     detroySDLWindow window
@@ -147,7 +153,7 @@ startApp model eventHandler uiBuilder configs = do
       = (onInit <$> _apcInitEvent config)
       ++ (onDispose <$> _apcDisposeEvent config)
       ++ (onResize <$> _apcResizeEvent config)
-    appWidget = composite_ "app" id uiBuilder eventHandler compCfgs
+    newRoot = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runAppLoop
   :: (MonomerM sp ep m, Eq sp, WidgetEvent e, WidgetEvent ep)
@@ -404,6 +410,7 @@ mainLoop window fontManager config loopArgs = do
   let tempDelay = abs (frameLength - fromIntegral remainingMs * 1000)
   let nextFrameDelay = min frameLength tempDelay
   let latestRenderTs = if renderNeeded then startTs else _mlLatestRenderTs
+  let newModel = newWenv ^. L.model
   let newLoopArgs = loopArgs {
     _mlLatestRenderTs = latestRenderTs,
     _mlFrameStartTs = startTs,
@@ -412,6 +419,7 @@ mainLoop window fontManager config loopArgs = do
     _mlWidgetRoot = newRoot
   }
 
+  liftIO $ updateReloadData newModel newRoot
   liftIO $ threadDelay nextFrameDelay
 
   shouldQuit <- use L.exitApplication
@@ -634,10 +642,13 @@ getReloadData = FS.lookupStore reloadStoreId >>= \case
 setReloadData :: MonomerReloadData s e -> IO ()
 setReloadData = FS.writeStore (FS.Store reloadStoreId)
 
-updateReloadData :: MonomerCtx s e -> IO ()
-updateReloadData newCtx =
+updateReloadData :: s -> WidgetNode s e -> IO ()
+updateReloadData model widgetRoot = do
   whenJustM getReloadData $ \rd ->
-    setReloadData rd { _mrdMonomerContext = newCtx }
+    setReloadData rd {
+      _mrdModel = model,
+      _mrdRoot = widgetRoot
+    }
 
 {-|
 When running in GHCi, avoids reinitializing SDL, reuses the existing window and
@@ -648,7 +659,16 @@ retrieveSDLWindow
   -> IO (SDL.Window, Double, Double, SDL.GLContext)
 retrieveSDLWindow config = do
   getReloadData >>= \case
-    Just (MonomerReloadData win glCtx ctx) ->
-      return (win, ctx ^. L.dpr, ctx ^. L.epr, glCtx)
+    Just rd ->
+      return (_mrdWindow rd, _mrdDpr rd, _mrdEpr rd, _mrdGlContext rd)
     Nothing -> do
       initSDLWindow config
+
+retrieveModelAndRoot
+  :: s -> WidgetNode s e -> IO (s, WidgetNode s e)
+retrieveModelAndRoot newModel newRoot = do
+  getReloadData >>= \case
+    Just rd ->
+      -- Pending merge of oldRoot and newRoot
+      return (_mrdModel rd, _mrdRoot rd)
+    Nothing -> return (newModel, newRoot)
