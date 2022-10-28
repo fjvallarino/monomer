@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -174,6 +174,7 @@ library
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
@@ -219,6 +220,7 @@ executable books
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
@@ -261,6 +263,7 @@ executable dev-test-app
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
@@ -302,6 +305,7 @@ executable generative
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
@@ -346,6 +350,7 @@ executable opengl
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
@@ -392,6 +397,7 @@ executable ticker
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
@@ -437,6 +443,7 @@ executable todo
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
@@ -487,6 +494,7 @@ executable tutorial
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
     , lens >=4.16 && <6
@@ -580,6 +588,7 @@ test-suite monomer-test
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , hspec >=2.4 && <3.0
     , http-client >=0.6 && <0.9
