@@ -35,7 +35,9 @@ import Data.List (foldl')
 import Data.Text (Text)
 import Data.Time
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+import Data.Typeable (Typeable, cast, typeOf, typeRepFingerprint)
 import Data.Word (Word32)
+import GHC.Fingerprint (Fingerprint)
 import Graphics.GL
 
 import qualified Data.Map as Map
@@ -114,6 +116,8 @@ data MonomerReloadData s e = MonomerReloadData {
   _mrdEpr :: !Double,
   -- | The latest model.
   _mrdModel :: !s,
+  -- | The fingerprint of the latest model. Used to detect changes in the data type.
+  _mrdModelFp :: !Fingerprint,
   -- | The latest widget tree.
   _mrdRoot :: !(WidgetNode s e)
 }
@@ -140,9 +144,9 @@ startApp newModel eventHandler uiBuilder configs = do
   isGhci <- isGhciRunning
 
   when isGhci $ do
-    setReloadData (MonomerReloadData window glCtx dpr epr model newRoot)
+    setReloadData (MonomerReloadData window glCtx dpr epr model modelFp root)
 
-  runStateT (runAppLoop window glCtx channel newRoot config) $
+  runStateT (runAppLoop window glCtx channel root config) $
     initMonomerCtx window channel vpSize dpr epr model
 
   unless isGhci $
@@ -153,6 +157,7 @@ startApp newModel eventHandler uiBuilder configs = do
       = (onInit <$> _apcInitEvent config)
       ++ (onDispose <$> _apcDisposeEvent config)
       ++ (onResize <$> _apcResizeEvent config)
+    modelFp = typeId newModel
     newRoot = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runAppLoop
@@ -664,11 +669,28 @@ retrieveSDLWindow config = do
     Nothing -> do
       initSDLWindow config
 
+{-
+This should use a Generics based structure equality check. A check to discard
+the old model if the structure changed is needed because using the old version
+while expecting the new shape causes ghci to crash.
+
+Fingerprinting is not reliable, since it is only based on the type's name. This
+GHC issue has more details: https://gitlab.haskell.org/ghc/ghc/-/issues/7897.
+
+Related Hint issue: https://github.com/haskell-hint/hint/issues/31.
+-}
 retrieveModelAndRoot
-  :: s -> WidgetNode s e -> IO (s, WidgetNode s e)
-retrieveModelAndRoot newModel newRoot = do
-  getReloadData >>= \case
-    Just rd ->
-      -- Pending merge of oldRoot and newRoot
+  :: WidgetModel s
+  => s
+  -> WidgetNode s e
+  -> IO (s, WidgetNode s e)
+retrieveModelAndRoot newModel newRoot = getReloadData >>= \case
+  Just rd
+    | typeId newModel == _mrdModelFp rd -> do
+      -- Pending merge with newRoot. This will always use the old tree.
       return (_mrdModel rd, _mrdRoot rd)
-    Nothing -> return (newModel, newRoot)
+  _ -> do
+    return (newModel, newRoot)
+
+typeId :: Typeable a => a -> Fingerprint
+typeId value = typeRepFingerprint (typeOf value)
