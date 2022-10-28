@@ -9,6 +9,7 @@ Portability : non-portable
 Core glue for running an application.
 -}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE Strict #-}
 
@@ -34,12 +35,14 @@ import Data.List (foldl')
 import Data.Text (Text)
 import Data.Time
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+import Data.Word (Word32)
 import Graphics.GL
 
 import qualified Data.Map as Map
-import qualified Data.Text as T
-import qualified SDL
 import qualified Data.Sequence as Seq
+import qualified Data.Text as T
+import qualified Foreign.Store as FS
+import qualified SDL
 
 import Monomer.Core
 import Monomer.Core.Combinators
@@ -50,7 +53,7 @@ import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics
-import Monomer.Helper (catchAny, putStrLnErr)
+import Monomer.Helper (catchAny, putStrLnErr, isGhciRunning)
 import Monomer.Widgets.Composite
 
 import qualified Monomer.Lens as L
@@ -72,6 +75,7 @@ type AppEventHandler s e
 -- | Type of the function responsible of creating the App UI.
 type AppUIBuilder s e = UIBuilder s e
 
+-- | Updated information for the current step of the event loop.
 data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlTheme :: Theme,
@@ -86,10 +90,26 @@ data MainLoopArgs sp e ep = MainLoopArgs {
   _mlWidgetShared :: MVar (Map Text WidgetShared)
 }
 
+-- | State information for the rendering thread.
 data RenderState s e = RenderState {
   _rstDpr :: Double,
   _rstWidgetEnv :: WidgetEnv s e,
   _rstRootNode :: WidgetNode s e
+}
+
+{-|
+Information for hot reload of an application running on ghci.
+
+When running in interpreted mode, SDL initialization and window creation data
+will be reused on further code updates.
+-}
+data MonomerReloadData s e = MonomerReloadData {
+  -- | The active window.
+  _mrdWindow :: SDL.Window,
+  -- | The OpenGL context associated to the window.
+  _mrdGlContext :: SDL.GLContext,
+  -- | The latest Monomer context, including model and widget tree.
+  _mrdMonomerContext :: MonomerCtx s e
 }
 
 {-|
@@ -107,14 +127,20 @@ startApp
   -> [AppConfig e]        -- ^ The application config.
   -> IO ()                -- ^ The application action.
 startApp model eventHandler uiBuilder configs = do
-  (window, dpr, epr, glCtx) <- initSDLWindow config
+  (window, dpr, epr, glCtx) <- retrieveSDLWindow config
   vpSize <- getViewportSize window dpr
   channel <- newTChanIO
+  isGhci <- isGhciRunning
 
   let monomerCtx = initMonomerCtx window channel vpSize dpr epr model
 
+  when isGhci $ do
+    setReloadData (MonomerReloadData window glCtx monomerCtx)
+
   runStateT (runAppLoop window glCtx channel appWidget config) monomerCtx
-  detroySDLWindow window
+
+  unless isGhci $
+    detroySDLWindow window
   where
     config = mconcat configs
     compCfgs
@@ -594,3 +620,35 @@ getEllapsedTimestampSince :: MonadIO m => Millisecond -> m Millisecond
 getEllapsedTimestampSince start = do
   ts <- getCurrentTimestamp
   return (ts - start)
+
+-- Hot reload support
+
+reloadStoreId :: Word32
+reloadStoreId = 0
+
+getReloadData :: IO (Maybe (MonomerReloadData s e))
+getReloadData = FS.lookupStore reloadStoreId >>= \case
+  Just{} -> Just <$> FS.readStore (FS.Store reloadStoreId)
+  _ -> return Nothing
+
+setReloadData :: MonomerReloadData s e -> IO ()
+setReloadData = FS.writeStore (FS.Store reloadStoreId)
+
+updateReloadData :: MonomerCtx s e -> IO ()
+updateReloadData newCtx =
+  whenJustM getReloadData $ \rd ->
+    setReloadData rd { _mrdMonomerContext = newCtx }
+
+{-|
+When running in GHCi, avoids reinitializing SDL, reuses the existing window and
+restores the model and (merged) widget tree when code is reloaded.
+-}
+retrieveSDLWindow
+  :: AppConfig e
+  -> IO (SDL.Window, Double, Double, SDL.GLContext)
+retrieveSDLWindow config = do
+  getReloadData >>= \case
+    Just (MonomerReloadData win glCtx ctx) ->
+      return (win, ctx ^. L.dpr, ctx ^. L.epr, glCtx)
+    Nothing -> do
+      initSDLWindow config

@@ -15,10 +15,12 @@ module Monomer.Helper where
 
 import Control.Exception (SomeException, catch)
 import Control.Monad.IO.Class (MonadIO)
+import Data.Functor ((<&>))
 import Data.Sequence (Seq(..))
 import System.IO (hPutStrLn, stderr)
 
 import qualified Data.Sequence as Seq
+import qualified System.Environment as SE
 
 -- | Concats a list of Monoids or returns Nothing if empty.
 maybeConcat :: Monoid a => [a] -> Maybe a
@@ -98,3 +100,6 @@ putStrLnErr :: String -> IO ()
 putStrLnErr msg = catchAny
   (hPutStrLn stderr msg)
   (const $ putStrLn msg)
+
+isGhciRunning :: IO Bool
+isGhciRunning = SE.getProgName <&> (== "<interactive>")

@@ -16,7 +16,6 @@ module Monomer.Core.Lens where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith, makePrisms)
 
-import Monomer.Common.Lens
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes
 import Monomer.Core.WidgetTypes
