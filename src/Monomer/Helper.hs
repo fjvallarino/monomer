@@ -96,10 +96,12 @@ headMay :: [a] -> Maybe a
 headMay [] = Nothing
 headMay (x : _) = Just x
 
+-- | Attempts to print on stderr, with fallback to stdout on failure.
 putStrLnErr :: String -> IO ()
 putStrLnErr msg = catchAny
   (hPutStrLn stderr msg)
   (const $ putStrLn msg)
 
+-- | Checks if the application is runnign in ghci.
 isGhciRunning :: IO Bool
 isGhciRunning = SE.getProgName <&> (== "<interactive>")

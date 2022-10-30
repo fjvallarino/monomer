@@ -79,6 +79,7 @@ type AppUIBuilder s e = UIBuilder s e
 
 -- | Updated information for the current step of the event loop.
 data MainLoopArgs sp e ep = MainLoopArgs {
+  _mlIsGhci :: Bool,
   _mlOS :: Text,
   _mlTheme :: Theme,
   _mlAppStartTs :: Millisecond,
@@ -110,12 +111,8 @@ data MonomerReloadData s e = MonomerReloadData {
   _mrdWindow :: !SDL.Window,
   -- | The OpenGL context associated to the window.
   _mrdGlContext :: !SDL.GLContext,
-  -- | The dpr.
-  _mrdDpr :: !Double,
-  -- | The epr.
-  _mrdEpr :: !Double,
-  -- | The latest model.
-  _mrdModel :: !s,
+  -- | The latest context.
+  _mrdMonomerCtx :: !(MonomerCtx s e),
   -- | The fingerprint of the model. Used to detect changes in the data type.
   _mrdModelFp :: !String,
   -- | The latest widget tree.
@@ -137,17 +134,16 @@ startApp
   -> [AppConfig s e]      -- ^ The application config.
   -> IO ()                -- ^ The application action.
 startApp newModel eventHandler uiBuilder configs = do
-  (window, dpr, epr, glCtx) <- retrieveSDLWindow config
-  (model, oldRoot) <- retrieveModelAndRoot config newModel newRoot
-  vpSize <- getViewportSize window dpr
-  channel <- newTChanIO
   isGhci <- isGhciRunning
+  channel <- newTChanIO
 
-  when isGhci $ do
-    setReloadData (MonomerReloadData window glCtx dpr epr model modelFp newRoot)
+  (model, oldRoot) <- retrieveModelAndRoot config newModel newRoot
+  (window, glCtx, monomerCtx) <- retrieveSDLWindow config channel model
 
-  runStateT (runAppLoop window glCtx channel oldRoot newRoot config) $
-    initMonomerCtx window channel vpSize dpr epr model
+  when isGhci $
+    setReloadData (MonomerReloadData window glCtx monomerCtx modelFp newRoot)
+
+  runStateT (runAppLoop window glCtx channel oldRoot newRoot config) monomerCtx
 
   unless isGhci $
     detroySDLWindow window
@@ -170,6 +166,7 @@ runAppLoop
   -> AppConfig s e
   -> m ()
 runAppLoop window glCtx channel oldRoot newRoot config = do
+  isGhci <- liftIO isGhciRunning
   dpr <- use L.dpr
   winSize <- use L.windowSize
 
@@ -215,7 +212,7 @@ runAppLoop window glCtx channel oldRoot newRoot config = do
     _weViewport = Rect 0 0 (winSize ^. L.w) (winSize ^. L.h),
     _weOffset = def
   }
-  let mergeNewRoot oldRoot = newRoot where -- result ^. L.node where
+  let mergeNewRoot oldRoot = result ^. L.node where
         result = widgetMerge (newRoot ^. L.widget) wenv newRoot oldRoot
   let widgetRoot = maybe newRoot mergeNewRoot oldRoot
   let pathReadyRoot
@@ -270,6 +267,7 @@ runAppLoop window glCtx channel oldRoot newRoot config = do
     _ -> return ()
 
   let loopArgs = MainLoopArgs {
+    _mlIsGhci = isGhci,
     _mlOS = os,
     _mlTheme = theme,
     _mlMaxFps = maxFps,
@@ -430,7 +428,10 @@ mainLoop window fontManager config loopArgs = do
     _mlWidgetRoot = newRoot
   }
 
-  liftIO $ updateReloadData newModel newRoot
+  when _mlIsGhci $ do
+    ctx <- get
+    liftIO $ updateReloadData ctx newRoot
+
   liftIO $ threadDelay nextFrameDelay
 
   shouldQuit <- use L.exitApplication
@@ -653,11 +654,11 @@ getReloadData = FS.lookupStore reloadStoreId >>= \case
 setReloadData :: MonomerReloadData s e -> IO ()
 setReloadData = FS.writeStore (FS.Store reloadStoreId)
 
-updateReloadData :: s -> WidgetNode s e -> IO ()
-updateReloadData model widgetRoot = do
+updateReloadData :: MonomerCtx s e -> WidgetNode s e -> IO ()
+updateReloadData context widgetRoot = do
   whenJustM getReloadData $ \rd ->
     setReloadData rd {
-      _mrdModel = model,
+      _mrdMonomerCtx = context,
       _mrdRoot = widgetRoot
     }
 
@@ -667,13 +668,22 @@ restores the model and (merged) widget tree when code is reloaded.
 -}
 retrieveSDLWindow
   :: AppConfig s e
-  -> IO (SDL.Window, Double, Double, SDL.GLContext)
-retrieveSDLWindow config = do
+  -> TChan (RenderMsg s e)
+  -> s
+  -> IO (SDL.Window, SDL.GLContext, MonomerCtx s e)
+retrieveSDLWindow config channel model = do
   getReloadData >>= \case
-    Just rd ->
-      return (_mrdWindow rd, _mrdDpr rd, _mrdEpr rd, _mrdGlContext rd)
+    Just rd -> return (_mrdWindow rd, _mrdGlContext rd, newCtx) where
+      ctx = _mrdMonomerCtx rd
+      newCtx = ctx {
+        _mcMainModel = model,
+        _mcRenderMethod = Right channel
+      }
     Nothing -> do
-      initSDLWindow config
+      (window, dpr, epr, ctxRender) <- initSDLWindow config
+      vpSize <- getViewportSize window dpr
+      let newCtx = initMonomerCtx window channel vpSize dpr epr model
+      return (window, ctxRender, newCtx)
 
 retrieveModelAndRoot
   :: WidgetModel s
@@ -684,7 +694,7 @@ retrieveModelAndRoot
 retrieveModelAndRoot config newModel newRoot = getReloadData >>= \case
   Just rd
     | checkFingerprint && fingerprint == _mrdModelFp rd ->
-        return (_mrdModel rd, Just (_mrdRoot rd))
+        return (_mrdMonomerCtx rd ^. L.mainModel, Just (_mrdRoot rd))
   _ -> do
     return (newModel, Nothing)
   where
