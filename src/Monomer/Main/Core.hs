@@ -64,7 +64,7 @@ import qualified Monomer.Lens as L
 Type of response an App event handler can return, with __s__ being the model and
 __e__ the user's event type.
 -}
-type AppEventResponse s e = EventResponse s e s ()
+type AppEventResponse s e = EventResponse s e s e
 
 -- | Type of an App event handler.
 type AppEventHandler s e
@@ -116,8 +116,8 @@ data MonomerReloadData s e = MonomerReloadData {
   _mrdEpr :: !Double,
   -- | The latest model.
   _mrdModel :: !s,
-  -- | The fingerprint of the latest model. Used to detect changes in the data type.
-  _mrdModelFp :: !Fingerprint,
+  -- | The fingerprint of the model. Used to detect changes in the data type.
+  _mrdModelFp :: !String,
   -- | The latest widget tree.
   _mrdRoot :: !(WidgetNode s e)
 }
@@ -134,11 +134,11 @@ startApp
   => s                    -- ^ The initial model.
   -> AppEventHandler s e  -- ^ The event handler.
   -> AppUIBuilder s e     -- ^ The UI builder.
-  -> [AppConfig e]        -- ^ The application config.
+  -> [AppConfig s e]      -- ^ The application config.
   -> IO ()                -- ^ The application action.
 startApp newModel eventHandler uiBuilder configs = do
   (window, dpr, epr, glCtx) <- retrieveSDLWindow config
-  (model, root) <- retrieveModelAndRoot newModel newRoot
+  (model, root) <- retrieveModelAndRoot config newModel newRoot
   vpSize <- getViewportSize window dpr
   channel <- newTChanIO
   isGhci <- isGhciRunning
@@ -157,7 +157,7 @@ startApp newModel eventHandler uiBuilder configs = do
       = (onInit <$> _apcInitEvent config)
       ++ (onDispose <$> _apcDisposeEvent config)
       ++ (onResize <$> _apcResizeEvent config)
-    modelFp = typeId newModel
+    modelFp = maybe "" ($ newModel) (_apcModelFingerprintFn config)
     newRoot = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runAppLoop
@@ -166,7 +166,7 @@ runAppLoop
   -> SDL.GLContext
   -> TChan (RenderMsg sp ep)
   -> WidgetNode sp ep
-  -> AppConfig e
+  -> AppConfig s e
   -> m ()
 runAppLoop window glCtx channel widgetRoot config = do
   dpr <- use L.dpr
@@ -285,7 +285,7 @@ mainLoop
   :: (MonomerM sp ep m, WidgetEvent e)
   => SDL.Window
   -> FontManager
-  -> AppConfig e
+  -> AppConfig s e
   -> MainLoopArgs sp e ep
   -> m ()
 mainLoop window fontManager config loopArgs = do
@@ -660,7 +660,7 @@ When running in GHCi, avoids reinitializing SDL, reuses the existing window and
 restores the model and (merged) widget tree when code is reloaded.
 -}
 retrieveSDLWindow
-  :: AppConfig e
+  :: AppConfig s e
   -> IO (SDL.Window, Double, Double, SDL.GLContext)
 retrieveSDLWindow config = do
   getReloadData >>= \case
@@ -669,28 +669,19 @@ retrieveSDLWindow config = do
     Nothing -> do
       initSDLWindow config
 
-{-
-This should use a Generics based structure equality check. A check to discard
-the old model if the structure changed is needed because using the old version
-while expecting the new shape causes ghci to crash.
-
-Fingerprinting is not reliable, since it is only based on the type's name. This
-GHC issue has more details: https://gitlab.haskell.org/ghc/ghc/-/issues/7897.
-
-Related Hint issue: https://github.com/haskell-hint/hint/issues/31.
--}
 retrieveModelAndRoot
   :: WidgetModel s
-  => s
+  => AppConfig s e
+  -> s
   -> WidgetNode s e
   -> IO (s, WidgetNode s e)
-retrieveModelAndRoot newModel newRoot = getReloadData >>= \case
+retrieveModelAndRoot config newModel newRoot = getReloadData >>= \case
   Just rd
-    | typeId newModel == _mrdModelFp rd -> do
-      -- Pending merge with newRoot. This will always use the old tree.
-      return (_mrdModel rd, _mrdRoot rd)
+    | checkFingerprint && fingerprint == _mrdModelFp rd -> do
+      -- Pending merge with _mrdRoot rd. This will always use the old tree.
+      return (_mrdModel rd, newRoot)
   _ -> do
     return (newModel, newRoot)
-
-typeId :: Typeable a => a -> Fingerprint
-typeId value = typeRepFingerprint (typeOf value)
+  where
+    checkFingerprint = isJust (_apcModelFingerprintFn config)
+    fingerprint = maybe "" ($ newModel) (_apcModelFingerprintFn config)

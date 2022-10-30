@@ -153,7 +153,7 @@ data MainWindowState
   deriving (Eq, Show)
 
 -- | Main application config.
-data AppConfig e = AppConfig {
+data AppConfig s e = AppConfig {
   -- | Initial size of the main window.
   _apcWindowState :: Maybe MainWindowState,
   -- | Title of the main window.
@@ -208,10 +208,16 @@ data AppConfig e = AppConfig {
   -- | Whether compositing should be disabled. Defaults to False.
   _apcDisableCompositing :: Maybe Bool,
   -- | Whether the screensaver should be disabled. Defaults to False.
-  _apcDisableScreensaver :: Maybe Bool
+  _apcDisableScreensaver :: Maybe Bool,
+  {-|
+  Extracts a String based fingerprint from the application's model.
+
+  See 'appFingerprint' for more details.
+  -}
+  _apcModelFingerprintFn :: Maybe (s -> String)
 }
 
-instance Default (AppConfig e) where
+instance Default (AppConfig s e) where
   def = AppConfig {
     _apcWindowState = Nothing,
     _apcWindowTitle = Nothing,
@@ -233,10 +239,11 @@ instance Default (AppConfig e) where
     _apcInvertWheelX = Nothing,
     _apcInvertWheelY = Nothing,
     _apcDisableCompositing = Nothing,
-    _apcDisableScreensaver = Nothing
+    _apcDisableScreensaver = Nothing,
+    _apcModelFingerprintFn = Nothing
   }
 
-instance Semigroup (AppConfig e) where
+instance Semigroup (AppConfig s e) where
   (<>) a1 a2 = AppConfig {
     _apcWindowState = _apcWindowState a2 <|> _apcWindowState a1,
     _apcWindowTitle = _apcWindowTitle a2 <|> _apcWindowTitle a1,
@@ -258,38 +265,39 @@ instance Semigroup (AppConfig e) where
     _apcInvertWheelX = _apcInvertWheelX a2 <|> _apcInvertWheelX a1,
     _apcInvertWheelY = _apcInvertWheelY a2 <|> _apcInvertWheelY a1,
     _apcDisableCompositing = _apcDisableCompositing a2 <|> _apcDisableCompositing a1,
-    _apcDisableScreensaver = _apcDisableScreensaver a2 <|> _apcDisableScreensaver a1
+    _apcDisableScreensaver = _apcDisableScreensaver a2 <|> _apcDisableScreensaver a1,
+    _apcModelFingerprintFn = _apcModelFingerprintFn a2 <|> _apcModelFingerprintFn a1
   }
 
-instance Monoid (AppConfig e) where
+instance Monoid (AppConfig s e) where
   mempty = def
 
 -- | Initial size of the main window.
-appWindowState :: MainWindowState -> AppConfig e
+appWindowState :: MainWindowState -> AppConfig s e
 appWindowState title = def {
   _apcWindowState = Just title
 }
 
 -- | Title of the main window.
-appWindowTitle :: Text -> AppConfig e
+appWindowTitle :: Text -> AppConfig s e
 appWindowTitle title = def {
   _apcWindowTitle = Just title
 }
 
 -- | Whether the main window is resizable.
-appWindowResizable :: Bool -> AppConfig e
+appWindowResizable :: Bool -> AppConfig s e
 appWindowResizable resizable = def {
   _apcWindowResizable = Just resizable
 }
 
 -- | Whether the main window has a border.
-appWindowBorder :: Bool -> AppConfig e
+appWindowBorder :: Bool -> AppConfig s e
 appWindowBorder border = def {
   _apcWindowBorder = Just border
 }
 
 -- | Path to an icon file in BMP format.
-appWindowIcon :: Text -> AppConfig e
+appWindowIcon :: Text -> AppConfig s e
 appWindowIcon path = def {
   _apcWindowIcon = Just path
 }
@@ -314,7 +322,7 @@ This flag is no longer necessary for those cases, since the library will:
 -}
 {-# DEPRECATED appRenderOnMainThread
   "Should no longer be needed. Check appRenderOnMainThread's Haddock page." #-}
-appRenderOnMainThread :: AppConfig e
+appRenderOnMainThread :: AppConfig s e
 appRenderOnMainThread = def {
   _apcUseRenderThread = Just False
 }
@@ -324,7 +332,7 @@ Max number of FPS the application will run on. It does not necessarily mean
 rendering will happen every frame, but events and schedules will be checked at
 this rate and may cause it.
 -}
-appMaxFps :: Int -> AppConfig e
+appMaxFps :: Int -> AppConfig s e
 appMaxFps fps = def {
   _apcMaxFps = Just fps
 }
@@ -334,7 +342,7 @@ Scale factor to apply to the viewport. This factor only affects the content, not
 the size of the window. It is applied in addition to the detected display scale
 factor, and can be useful if the detected value is not the desired.
 -}
-appScaleFactor :: Double -> AppConfig e
+appScaleFactor :: Double -> AppConfig s e
 appScaleFactor factor = def {
   _apcScaleFactor = Just factor
 }
@@ -377,7 +385,7 @@ Considering the above, when SDL_GetDisplayDPI fails, the library assumes that a
 screen width larger than 1920 belongs to an HiDPI display and uses a scale
 factor of 2. This factor is used to scale the window size and the content.
 -}
-appDisableAutoScale :: Bool -> AppConfig e
+appDisableAutoScale :: Bool -> AppConfig s e
 appDisableAutoScale disable = def {
   _apcDisableAutoScale = Just disable
 }
@@ -386,7 +394,7 @@ appDisableAutoScale disable = def {
 Available fonts to the application, loaded from the specified path. 
 Specifying no fonts will make it impossible to render text.
 -}
-appFontDef :: Text -> Text -> AppConfig e
+appFontDef :: Text -> Text -> AppConfig s e
 appFontDef name path = def {
   _apcFonts = [ FontDefFile name path ]
 }
@@ -401,49 +409,49 @@ The [file-embed](https://hackage.haskell.org/package/file-embed-0.0.15.0/docs/Da
 appFontDefMemory "memoryFont" $(embedFile "dirName/fileName")
 @
 -}
-appFontDefMem :: Text -> ByteString -> AppConfig e
+appFontDefMem :: Text -> ByteString -> AppConfig s e
 appFontDefMem name bytes = def {
   _apcFonts = [ FontDefMem name bytes ]
 }
 
 -- | Initial theme.
-appTheme :: Theme -> AppConfig e
+appTheme :: Theme -> AppConfig s e
 appTheme t = def {
   _apcTheme = Just t
 }
 
 -- | Initial event, useful for loading resources.
-appInitEvent :: e -> AppConfig e
+appInitEvent :: e -> AppConfig s e
 appInitEvent evt = def {
   _apcInitEvent = [evt]
 }
 
 -- | Dispose event, useful for closing resources.
-appDisposeEvent :: e -> AppConfig e
+appDisposeEvent :: e -> AppConfig s e
 appDisposeEvent evt = def {
   _apcDisposeEvent = [evt]
 }
 
 -- | Exit event, useful for cancelling an application close event.
-appExitEvent :: e -> AppConfig e
+appExitEvent :: e -> AppConfig s e
 appExitEvent evt = def {
   _apcExitEvent = [evt]
 }
 
 -- | Resize event handler.
-appResizeEvent :: (Rect -> e) -> AppConfig e
+appResizeEvent :: (Rect -> e) -> AppConfig s e
 appResizeEvent evt = def {
   _apcResizeEvent = [evt]
 }
 
 -- | Defines which mouse button is considered main.
-appMainButton :: Button -> AppConfig e
+appMainButton :: Button -> AppConfig s e
 appMainButton btn = def {
   _apcMainButton = Just btn
 }
 
 -- | Defines which mouse button is considered secondary or context button.
-appContextButton :: Button -> AppConfig e
+appContextButton :: Button -> AppConfig s e
 appContextButton btn = def {
   _apcContextButton = Just btn
 }
@@ -452,7 +460,7 @@ appContextButton btn = def {
 Whether the horizontal wheel/trackpad movement should be inverted. In general
 platform detection should do the right thing.
 -}
-appInvertWheelX :: Bool -> AppConfig e
+appInvertWheelX :: Bool -> AppConfig s e
 appInvertWheelX invert = def {
   _apcInvertWheelX = Just invert
 }
@@ -461,7 +469,7 @@ appInvertWheelX invert = def {
 Whether the vertical wheel/trackpad movement should be inverted. In general
 platform detection should do the right thing.
 -}
-appInvertWheelY :: Bool -> AppConfig e
+appInvertWheelY :: Bool -> AppConfig s e
 appInvertWheelY invert = def {
   _apcInvertWheelY = Just invert
 }
@@ -474,7 +482,7 @@ Desktop applications should leave compositing as is since disabling it may
 cause visual glitches in other programs. When creating games or fullscreen
 applications, disabling compositing may improve performance.
 -}
-appDisableCompositing :: Bool -> AppConfig e
+appDisableCompositing :: Bool -> AppConfig s e
 appDisableCompositing disable = def {
   _apcDisableCompositing = Just disable
 }
@@ -486,7 +494,39 @@ Desktop applications should leave the screensaver as is since disabling it also
 affects power saving features, including turning off the screen. When creating
 games or fullscreen applications, disabling the screensaver may make sense.
 -}
-appDisableScreensaver :: Bool -> AppConfig e
+appDisableScreensaver :: Bool -> AppConfig s e
 appDisableScreensaver disable = def {
   _apcDisableScreensaver = Just disable
 }
+
+{-|
+Uses the provided function to generate the application's model fingerprint.
+
+The fingerprint function is applied to the user provided model on application
+startup only, and it's used to detect if the latest value of the model can be
+reused when the application is reloaded in ghci. If the latest fingerprint of
+the model matches the one of the new model, it is assumed that the old model can
+be reused. If the fingerprint changed because its data or data type changed, the
+new model will be used. Since Monomer uses the model to build the UI, reusing
+the old model allows for quicker iteration as the application will be restored
+to the previous state before reloading.
+
+If a fingerprint function is not provided, the model will always be reset to the
+user provided value.
+
+Ideally, changes in the model's type could be detected with GHC's
+"GHC.Fingerprint.Fingerprint", but unfortunately this is not reliable since it's
+based on the type's name only. If the model's type changed and we attempt to use
+its Eq instance, ghci will crash.
+
+GHC issue with more details: https://gitlab.haskell.org/ghc/ghc/-/issues/7897.
+Related Hint issue: https://github.com/haskell-hint/hint/issues/31.
+-}
+appFingerprint :: (s -> String) -> AppConfig s e
+appFingerprint fn = def {
+  _apcModelFingerprintFn = Just fn
+}
+
+-- | Generates a fingerprint for the model based on its 'Show' instance.
+appFingerprintShow :: Show s => AppConfig s e
+appFingerprintShow = appFingerprint show
