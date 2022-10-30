@@ -311,7 +311,7 @@ boxFilterEvent handler = def {
 
 newtype BoxState s = BoxState {
   _bxsModel :: Maybe s
-}
+} deriving (Show)
 
 -- | Creates a box widget with a single node as child.
 box :: (WidgetModel s, WidgetEvent e) => WidgetNode s e -> WidgetNode s e

@@ -390,7 +390,7 @@ data CompositeState s e = CompositeState {
   _cpsModel :: !(Maybe s),
   _cpsRoot :: !(WidgetNode s e),
   _cpsWidgetKeyMap :: WidgetKeyMap s e
-}
+} deriving Show
 
 data ReducedEvents s e sp ep = ReducedEvents {
   _reModel :: s,

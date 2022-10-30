@@ -152,7 +152,10 @@ instance Default KeyStroke where
 
 newtype KeyStrokeState e = KeyStrokeState {
   _kssLatest :: [(KeyStroke, e)]
-} deriving (Eq, Show)
+} deriving (Eq)
+
+instance Show (KeyStrokeState e) where
+  show (KeyStrokeState keys) = show (map fst keys)
 
 data KeyEntry
   = KeyEntryCode KeyCode
