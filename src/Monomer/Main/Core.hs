@@ -138,15 +138,15 @@ startApp
   -> IO ()                -- ^ The application action.
 startApp newModel eventHandler uiBuilder configs = do
   (window, dpr, epr, glCtx) <- retrieveSDLWindow config
-  (model, root) <- retrieveModelAndRoot config newModel newRoot
+  (model, oldRoot) <- retrieveModelAndRoot config newModel newRoot
   vpSize <- getViewportSize window dpr
   channel <- newTChanIO
   isGhci <- isGhciRunning
 
   when isGhci $ do
-    setReloadData (MonomerReloadData window glCtx dpr epr model modelFp root)
+    setReloadData (MonomerReloadData window glCtx dpr epr model modelFp newRoot)
 
-  runStateT (runAppLoop window glCtx channel root config) $
+  runStateT (runAppLoop window glCtx channel oldRoot newRoot config) $
     initMonomerCtx window channel vpSize dpr epr model
 
   unless isGhci $
@@ -165,10 +165,11 @@ runAppLoop
   => SDL.Window
   -> SDL.GLContext
   -> TChan (RenderMsg sp ep)
+  -> Maybe (WidgetNode sp ep)
   -> WidgetNode sp ep
   -> AppConfig s e
   -> m ()
-runAppLoop window glCtx channel widgetRoot config = do
+runAppLoop window glCtx channel oldRoot newRoot config = do
   dpr <- use L.dpr
   winSize <- use L.windowSize
 
@@ -214,9 +215,14 @@ runAppLoop window glCtx channel widgetRoot config = do
     _weViewport = Rect 0 0 (winSize ^. L.w) (winSize ^. L.h),
     _weOffset = def
   }
-  let pathReadyRoot = widgetRoot
-        & L.info . L.path .~ rootPath
-        & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
+  let mergeNewRoot oldRoot = newRoot where -- result ^. L.node where
+        result = widgetMerge (newRoot ^. L.widget) wenv newRoot oldRoot
+  let widgetRoot = maybe newRoot mergeNewRoot oldRoot
+  let pathReadyRoot
+        | isJust oldRoot = widgetRoot
+        | otherwise = widgetRoot
+            & L.info . L.path .~ rootPath
+            & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
   let makeMainThreadRenderer = do
         renderer <- liftIO $ makeRenderer fonts dpr
         L.renderMethod .= Left renderer
@@ -674,14 +680,13 @@ retrieveModelAndRoot
   => AppConfig s e
   -> s
   -> WidgetNode s e
-  -> IO (s, WidgetNode s e)
+  -> IO (s, Maybe (WidgetNode s e))
 retrieveModelAndRoot config newModel newRoot = getReloadData >>= \case
   Just rd
-    | checkFingerprint && fingerprint == _mrdModelFp rd -> do
-      -- Pending merge with _mrdRoot rd. This will always use the old tree.
-      return (_mrdModel rd, newRoot)
+    | checkFingerprint && fingerprint == _mrdModelFp rd ->
+        return (_mrdModel rd, Just (_mrdRoot rd))
   _ -> do
-    return (newModel, newRoot)
+    return (newModel, Nothing)
   where
     checkFingerprint = isJust (_apcModelFingerprintFn config)
     fingerprint = maybe "" ($ newModel) (_apcModelFingerprintFn config)

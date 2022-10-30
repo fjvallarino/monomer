@@ -342,7 +342,7 @@ makeBox config state = widget where
     containerIgnoreEmptyArea = ignoreEmptyArea && emptyHandlersCount == 0,
     containerGetCurrentStyle = getCurrentStyle,
     containerInit = init,
-    containerMergeChildrenReq = mergeRequired,
+    containerMergeChildrenReq = mergeChildrenReq,
     containerMerge = merge,
     containerFilterEvent = filterEvent,
     containerHandleEvent = handleEvent,
@@ -358,10 +358,12 @@ makeBox config state = widget where
     newNode = node
       & L.widget .~ makeBox config newState
 
-  mergeRequired wenv node oldNode oldState = required where
+  mergeChildrenReq wenv node oldNode oldState = required where
     newModel = wenv ^. L.model
+    isReload = isWidgetReload wenv
     required = case (_boxMergeRequired config, _bxsModel oldState) of
-      (Just mergeReqFn, Just oldModel) -> mergeReqFn wenv oldModel newModel
+      (Just mergeReqFn, Just oldModel)
+        -> isReload || mergeReqFn wenv oldModel newModel
       _ -> True
 
   merge wenv node oldNode oldState = resultNode newNode where

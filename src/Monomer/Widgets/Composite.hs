@@ -587,8 +587,9 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   enabledChg = nodeEnabledChanged oldComp newComp
   flagsChanged = visibleChg || enabledChg
   themeChanged = wenv ^. L.themeChanged
+  isReload = isWidgetReload wenv
   mergeRequired
-    | isJust oldModel = modelChanged || flagsChanged || themeChanged
+    | isJust oldModel = modelChanged || flagsChanged || themeChanged || isReload
     | otherwise = True
   initRequired = not (nodeMatches tempRoot oldRoot)
   useNewRoot = initRequired || mergeRequired

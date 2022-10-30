@@ -652,8 +652,9 @@ mergeWrapper container wenv newNode oldNode = newResult where
 
   flagsChanged = nodeFlagsChanged oldNode pNode
   themeChanged = wenv ^. L.themeChanged
+  isReload = isWidgetReload wenv
   mResult
-    | mergeRequired || flagsChanged || themeChanged = vResult
+    | isReload || mergeRequired || flagsChanged || themeChanged = vResult
     | otherwise = pResult & L.node . L.children .~ oldNode ^. L.children
 
   mNode = mResult ^. L.node
