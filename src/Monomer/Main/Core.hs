@@ -270,6 +270,7 @@ mainLoop window fontManager config loopArgs = do
   inputStatus <- use L.inputStatus
   mousePos <- liftIO $ getCurrentMousePos epr
   currWinSize <- liftIO $ getViewportSize window dpr
+  prevRenderNeeded <- use L.renderRequested
 
   let Size rw rh = windowSize
   let ts = startTs - _mlFrameStartTs
@@ -331,6 +332,8 @@ mainLoop window fontManager config loopArgs = do
         | otherwise = Seq.Empty
   let baseStep = (wenv, _mlWidgetRoot, Seq.empty)
 
+  L.renderRequested .= False
+
   (rqWenv, rqRoot, _) <- handleRequests baseReqs baseStep
   (wtWenv, wtRoot, _) <- handleWidgetTasks rqWenv rqRoot
   (seWenv, seRoot, _) <- handleSystemEvents wtWenv wtRoot baseSystemEvents
@@ -346,11 +349,11 @@ mainLoop window fontManager config loopArgs = do
   -- Rendering
   renderCurrentReq <- checkRenderCurrent startTs _mlLatestRenderTs
 
-  let renderEvent = any isActionEvent eventsPayload
-  let winRedrawEvt = windowResized || windowExposed
-  let renderNeeded = winRedrawEvt || renderEvent || renderCurrentReq
+  let actionEvt = any isActionEvent eventsPayload
+  let windowRenderEvt = windowResized || any isWindowRenderEvent eventsPayload
+  let renderNeeded = windowRenderEvt || actionEvt || renderCurrentReq
 
-  when renderNeeded $ do
+  when (prevRenderNeeded || renderNeeded) $ do
     renderMethod <- use L.renderMethod
 
     case renderMethod of
@@ -361,8 +364,13 @@ mainLoop window fontManager config loopArgs = do
 
         liftIO $ renderWidgets window dpr renderer bgColor newWenv newRoot
 
-  -- Used in the next rendering cycle
-  L.renderRequested .= windowResized
+  {-
+  Used in the next rendering cycle.
+
+  Temporary workaround: when rendering is needed, make sure to render the next
+  frame too in order to avoid visual artifacts.
+  -}
+  L.renderRequested .= renderNeeded
 
   let fps = realToFrac _mlMaxFps
   let frameLength = round (1000000 / fps)
@@ -455,6 +463,7 @@ handleRenderMsg window renderer fontMgr state (MsgRender tmpWenv newRoot) = do
   let newWenv = tmpWenv
         & L.fontManager .~ fontMgr
   let color = newWenv ^. L.theme . L.clearColor
+
   renderWidgets window dpr renderer color newWenv newRoot
   return (RenderState dpr newWenv newRoot)
 handleRenderMsg window renderer fontMgr state (MsgResize _) = do
@@ -563,6 +572,18 @@ isWindowExposed eventsPayload = not status where
 isMouseEntered :: [SDL.EventPayload] -> Bool
 isMouseEntered eventsPayload = not status where
   status = null [ e | e@SDL.WindowGainedMouseFocusEvent {} <- eventsPayload ]
+
+isWindowRenderEvent :: SDL.EventPayload -> Bool
+isWindowRenderEvent SDL.WindowShownEvent{} = True
+isWindowRenderEvent SDL.WindowExposedEvent{} = True
+isWindowRenderEvent SDL.WindowMovedEvent{} = True
+isWindowRenderEvent SDL.WindowResizedEvent{} = True
+isWindowRenderEvent SDL.WindowSizeChangedEvent{} = True
+isWindowRenderEvent SDL.WindowMaximizedEvent{} = True
+isWindowRenderEvent SDL.WindowRestoredEvent{} = True
+isWindowRenderEvent SDL.WindowGainedMouseFocusEvent{} = True
+isWindowRenderEvent SDL.WindowGainedKeyboardFocusEvent{} = True
+isWindowRenderEvent _ = False
 
 getCurrentTimestamp :: MonadIO m => m Millisecond
 getCurrentTimestamp = toMs <$> liftIO getCurrentTime
