@@ -182,8 +182,7 @@ requests to the runtime. There is no validation regarding the message type, and
 the widget should take care of _casting_ to the correct type using
 "Data.Typeable.cast"
 
-Examples can be found in "Monomer.Widgets.Singles.Button" and
-"Monomer.Widgets.Singles.Slider".
+An example can be found in "Monomer.Widgets.Singles.Image".
 -}
 type SingleMessageHandler s e
   = forall i . Typeable i
