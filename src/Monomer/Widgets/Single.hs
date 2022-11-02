@@ -125,7 +125,7 @@ type SingleMergeHandler s e a
 Disposes the current node. Only used by widgets which allocate resources during
 /init/ or /merge/, and will usually involve requests to the runtime.
 
-An example can be found "Monomer.Widgets.Singles.Image".
+An example can be found in "Monomer.Widgets.Singles.Image".
 -}
 type SingleDisposeHandler s e
   = WidgetEnv s e        -- ^ The widget environment.
@@ -151,7 +151,7 @@ type SingleFindNextFocusHandler s e
 Returns the currently hovered widget, if any. If the widget is rectangular and
 uses the full content area, there is not need to override this function.
 
-An example can be found "Monomer.Widgets.Singles.Radio".
+An example can be found in "Monomer.Widgets.Singles.Radio".
 -}
 type SingleFindByPointHandler s e
   = WidgetEnv s e           -- ^ The widget environment.
