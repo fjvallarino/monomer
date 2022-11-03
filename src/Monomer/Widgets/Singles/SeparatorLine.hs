@@ -8,7 +8,7 @@ Portability : non-portable
 
 SeparatorLine is used for adding a separator line between two widgets. It adapts
 to the active layout direction, creating a vertical line on a horizontal layout
-and viceversa.
+and vice versa.
 
 @
 hstack [

@@ -127,12 +127,12 @@ makeFixedGrid isHorizontal config = widget where
     newSizeReqH = getDimSizeReq isVertical (_wniSizeReqH . _wnInfo) vchildren
     newSizeReq = applyFnList sizeReqFns (newSizeReqW, newSizeReqH)
 
-  getDimSizeReq mainAxis accesor vchildren
+  getDimSizeReq mainAxis accessor vchildren
     | Seq.null vreqs = fixedSize 0
     | mainAxis = foldl1 sizeReqMergeSum (Seq.replicate nreqs maxSize) & L.fixed %~ (+ totalSpacing)
     | otherwise = maxSize
     where
-      vreqs = accesor <$> vchildren
+      vreqs = accessor <$> vchildren
       nreqs = Seq.length vreqs
       ~maxSize = foldl1 sizeReqMergeMax vreqs
       totalSpacing = fromIntegral (nreqs - 1) * childSpacing

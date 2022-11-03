@@ -301,7 +301,7 @@ isRunTask _ = False
 {-|
 Similar to RunTask, but can generate unlimited messages. This is useful for
 WebSockets and similar data sources. It receives a function that with which to
-send messagess to the producer owner.
+send messages to the producer owner.
 -}
 isRunProducer :: WidgetRequest s e -> Bool
 isRunProducer RunProducer{} = True

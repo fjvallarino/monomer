@@ -163,12 +163,12 @@ makeStack isHorizontal config = widget where
     newSizeReqH = getDimSizeReq isVertical (_wniSizeReqH . _wnInfo) vchildren
     newSizeReq = applyFnList sizeReqFns (newSizeReqW, newSizeReqH)
 
-  getDimSizeReq mainAxis accesor vchildren
+  getDimSizeReq mainAxis accessor vchildren
     | Seq.null vreqs = fixedSize 0
     | mainAxis = foldl1 sizeReqMergeSum vreqs & L.fixed %~ (+ totalSpacing)
     | otherwise = foldl1 sizeReqMergeMax vreqs
     where
-      vreqs = accesor <$> vchildren
+      vreqs = accessor <$> vchildren
       totalSpacing = fromIntegral (Seq.length vchildren - 1) * childSpacing
 
   resize wenv node viewport children = resized where

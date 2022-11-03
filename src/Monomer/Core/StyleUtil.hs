@@ -276,7 +276,7 @@ subtractBorder rect border = nRect where
   (bl, br, bt, bb) = borderWidths border
   nRect = subtractFromRect rect bl br bt bb
 
--- | Subbtracts padding from the given rect.
+-- | Subtracts padding from the given rect.
 subtractPadding :: Rect -> Maybe Padding -> Maybe Rect
 subtractPadding rect Nothing = Just rect
 subtractPadding rect (Just (Padding l r t b)) = nRect where

@@ -13,7 +13,7 @@ Helper functions for SDL platform related operations.
 module Monomer.Main.Platform (
   defaultWindowSize,
   initSDLWindow,
-  detroySDLWindow,
+  destroySDLWindow,
   getCurrentMousePos,
   getDrawableSize,
   getWindowSize,
@@ -171,8 +171,8 @@ setWindowIcon (SIT.Window winPtr) config =
       "Failed to set window icon. Does the file exist?\n\t" ++ show err ++ "\n"
 
 -- | Destroys the provided window, shutdowns the video subsystem and SDL.
-detroySDLWindow :: SDL.Window -> IO ()
-detroySDLWindow window = do
+destroySDLWindow :: SDL.Window -> IO ()
+destroySDLWindow window = do
   SDL.destroyWindow window
   Raw.quitSubSystem Raw.SDL_INIT_VIDEO
   SDL.quit

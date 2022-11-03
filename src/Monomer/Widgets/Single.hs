@@ -208,7 +208,7 @@ type SingleGetSizeReqHandler s e
 
 {-|
 Resizes the widget to the provided size. If the widget state does not depend
-on the viewport size, this function does not need to be overriden.
+on the viewport size, this function does not need to be overridden.
 
 Examples can be found in "Monomer.Widgets.Singles.Label".
 -}
@@ -220,7 +220,7 @@ type SingleResizeHandler s e
 
 {-|
 Renders the widget's content using the given Renderer. In general, this method
-needs to be overriden.
+needs to be overridden.
 
 Examples can be found in "Monomer.Widgets.Singles.Checkbox" and
 "Monomer.Widgets.Singles.Slider".

@@ -114,7 +114,7 @@ startApp model eventHandler uiBuilder configs = do
   let monomerCtx = initMonomerCtx window channel vpSize dpr epr model
 
   runStateT (runAppLoop window glCtx channel appWidget config) monomerCtx
-  detroySDLWindow window
+  destroySDLWindow window
   where
     config = mconcat configs
     compCfgs
@@ -254,7 +254,7 @@ mainLoop
 mainLoop window fontManager config loopArgs = do
   let MainLoopArgs{..} = loopArgs
 
-  startTs <- getEllapsedTimestampSince _mlAppStartTs
+  startTs <- getElapsedTimestampSince _mlAppStartTs
   events <- SDL.pumpEvents >> SDL.pollEvents
 
   windowSize <- use L.windowSize
@@ -344,7 +344,7 @@ mainLoop window fontManager config loopArgs = do
       handleResizeWidgets (seWenv, seRoot, Seq.empty)
     else return (seWenv, seRoot, Seq.empty)
 
-  endTs <- getEllapsedTimestampSince _mlAppStartTs
+  endTs <- getElapsedTimestampSince _mlAppStartTs
 
   -- Rendering
   renderCurrentReq <- checkRenderCurrent startTs _mlLatestRenderTs
@@ -590,7 +590,7 @@ getCurrentTimestamp = toMs <$> liftIO getCurrentTime
   where
     toMs = floor . (1e3 *) . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds
 
-getEllapsedTimestampSince :: MonadIO m => Millisecond -> m Millisecond
-getEllapsedTimestampSince start = do
+getElapsedTimestampSince :: MonadIO m => Millisecond -> m Millisecond
+getElapsedTimestampSince start = do
   ts <- getCurrentTimestamp
   return (ts - start)

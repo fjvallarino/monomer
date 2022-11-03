@@ -7,7 +7,7 @@ Stability   : experimental
 Portability : non-portable
 
 Displays a text message above its child node when the pointer is on top and the
-delay, if any, has ellapsed.
+delay, if any, has elapsed.
 
 Tooltip styling is a bit unusual, since it is applied to the overlaid element.
 This means padding will not be shown for the contained child element, but only
@@ -15,7 +15,7 @@ on the message when the tooltip is active. If padding around the child element
 is needed, "Monomer.Widgets.Containers.Box" can be used to wrap it.
 
 @
-tooltip "Click the button" (buttom \"Accept\" AcceptAction)
+tooltip "Click the button" (button \"Accept\" AcceptAction)
   \`styleBasic\` [textSize 16, bgColor steelBlue, paddingH 5, radius 5]
 @
 -}
@@ -183,7 +183,7 @@ makeTooltip caption config state = widget where
 
     _ -> Nothing
 
-  -- Padding/border is not removed. Styles are only considerer for the overlay
+  -- Padding/border is not removed. Styles are only considered for the overlay
   resize wenv node viewport children = resized where
     resized = (resultNode node, Seq.singleton viewport)
 
@@ -234,5 +234,5 @@ makeTooltip caption config state = widget where
     ts = wenv ^. L.timestamp
     viewport = node ^. L.info . L.viewport
     inViewport = pointInRect lastPos viewport
-    delayEllapsed = ts - lastPosTs >= delay
-    displayed = inViewport && delayEllapsed
+    delayElapsed = ts - lastPosTs >= delay
+    displayed = inViewport && delayElapsed

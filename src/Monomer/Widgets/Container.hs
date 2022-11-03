@@ -353,7 +353,7 @@ type ContainerResizeHandler s e
 
 {-|
 Renders the widget's content using the given Renderer. In general, this method
-needs to be overriden. There are two render methods: one runs before children,
+needs to be overridden. There are two render methods: one runs before children,
 the other one after.
 
 Examples can be found in "Monomer.Widgets.Containers.Draggable" and
@@ -432,9 +432,9 @@ data Container s e a = Container {
   containerGetSizeReq :: ContainerGetSizeReqHandler s e,
   -- | Resizes the widget to the provided size.
   containerResize :: ContainerResizeHandler s e,
-  -- | Renders the widget's content. This runs before childrens' render.
+  -- | Renders the widget's content. This runs before children's render.
   containerRender :: ContainerRenderHandler s e,
-  -- | Renders the widget's content. This runs after childrens' render.
+  -- | Renders the widget's content. This runs after children's render.
   containerRenderAfter :: ContainerRenderHandler s e
 }
 
