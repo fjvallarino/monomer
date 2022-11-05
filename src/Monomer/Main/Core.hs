@@ -23,7 +23,7 @@ module Monomer.Main.Core (
 import Control.Concurrent
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
 import Control.Exception
-import Control.Lens ((&), (^.), (.=), (.~), use)
+import Control.Lens ((&), (^.), (.=), (.~), _2, use)
 import Control.Monad (unless, void, when)
 import Control.Monad.Extra
 import Control.Monad.State
@@ -35,9 +35,8 @@ import Data.List (foldl')
 import Data.Text (Text)
 import Data.Time
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
-import Data.Typeable (Typeable, cast, typeOf, typeRepFingerprint)
 import Data.Word (Word32)
-import GHC.Fingerprint (Fingerprint)
+import Debug.RecoverRTTI (anythingToString)
 import Graphics.GL
 
 import qualified Data.Map as Map
@@ -138,22 +137,25 @@ startApp newModel eventHandler uiBuilder configs = do
   channel <- newTChanIO
 
   (model, oldRoot) <- retrieveModelAndRoot config newModel newRoot
-  (window, glCtx, monomerCtx) <- retrieveSDLWindow config channel model
+  (window, glCtx, ctx) <- retrieveSDLWindow config channel model
 
   when isGhci $
-    setReloadData (MonomerReloadData window glCtx monomerCtx modelFp newRoot)
+    setReloadData (MonomerReloadData window glCtx ctx modelFp newRoot)
 
-  runStateT (runAppLoop window glCtx channel oldRoot newRoot config) monomerCtx
+  resp <- runStateT (runAppLoop window glCtx channel Nothing newRoot config) ctx
 
-  unless isGhci $
+  -- Even when running on ghci, if exitApplication == True it means the user
+  -- closed the window and it will need to be created again on reload.
+  when (not isGhci || resp ^. _2 . L.exitApplication) $ do
     detroySDLWindow window
+    resetReloadData
   where
     config = mconcat configs
     compCfgs
       = (onInit <$> _apcInitEvent config)
       ++ (onDispose <$> _apcDisposeEvent config)
       ++ (onResize <$> _apcResizeEvent config)
-    modelFp = maybe "" ($ newModel) (_apcModelFingerprintFn config)
+    ~modelFp = anythingToString newModel
     newRoot = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runAppLoop
@@ -165,7 +167,7 @@ runAppLoop
   -> WidgetNode sp ep
   -> AppConfig s e
   -> m ()
-runAppLoop window glCtx channel oldRoot newRoot config = do
+runAppLoop window glCtx channel moldRoot newRoot config = do
   isGhci <- liftIO isGhciRunning
   dpr <- use L.dpr
   winSize <- use L.windowSize
@@ -184,10 +186,16 @@ runAppLoop window glCtx channel oldRoot newRoot config = do
   os <- liftIO getPlatform
   widgetSharedMVar <- liftIO $ newMVar Map.empty
   fontManager <- liftIO $ makeFontManager fonts dpr
+  -- Restore previous state
+  hovered <- getHoveredPath
+  focused <- getFocusedPath
+  overlay <- getOverlayPath
+  dragged <- getDraggedMsgInfo
 
   let wenv = WidgetEnv {
     _weOs = os,
     _weDpr = dpr,
+    _weIsGhci = isGhci,
     _weAppStartTs = appStartTs,
     _weFontManager = fontManager,
     _weFindBranchByPath = const Seq.empty,
@@ -198,10 +206,10 @@ runAppLoop window glCtx channel oldRoot newRoot config = do
     _weWidgetShared = widgetSharedMVar,
     _weWidgetKeyMap = Map.empty,
     _weCursor = Nothing,
-    _weHoveredPath = Nothing,
-    _weFocusedPath = emptyPath,
-    _weOverlayPath = Nothing,
-    _weDragStatus = Nothing,
+    _weHoveredPath = hovered,
+    _weFocusedPath = focused,
+    _weOverlayPath = overlay,
+    _weDragStatus = dragged,
     _weMainBtnPress = Nothing,
     _weModel = model,
     _weInputStatus = def,
@@ -214,9 +222,9 @@ runAppLoop window glCtx channel oldRoot newRoot config = do
   }
   let mergeNewRoot oldRoot = result ^. L.node where
         result = widgetMerge (newRoot ^. L.widget) wenv newRoot oldRoot
-  let widgetRoot = maybe newRoot mergeNewRoot oldRoot
+  let widgetRoot = maybe newRoot mergeNewRoot moldRoot
   let pathReadyRoot
-        | isJust oldRoot = widgetRoot
+        | isJust moldRoot = widgetRoot
         | otherwise = widgetRoot
             & L.info . L.path .~ rootPath
             & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
@@ -251,7 +259,11 @@ runAppLoop window glCtx channel oldRoot newRoot config = do
       makeMainThreadRenderer
 
   handleResourcesInit
-  (newWenv, newRoot, _) <- handleWidgetInit wenv pathReadyRoot
+  -- Rethink this
+  (newWenv, newRoot, _) <-
+    if isJust moldRoot
+      then return (wenv, pathReadyRoot, Seq.empty)
+      else handleWidgetInit wenv pathReadyRoot
 
   {-
   Deferred initialization step to account for Widgets that rely on OpenGL. They
@@ -341,6 +353,7 @@ mainLoop window fontManager config loopArgs = do
   let wenv = WidgetEnv {
     _weOs = _mlOS,
     _weDpr = dpr,
+    _weIsGhci = _mlIsGhci,
     _weAppStartTs = _mlAppStartTs,
     _weFontManager = fontManager,
     _weFindBranchByPath = findChildBranchByPath wenv _mlWidgetRoot,
@@ -654,6 +667,9 @@ getReloadData = FS.lookupStore reloadStoreId >>= \case
 setReloadData :: MonomerReloadData s e -> IO ()
 setReloadData = FS.writeStore (FS.Store reloadStoreId)
 
+resetReloadData :: IO ()
+resetReloadData = FS.deleteStore (FS.Store reloadStoreId)
+
 updateReloadData :: MonomerCtx s e -> WidgetNode s e -> IO ()
 updateReloadData context widgetRoot = do
   whenJustM getReloadData $ \rd ->
@@ -699,4 +715,4 @@ retrieveModelAndRoot config newModel newRoot = getReloadData >>= \case
     return (newModel, Nothing)
   where
     checkFingerprint = isJust (_apcModelFingerprintFn config)
-    fingerprint = maybe "" ($ newModel) (_apcModelFingerprintFn config)
+    ~fingerprint = anythingToString newModel

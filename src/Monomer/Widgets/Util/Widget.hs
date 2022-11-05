@@ -216,4 +216,4 @@ delayedMessage_ widgetId path msg delay = RunTask widgetId path $ do
   return msg
 
 isWidgetReload :: WidgetEnv s e -> Bool
-isWidgetReload wenv = wenv ^. L.timestamp == 0
+isWidgetReload wenv = wenv ^. L.isGhci && wenv ^. L.timestamp == 0

@@ -311,6 +311,8 @@ data WidgetEnv s e = WidgetEnv {
   _weOs :: Text,
   -- | Device pixel rate.
   _weDpr :: Double,
+  -- | Indicates whether the application is running on ghci.
+  _weIsGhci :: Bool,
   -- | The timestamp in milliseconds when the application started.
   _weAppStartTs :: Millisecond,
   -- | Provides helper funtions for calculating text size.

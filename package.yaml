@@ -44,6 +44,7 @@ dependencies:
   - nanovg >= 0.8.1 && < 1.0
   - OpenGLRaw >= 3.3 && < 3.4
   - process >= 1.6 && < 1.7
+  - recover-rtti >= 0.4 && < 0.6
   - sdl2 >= 2.5.0 && < 2.6
   - stm >= 2.5 && < 2.6
   - text >= 1.2 && < 2.1
