@@ -247,7 +247,6 @@ executable books
 executable dev-test-app
   main-is: Main.hs
   other-modules:
-      Types
       Paths_monomer
   hs-source-dirs:
       dev-test-app

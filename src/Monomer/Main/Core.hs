@@ -142,7 +142,7 @@ startApp newModel eventHandler uiBuilder configs = do
   when isGhci $
     setReloadData (MonomerReloadData window glCtx ctx modelFp newRoot)
 
-  resp <- runStateT (runAppLoop window glCtx channel Nothing newRoot config) ctx
+  resp <- runStateT (runAppLoop window glCtx channel oldRoot newRoot config) ctx
 
   -- Even when running on ghci, if exitApplication == True it means the user
   -- closed the window and it will need to be created again on reload.
@@ -220,14 +220,14 @@ runAppLoop window glCtx channel moldRoot newRoot config = do
     _weViewport = Rect 0 0 (winSize ^. L.w) (winSize ^. L.h),
     _weOffset = def
   }
-  let mergeNewRoot oldRoot = result ^. L.node where
+  -- Need to handle result, because resize may be nededed
+  let tmpRoot = newRoot
+        & L.info . L.path .~ rootPath
+        & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
+  let mergeNewRoot newRoot oldRoot = result where
         result = widgetMerge (newRoot ^. L.widget) wenv newRoot oldRoot
-  let widgetRoot = maybe newRoot mergeNewRoot moldRoot
-  let pathReadyRoot
-        | isJust moldRoot = widgetRoot
-        | otherwise = widgetRoot
-            & L.info . L.path .~ rootPath
-            & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
+  let result = maybe (resultNode tmpRoot) (mergeNewRoot tmpRoot) moldRoot
+  let appRoot = result ^. L.node
   let makeMainThreadRenderer = do
         renderer <- liftIO $ makeRenderer fonts dpr
         L.renderMethod .= Left renderer
@@ -239,10 +239,10 @@ runAppLoop window glCtx channel moldRoot newRoot config = do
 
       liftIO . void . forkOS $
         {-
-        The wenv and widgetRoot values are not used, since they are replaced
+        The wenv and appRoot values are not used, since they are replaced
         during MsgInit. Kept to avoid issues with the Strict pragma.
         -}
-        startRenderThread stpChan channel window glCtx fonts dpr wenv widgetRoot
+        startRenderThread stpChan channel window glCtx fonts dpr wenv appRoot
 
       setupRes <- liftIO . atomically $ readTChan stpChan
 
@@ -260,10 +260,10 @@ runAppLoop window glCtx channel moldRoot newRoot config = do
 
   handleResourcesInit
   -- Rethink this
-  (newWenv, newRoot, _) <-
+  (newWenv, newAppRoot, _) <-
     if isJust moldRoot
-      then return (wenv, pathReadyRoot, Seq.empty)
-      else handleWidgetInit wenv pathReadyRoot
+      then handleWidgetResult wenv True result
+      else handleWidgetInit wenv appRoot
 
   {-
   Deferred initialization step to account for Widgets that rely on OpenGL. They
@@ -272,7 +272,7 @@ runAppLoop window glCtx channel moldRoot newRoot config = do
   -}
   case setupRes of
     RenderSetupMulti -> do
-      liftIO . atomically $ writeTChan channel (MsgInit newWenv newRoot)
+      liftIO . atomically $ writeTChan channel (MsgInit newWenv newAppRoot)
 
       unless (isLinux newWenv) $
         liftIO $ watchWindowResize channel
@@ -289,7 +289,7 @@ runAppLoop window glCtx channel moldRoot newRoot config = do
     _mlFrameAccumTs = 0,
     _mlFrameCount = 0,
     _mlExitEvents = exitEvents,
-    _mlWidgetRoot = newRoot,
+    _mlWidgetRoot = newAppRoot,
     _mlWidgetShared = widgetSharedMVar
   }
 
