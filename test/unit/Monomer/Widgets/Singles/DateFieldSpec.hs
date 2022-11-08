@@ -198,7 +198,7 @@ handleEventMouseDragDate = describe "handleEventMouseDragDate" $ do
     let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. dateValue `shouldBe` minDate
 
-  it "should drag upwnwards 10000 pixels, staying at maxDate (the maximum)" $ do
+  it "should drag upwards 2000 pixels, staying at maxDate (the maximum)" $ do
     let selStart = Point 50 50
     let selEnd = Point 50 (-1950)
     let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]

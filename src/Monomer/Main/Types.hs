@@ -80,7 +80,7 @@ data DragAction = DragAction {
 } deriving (Eq, Show)
 
 {-|
-Asychronous widget task. Results must be provided as user defined, Typeable,
+Asynchronous widget task. Results must be provided as user defined, Typeable,
 types. Error handling should be done inside the task and reporting handled as
 part of the user type.
 -}

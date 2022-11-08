@@ -42,7 +42,7 @@ type GetBaseStyle s e
 Configuration for style related functions. It allows to override how each of the
 states (hovered, focused and active) is defined for a given widget type.
 
-A usage example can be found in "Monomer.Widgets.Radio".
+A usage example can be found in "Monomer.Widgets.Singles.Radio".
 -}
 data CurrentStyleCfg s e = CurrentStyleCfg {
   _ascIsHovered :: IsHovered s e,

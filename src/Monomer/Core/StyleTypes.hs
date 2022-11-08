@@ -77,7 +77,7 @@ is used as the base for all other states, which override values as needed.
 - Focus-Hover: The widget has keyboard focus and mouse is on top. Without this
 state one of Hover or Focus would take precedence and it would not be possible
 to specify the desired behavior.
-- Active: The mouse button is currently presed and the pointer is within the
+- Active: The mouse button is currently pressed and the pointer is within the
 boundaries of the widget.
 - Disabled: The widget is disabled.
 -}

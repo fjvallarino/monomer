@@ -8,7 +8,7 @@ Portability : non-portable
 
 Composite widget. Main glue between all the other widgets, also acts as the main
 app widget. Composite allows to split an application into reusable parts without
-the need to implement a lower level widget. It can comunicate with its parent
+the need to implement a lower level widget. It can communicate with its parent
 component by reporting events.
 
 Requires two functions:

@@ -190,11 +190,11 @@ makeZStack config state = widget where
     newSizeReqW = getDimSizeReq (_wniSizeReqW . _wnInfo) vchildren
     newSizeReqH = getDimSizeReq (_wniSizeReqH . _wnInfo) vchildren
 
-  getDimSizeReq accesor vchildren
+  getDimSizeReq accessor vchildren
     | Seq.null vreqs = fixedSize 0
     | otherwise = foldl1 sizeReqMergeMax vreqs
     where
-      vreqs = accesor <$> vchildren
+      vreqs = accessor <$> vchildren
 
   resize wenv node viewport children = resized where
     style = currentStyle wenv node

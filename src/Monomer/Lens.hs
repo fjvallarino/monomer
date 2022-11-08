@@ -6,7 +6,7 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Module grouping all the diferent lens modules. Useful import to avoid duplicate
+Module grouping all the different lens modules. Useful import to avoid duplicate
 instance errors.
 -}
 module Monomer.Lens (
