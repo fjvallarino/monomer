@@ -110,7 +110,7 @@ data SystemEvent
   --   the main mouse button has been pressed.
   | Leave Point
   -- | A drag action is active and the mouse is inside the current viewport. The
-  --   messsage can be used to decide if it applies to the current widget. This
+  --   message can be used to decide if it applies to the current widget. This
   --   event is not received by the widget which initiated the drag action, even
   --   if dragging over it.
   | Drag Point Path WidgetDragMsg

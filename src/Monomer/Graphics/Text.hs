@@ -121,7 +121,7 @@ fitTextToSize fontMgr style ovf mode trim mlines !size !text = newLines where
     | ellipsisReq = addEllipsisToTextLine fontMgr style cw <$> firstLine
     | otherwise = clipTextLine fontMgr style trim cw <$> firstLine
 
--- | Fits a single line of text to the given width, potencially spliting into
+-- | Fits a single line of text to the given width, potentially splitting into
 --   several lines.
 fitTextToWidth
   :: FontManager   -- ^ The fontManager.

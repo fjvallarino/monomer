@@ -37,7 +37,7 @@ import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 
--- | Checks if Winddows/Cmd key is pressed.
+-- | Checks if Windows/Cmd key is pressed.
 isGUIPressed :: KeyMod -> Bool
 isGUIPressed mod = _kmLeftGUI mod || _kmRightGUI mod
 
@@ -118,7 +118,7 @@ isOnDrop :: SystemEvent -> Bool
 isOnDrop Drop{} = True
 isOnDrop _ = False
 
--- | Appplies a provided function to test a KeyAction event
+-- | Applies a provided function to test a KeyAction event
 checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
 checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
 checkKeyboard _ _ = False

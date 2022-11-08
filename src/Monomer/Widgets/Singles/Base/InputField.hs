@@ -50,7 +50,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
--- | Constaints for a value handled by input field.
+-- | Constraints for a value handled by input field.
 type InputFieldValue a = (Eq a, Show a, Typeable a)
 
 {-|

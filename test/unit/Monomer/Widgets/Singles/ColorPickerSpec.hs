@@ -69,7 +69,7 @@ handleEvent = describe "handleEvent" $ do
 
 handleEventV :: Spec
 handleEventV = describe "handleEventV" $ do
-  it "should generante a change event" $
+  it "should generate a change event" $
     events (evtRelease (Point 440 30)) `shouldBe` Seq.singleton (ColorChanged (rgb 0 200 0))
 
   it "should generate an event when focus is received" $

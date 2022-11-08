@@ -64,7 +64,7 @@ Configuration options for split:
 - 'splitIgnoreChildResize': whether to ignore changes in size to its children
   (otherwise, the handle position may change because of this).
 - 'onChange': raises an event when the handle is moved.
-- 'onChangeReq': generates a WidgetReqest when the handle is moved.
+- 'onChangeReq': generates a WidgetRequest when the handle is moved.
 -}
 data SplitCfg s e = SplitCfg {
   _spcHandlePos :: Maybe (WidgetData s Double),

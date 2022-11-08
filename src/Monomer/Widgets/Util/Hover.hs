@@ -49,11 +49,11 @@ isPointInNodeVp node p = pointInRect p (node ^. L.info . L.viewport)
 isPointInNodeEllipse :: WidgetNode s e -> Point -> Bool
 isPointInNodeEllipse node p = pointInEllipse p (node ^. L.info . L.viewport)
 
--- | Checks if the main button is pressed and pointer inside the vieport.
+-- | Checks if the main button is pressed and pointer inside the viewport.
 isNodeActive :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodeActive wenv node = isNodeInfoActive False wenv (node ^. L.info)
 
--- | Checks if the main button is pressed inside the vieport.
+-- | Checks if the main button is pressed inside the viewport.
 isNodePressed :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodePressed wenv node = isNodeInfoPressed False wenv (node ^. L.info)
 

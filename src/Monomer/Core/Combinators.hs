@@ -6,7 +6,7 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Combinator typeclasses used for style and widget configutation. The reason for
+Combinator typeclasses used for style and widget configuration. The reason for
 using typeclasses is for the ability to reuse names such as onClick.
 
 Boolean combinators in general have two versions:
@@ -14,7 +14,7 @@ Boolean combinators in general have two versions:
 - combinatorName: uses the default value, normally True, and is derived from the
 combinator with _ suffix.
 - combinatorName_: receives a boolean parameter. This is the function that needs
-to be overriden in widgets.
+to be overridden in widgets.
 -}
 {-# LANGUAGE FunctionalDependencies #-}
 
@@ -615,7 +615,7 @@ infixl 5 `styleDisabledSet`
 Basic style combinator, mainly used infix with widgets.
 
 Represents the default style of a widget. It serves as the base for all the
-other style states when an attribute is not overriden.
+other style states when an attribute is not overridden.
 -}
 class CmbStyleBasic t where
   -- | Merges the new basic style states with the existing ones.

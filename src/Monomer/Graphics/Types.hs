@@ -172,7 +172,7 @@ data TextMode
   | MultiLine
   deriving (Eq, Show, Generic)
 
--- | Text flags for trimming or keeping sapces.
+-- | Text flags for trimming or keeping spaces.
 data TextTrim
   = TrimSpaces
   | KeepSpaces

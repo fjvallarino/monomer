@@ -125,7 +125,7 @@ type SingleMergeHandler s e a
 Disposes the current node. Only used by widgets which allocate resources during
 /init/ or /merge/, and will usually involve requests to the runtime.
 
-An example can be found "Monomer.Widgets.Singles.Image".
+An example can be found in "Monomer.Widgets.Singles.Image".
 -}
 type SingleDisposeHandler s e
   = WidgetEnv s e        -- ^ The widget environment.
@@ -151,7 +151,7 @@ type SingleFindNextFocusHandler s e
 Returns the currently hovered widget, if any. If the widget is rectangular and
 uses the full content area, there is not need to override this function.
 
-An example can be found "Monomer.Widgets.Singles.Radio".
+An example can be found in "Monomer.Widgets.Singles.Radio".
 -}
 type SingleFindByPointHandler s e
   = WidgetEnv s e           -- ^ The widget environment.
@@ -182,8 +182,7 @@ requests to the runtime. There is no validation regarding the message type, and
 the widget should take care of _casting_ to the correct type using
 "Data.Typeable.cast"
 
-Examples can be found in "Monomer.Widgets.Singles.Button" and
-"Monomer.Widgets.Singles.Slider".
+An example can be found in "Monomer.Widgets.Singles.Image".
 -}
 type SingleMessageHandler s e
   = forall i . Typeable i
@@ -209,7 +208,7 @@ type SingleGetSizeReqHandler s e
 
 {-|
 Resizes the widget to the provided size. If the widget state does not depend
-on the viewport size, this function does not need to be overriden.
+on the viewport size, this function does not need to be overridden.
 
 Examples can be found in "Monomer.Widgets.Singles.Label".
 -}
@@ -221,7 +220,7 @@ type SingleResizeHandler s e
 
 {-|
 Renders the widget's content using the given Renderer. In general, this method
-needs to be overriden.
+needs to be overridden.
 
 Examples can be found in "Monomer.Widgets.Singles.Checkbox" and
 "Monomer.Widgets.Singles.Slider".

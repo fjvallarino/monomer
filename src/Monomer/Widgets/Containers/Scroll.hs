@@ -450,7 +450,7 @@ makeScroll config state = widget where
       containerChildrenOffset = Just offset
     }
 
-  -- This is overriden to account for space used by scroll bars
+  -- This is overridden to account for space used by scroll bars
   updateCWenv wenv node cnode cidx = newWenv where
     theme = currentTheme wenv node
     barW = fromMaybe (theme ^. L.scrollBarWidth) (_scBarWidth config)
