@@ -190,7 +190,7 @@ makeSlide isSlideIn config state = widget where
   period = 20
   steps = fromIntegral $ duration `div` period
 
-  finishedReq node = delayedMessage node AnimationFinished duration
+  finishedReq node ts = delayedMessage node (AnimationFinished ts) duration
   renderReq wenv node = req where
     widgetId = node ^. L.info . L.widgetId
     req = RenderEvery widgetId period (Just steps)
@@ -200,7 +200,7 @@ makeSlide isSlideIn config state = widget where
     newNode = node
       & L.widget .~ makeSlide isSlideIn config (SlideState True ts)
     result
-      | autoStart = resultReqs newNode [finishedReq node, renderReq wenv node]
+      | autoStart = resultReqs newNode [finishedReq node ts, renderReq wenv node]
       | otherwise = resultNode node
 
   merge wenv node oldNode oldState = resultNode newNode where
@@ -214,16 +214,17 @@ makeSlide isSlideIn config state = widget where
     widgetId = node ^. L.info . L.widgetId
     ts = wenv ^. L.timestamp
     startState = SlideState True ts
-    startReqs = [finishedReq node, renderReq wenv node]
+    startReqs = [finishedReq node ts, renderReq wenv node]
 
     newNode newState = node
       & L.widget .~ makeSlide isSlideIn config newState
     result = case msg of
       AnimationStart -> resultReqs (newNode startState) startReqs
       AnimationStop -> resultReqs (newNode def) [RenderStop widgetId]
-      AnimationFinished
-        | _slsRunning state -> resultEvts node (_slcOnFinished config)
+      AnimationFinished ts'
+        | isRelevant -> resultEvts node (_slcOnFinished config)
         | otherwise -> resultNode node
+        where isRelevant = _slsRunning state && ts' == _slsStartTs state
 
   render wenv node renderer = do
     saveContext renderer
