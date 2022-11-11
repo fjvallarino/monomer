@@ -75,6 +75,7 @@ import Data.Map.Strict (Map)
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>), (<|), fromList)
 import Data.Typeable (Typeable, cast, typeOf)
+import Debug.RecoverRTTI (anythingToString)
 
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
@@ -359,7 +360,7 @@ Allows updating the composite model with information from the parent model.
 Useful when the composite needs a more complex model than what the user is
 binding.
 
-For example, a database record may be binded as the model from the parent, but
+For example, a database record may be bound as the model from the parent, but
 the composite needs its own boolean flags to toggle visibility on different
 sections.
 
@@ -387,6 +388,7 @@ data Composite s e sp ep = Composite {
 }
 
 data CompositeState s e = CompositeState {
+  _cpsFingerprint :: !String,
   _cpsModel :: !(Maybe s),
   _cpsRoot :: !(WidgetNode s e),
   _cpsWidgetKeyMap :: WidgetKeyMap s e
@@ -488,7 +490,7 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpOnEnabledChange = _cmcOnEnabledChange config,
     _cmpOnVisibleChange = _cmcOnVisibleChange config
   }
-  state = CompositeState Nothing widgetRoot M.empty
+  state = CompositeState "" Nothing widgetRoot M.empty
   widget = createComposite composite state
   !newNode = defaultWidgetNode wType widget
 
@@ -540,6 +542,8 @@ compositeInit comp state wenv widgetComp = newResult where
 
   WidgetResult root reqs = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
   !newState = state {
+    -- Using model could cause issues in merge if the model type changes
+    _cpsFingerprint = modelFingerprint cwenv userModel,
     _cpsModel = Just model,
     _cpsRoot = root,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty root
@@ -565,14 +569,19 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   widgetId = oldComp ^. L.info . L.widgetId
   oldState = widgetGetState (oldComp ^. L.widget) wenv oldComp
   validState = fromMaybe state (useState oldState)
-  CompositeState oldModel oldRoot oldWidgetKeys = validState
+  CompositeState oldFingerprint oldModel oldRoot oldWidgetKeys = validState
 
   !mergeModel = _cmpMergeModel comp
   !parentModel = wenv ^. L.model
   !userModel = getUserModel comp wenv
+  !newFingerprint = modelFingerprint cwenv userModel
+  !discardModelReload = isReload && oldFingerprint /= newFingerprint
+
   !model = case mergeModel of
-    Just merge -> merge cwenv parentModel (fromJust oldModel) userModel where
-      cwenv = convertWidgetEnv wenv oldWidgetKeys userModel
+    Just merge
+      | not discardModelReload -> mergedModel where
+        cwenv = convertWidgetEnv wenv oldWidgetKeys userModel
+        mergedModel = merge cwenv parentModel (fromJust oldModel) userModel
     _ -> userModel
 
   -- Creates new UI using provided function
@@ -591,7 +600,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   mergeRequired
     | isJust oldModel = modelChanged || flagsChanged || themeChanged || isReload
     | otherwise = True
-  initRequired = not (nodeMatches tempRoot oldRoot)
+  initRequired = not (nodeMatches tempRoot oldRoot) || discardModelReload
   useNewRoot = initRequired || mergeRequired
 
   WidgetResult !newRoot !tmpReqs
@@ -599,6 +608,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
     | mergeRequired = widgetMerge tempWidget cwenv tempRoot oldRoot
     | otherwise = resultNode oldRoot
   !newState = validState {
+    _cpsFingerprint = newFingerprint,
     _cpsModel = Just model,
     _cpsRoot = newRoot,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty newRoot
@@ -618,9 +628,10 @@ compositeMerge comp state wenv newComp oldComp = newResult where
     | otherwise = []
   evts = RaiseEvent <$> Seq.fromList (visibleEvts ++ enabledEvts)
 
+  resizeReqs = [ResizeWidgets widgetId | initRequired]
   mergeReqsFns = _cmpMergeReqs comp
   mergeHelper f = f cwenv newRoot oldRoot parentModel (fromJust oldModel) model
-  mergeReqs = concatMap mergeHelper mergeReqsFns
+  mergeReqs = resizeReqs ++ concatMap mergeHelper mergeReqsFns
   extraReqs = seqCatMaybes (toParentReq widgetId <$> Seq.fromList mergeReqs)
 
   tmpResult = WidgetResult newRoot (RenderOnce <| tmpReqs <> extraReqs <> evts)
@@ -1116,3 +1127,8 @@ lookupNode widgetKeys desc key = case M.lookup key widgetKeys of
 
 sendMsgTo :: Typeable i => WidgetNode s e -> i -> WidgetRequest sp ep
 sendMsgTo node msg = SendMessage (node ^. L.info . L.widgetId) msg
+
+modelFingerprint :: WidgetEnv s e -> s -> String
+modelFingerprint wenv !model
+  | isWidgetReload wenv = anythingToString model
+  | otherwise = "<ignored>"
