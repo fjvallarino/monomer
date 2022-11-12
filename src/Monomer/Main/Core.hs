@@ -28,7 +28,8 @@ import Control.Monad.Extra
 import Control.Monad.State
 import Control.Monad.STM (atomically)
 import Data.Default
-import Data.Maybe
+import Data.Either (isLeft)
+import Data.Maybe (fromMaybe)
 import Data.Map (Map)
 import Data.List (foldl')
 import Data.Text (Text)
@@ -348,14 +349,14 @@ mainLoop window fontManager config loopArgs = do
 
   -- Rendering
   renderCurrentReq <- checkRenderCurrent startTs _mlLatestRenderTs
+  renderMethod <- use L.renderMethod
 
   let actionEvt = any isActionEvent eventsPayload
-  let windowRenderEvt = windowResized || any isWindowRenderEvent eventsPayload
+  let renderResize = windowResized && isLeft renderMethod
+  let windowRenderEvt = renderResize || any isWindowRenderEvent eventsPayload
   let renderNeeded = windowRenderEvt || actionEvt || renderCurrentReq
 
-  when (prevRenderNeeded || renderNeeded) $ do
-    renderMethod <- use L.renderMethod
-
+  when (prevRenderNeeded || renderNeeded) $
     case renderMethod of
       Right renderChan -> do
         liftIO . atomically $ writeTChan renderChan (MsgRender newWenv newRoot)
