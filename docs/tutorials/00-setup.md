@@ -77,6 +77,12 @@ sudo dnf install SDL2-devel
 sudo dnf install glew-devel
 ```
 
+If you get a `Failed to build double-conversion` error, you may need to run:
+
+```bash
+sudo dnf install gcc-c++
+```
+
 ### Windows
 
 Inside your project's directory:
