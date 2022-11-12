@@ -626,7 +626,9 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   reducedResult
     | useNewRoot = toParentResult comp newState wenv styledComp tmpResult
     | otherwise = resultNode oldComp
-  !newResult = handleWidgetIdChange oldComp reducedResult
+  !newResult = reducedResult
+    & handleUserSizeReqChange wenv oldComp
+    & handleWidgetIdChange oldComp
 
 -- | Dispose
 compositeDispose

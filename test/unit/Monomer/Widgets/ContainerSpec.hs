@@ -19,6 +19,7 @@ module Monomer.Widgets.ContainerSpec (spec) where
 import Control.Lens ((&), (^.), (^?), (.~), (%~), ix)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
+import Data.List (find)
 import Data.Text (Text)
 import Test.Hspec
 
@@ -46,8 +47,34 @@ widLens idx = L.children . ix idx . L.info . L.widgetId
 
 -- This uses Stack for testing, since Container is a template and not a real container
 spec :: Spec
-spec = describe "Container"
+spec = describe "Container" $ do
+  mergeUserResize
   handleEvent
+
+mergeUserResize :: Spec
+mergeUserResize = describe "merge resize" $ do
+  it "should not generate a request if user size did not change" $ do
+    let result = mergeSizeReq [] []
+    find isResizeWidgets (result ^. L.requests) `shouldBe` Nothing
+
+  it "should generate a ResizeWidgets request if user size changed" $ do
+    let result = mergeSizeReq [width 100] []
+    find isResizeWidgets (result ^. L.requests) `shouldNotBe` Nothing
+
+  it "should generate a ResizeWidgets request if user size changed" $ do
+    let result = mergeSizeReq [width 100] [width 200]
+    find isResizeWidgets (result ^. L.requests) `shouldNotBe` Nothing
+
+  where
+    wenv = mockWenvEvtUnit (TestModel "" "")
+    oldNode = vstack []
+    newNode = vstack []
+    mergeSizeReq oldStyle newStyle = result where
+      oldNode2 = nodeInit wenv $
+        oldNode `styleBasic` oldStyle
+      newNode2 = newNode
+        `styleBasic` newStyle
+      result = widgetMerge (newNode2 ^. L.widget) wenv newNode2 oldNode2
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
