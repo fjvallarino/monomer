@@ -352,7 +352,7 @@ mainLoop window fontManager config loopArgs = do
   renderMethod <- use L.renderMethod
 
   let actionEvt = any isActionEvent eventsPayload
-  let renderResize = windowResized && isLeft renderMethod
+  let renderResize = windowResized && (isLinux wenv || isLeft renderMethod)
   let windowRenderEvt = renderResize || any isWindowRenderEvent eventsPayload
   let renderNeeded = windowRenderEvt || actionEvt || renderCurrentReq
 
