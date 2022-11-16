@@ -35,7 +35,6 @@ import qualified SDL
 import qualified SDL.Raw.Types as SDLR
 
 import Monomer.Common
-import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes
 import Monomer.Core.WidgetTypes
@@ -209,12 +208,8 @@ data AppConfig s e = AppConfig {
   _apcDisableCompositing :: Maybe Bool,
   -- | Whether the screensaver should be disabled. Defaults to False.
   _apcDisableScreensaver :: Maybe Bool,
-  {-|
-  Extracts a String based fingerprint from the application's model.
-
-  See 'appFingerprint' for more details.
-  -}
-  _apcModelFingerprintFn :: Maybe (s -> String)
+  -- | Whether the application should ignore the old model on ghci's reload.
+  _apcDisableModelReuse :: Maybe Bool
 }
 
 instance Default (AppConfig s e) where
@@ -240,7 +235,7 @@ instance Default (AppConfig s e) where
     _apcInvertWheelY = Nothing,
     _apcDisableCompositing = Nothing,
     _apcDisableScreensaver = Nothing,
-    _apcModelFingerprintFn = Nothing
+    _apcDisableModelReuse = Nothing
   }
 
 instance Semigroup (AppConfig s e) where
@@ -266,7 +261,7 @@ instance Semigroup (AppConfig s e) where
     _apcInvertWheelY = _apcInvertWheelY a2 <|> _apcInvertWheelY a1,
     _apcDisableCompositing = _apcDisableCompositing a2 <|> _apcDisableCompositing a1,
     _apcDisableScreensaver = _apcDisableScreensaver a2 <|> _apcDisableScreensaver a1,
-    _apcModelFingerprintFn = _apcModelFingerprintFn a2 <|> _apcModelFingerprintFn a1
+    _apcDisableModelReuse = _apcDisableModelReuse a2 <|> _apcDisableModelReuse a1
   }
 
 instance Monoid (AppConfig s e) where
@@ -479,7 +474,7 @@ Whether compositing should be disabled. Linux only, ignored in other platforms.
 Defaults to False.
 
 Desktop applications should leave compositing as is since disabling it may
-cause visual glitches in other programs. When creating games or fullscreen
+cause visual glitches in other programs. When creating games or full-screen
 applications, disabling compositing may improve performance.
 -}
 appDisableCompositing :: Bool -> AppConfig s e
@@ -492,7 +487,7 @@ Whether the screensaver should be disabled. Defaults to False.
 
 Desktop applications should leave the screensaver as is since disabling it also
 affects power saving features, including turning off the screen. When creating
-games or fullscreen applications, disabling the screensaver may make sense.
+games or full-screen applications, disabling the screensaver may make sense.
 -}
 appDisableScreensaver :: Bool -> AppConfig s e
 appDisableScreensaver disable = def {
@@ -500,33 +495,39 @@ appDisableScreensaver disable = def {
 }
 
 {-|
-Uses the provided function to generate the application's model fingerprint.
+Indicates whether the application should attempt to reuse the model between
+reloads when running in interpreted mode. Reusing the model greatly improves the
+development experience, but it may not be desired in some scenarios. It defaults
+to True.
 
-The fingerprint function is applied to the user provided model on application
+A fingerprint function is applied to the user provided model on application
 startup only, and it's used to detect if the latest value of the model can be
 reused when the application is reloaded in ghci. If the latest fingerprint of
 the model matches the one of the new model, it is assumed that the old model can
 be reused. If the fingerprint changed because its data or data type changed, the
 new model will be used. Since Monomer uses the model to build the UI, reusing
 the old model allows for quicker iteration as the application will be restored
-to the previous state before reloading.
+to the state it was before reloading.
 
-If a fingerprint function is not provided, the model will always be reset to the
-user provided value.
+A fingerprint function is used because trying to compare two different versions
+of a data type using its Eq instance will result in ghci crashing. Creating a
+string based fingerprint as soon as the instance is available is a workaround
+for this issue.
 
-Ideally, changes in the model's type could be detected with GHC's
-"GHC.Fingerprint.Fingerprint", but unfortunately this is not reliable since it's
-based on the type's name only. If the model's type changed and we attempt to use
-its Eq instance, ghci will crash.
+At this time, 'Debug.RecoverRTTI.anythingToString' is used as the fingerprint
+function. This function returns a string representation of the data, although it
+does not include the name of record fields. In general this is not an issue, but
+changing a field's type from 'Int' to 'Long' will go undetected and cause a
+crash.
+
+Ideally, we could use "GHC.Fingerprint.Fingerprint" to detect changes in the
+model's type, but unfortunately this is not reliable since it's based on the
+type's name only.
 
 GHC issue with more details: https://gitlab.haskell.org/ghc/ghc/-/issues/7897.
 Related Hint issue: https://github.com/haskell-hint/hint/issues/31.
 -}
-appFingerprint :: (s -> String) -> AppConfig s e
-appFingerprint fn = def {
-  _apcModelFingerprintFn = Just fn
+appDisableModelReuse :: Bool -> AppConfig s e
+appDisableModelReuse disabled = def {
+  _apcDisableModelReuse = Just disabled
 }
-
--- | Generates a fingerprint for the model based on its 'Show' instance.
-appFingerprintShow :: Show s => AppConfig s e
-appFingerprintShow = appFingerprint show

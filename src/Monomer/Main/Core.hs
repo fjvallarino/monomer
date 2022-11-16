@@ -709,10 +709,10 @@ retrieveModelAndRoot
   -> IO (s, Maybe (WidgetNode s e))
 retrieveModelAndRoot config newModel newRoot = getReloadData >>= \case
   Just rd
-    | checkFingerprint && fingerprint == _mrdModelFp rd ->
+    | attemptModelReuse && fingerprint == _mrdModelFp rd ->
         return (_mrdMonomerCtx rd ^. L.mainModel, Just (_mrdRoot rd))
   _ -> do
     return (newModel, Nothing)
   where
-    checkFingerprint = isJust (_apcModelFingerprintFn config)
+    attemptModelReuse = _apcDisableModelReuse config /= Just True
     ~fingerprint = anythingToString newModel
