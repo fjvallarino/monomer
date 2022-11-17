@@ -663,11 +663,14 @@ mergeWrapper container wenv newNode oldNode = newResult where
     Just (ost, st) -> mergePostHandler wenv mNode oldNode ost st mResult
     Nothing -> mResult
 
-  tmpResult
-    | isResizeAnyResult (Just postRes) = postRes
-        & L.node .~ updateSizeReq wenv (postRes ^. L.node)
-    | otherwise = postRes
-  newResult = handleWidgetIdChange oldNode tmpResult
+  tmpResult = postRes
+    & handleUserSizeReqChange wenv oldNode
+    & handleWidgetIdChange oldNode
+
+  newResult
+    | isResizeAnyResult (Just tmpResult) = tmpResult
+        & L.node .~ updateSizeReq wenv (tmpResult ^. L.node)
+    | otherwise = tmpResult
 
 mergeParent
   :: WidgetModel a

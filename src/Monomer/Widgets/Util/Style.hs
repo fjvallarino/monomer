@@ -24,11 +24,12 @@ module Monomer.Widgets.Util.Style (
   initNodeStyle,
   mergeBasicStyle,
   handleStyleChange,
+  handleUserSizeReqChange,
   childOfFocusedStyle
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (Lens', (&), (^.), (^?), (.~), (?~), (<>~), _Just, _1, non)
+import Control.Lens hiding ((<|), (|>))
 
 import Data.Bits (xor)
 import Data.Default
@@ -212,6 +213,27 @@ handleStyleChange wenv target style doCursor node evt result = newResult where
   newResult
     | doCursor = handleCursorChange wenv target evt style node tmpResult
     | otherwise = tmpResult
+
+{-|
+Checks if the user set size requests changed between the old and new versions of
+the node. Useful during merge to trigger a widget resize.
+-}
+handleUserSizeReqChange
+  :: WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetResult s e
+  -> WidgetResult s e
+handleUserSizeReqChange wenv oldNode result = newResult where
+  newNode = result ^. L.node
+  newWidgetId = newNode ^. L.info . L.widgetId
+
+  (oldStyle, newStyle) = (currentStyle wenv oldNode, currentStyle wenv newNode)
+  changedW = oldStyle ^. L.sizeReqW /= newStyle ^. L.sizeReqW
+  changedH = oldStyle ^. L.sizeReqH /= newStyle ^. L.sizeReqH
+  newResult
+    | changedW || changedH = result
+        & L.requests %~ (|> ResizeWidgets newWidgetId)
+    | otherwise = result
 
 {-|
 Replacement of currentStyle for child widgets embedded in a focusable parent. It
