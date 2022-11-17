@@ -368,7 +368,7 @@ mergeWrapper single wenv newNode oldNode = newResult where
   nodeHandler wenv styledNode = case useState oldState of
     Just state -> mergeHandler wenv styledNode oldNode state
     _ -> resultNode styledNode
-  tmpResult = runNodeHandler single wenv newNode oldInfo nodeHandler
+  tmpResult = runNodeHandler single wenv newNode oldNode nodeHandler
   newResult = handleWidgetIdChange oldNode tmpResult
 
 runNodeHandler
@@ -376,10 +376,11 @@ runNodeHandler
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNode s e
-  -> WidgetNodeInfo
+  -> WidgetNode s e
   -> (WidgetEnv s e -> WidgetNode s e -> WidgetResult s e)
   -> WidgetResult s e
-runNodeHandler single wenv newNode oldInfo nodeHandler = newResult where
+runNodeHandler single wenv newNode oldNode nodeHandler = newResult where
+  oldInfo = oldNode ^. L.info
   getBaseStyle = singleGetBaseStyle single
   tempNode = newNode
     & L.info . L.widgetId .~ oldInfo ^. L.widgetId
@@ -389,6 +390,9 @@ runNodeHandler single wenv newNode oldInfo nodeHandler = newResult where
   styledNode = initNodeStyle getBaseStyle wenv tempNode
 
   tmpResult = nodeHandler wenv styledNode
+    & handleUserSizeReqChange wenv oldNode
+    & handleWidgetIdChange oldNode
+
   newResult
     | isResizeAnyResult (Just tmpResult) = tmpResult
         & L.node .~ updateSizeReq wenv (tmpResult ^. L.node)
