@@ -57,7 +57,7 @@ defaultWindowSize :: (Int, Int)
 defaultWindowSize = (800, 600)
 
 -- | Creates and initializes a window using the provided configuration.
-initSDLWindow :: AppConfig s e -> IO (SDL.Window, Double, Double, SDL.GLContext)
+initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double, SDL.GLContext)
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
 
@@ -156,7 +156,7 @@ initSDLWindow config = do
       Just MainWindowMaximized -> True
       _ -> False
 
-setWindowIcon :: SDL.Window -> AppConfig s e -> IO ()
+setWindowIcon :: SDL.Window -> AppConfig e -> IO ()
 setWindowIcon (SIT.Window winPtr) config =
   forM_ (_apcWindowIcon config) $ \iconPath ->
     flip catchAny handleException $ do

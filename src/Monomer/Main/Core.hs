@@ -130,7 +130,7 @@ startApp
   => s                    -- ^ The initial model.
   -> AppEventHandler s e  -- ^ The event handler.
   -> AppUIBuilder s e     -- ^ The UI builder.
-  -> [AppConfig s e]      -- ^ The application config.
+  -> [AppConfig e]        -- ^ The application config.
   -> IO ()                -- ^ The application action.
 startApp newModel eventHandler uiBuilder configs = do
   isGhci <- isGhciRunning
@@ -165,7 +165,7 @@ runAppLoop
   -> TChan (RenderMsg sp ep)
   -> Maybe (WidgetNode sp ep)
   -> WidgetNode sp ep
-  -> AppConfig s e
+  -> AppConfig e
   -> m ()
 runAppLoop window glCtx channel moldRoot newRoot config = do
   isGhci <- liftIO isGhciRunning
@@ -301,7 +301,7 @@ mainLoop
   :: (MonomerM sp ep m, WidgetEvent e)
   => SDL.Window
   -> FontManager
-  -> AppConfig s e
+  -> AppConfig e
   -> MainLoopArgs sp e ep
   -> m ()
 mainLoop window fontManager config loopArgs = do
@@ -683,7 +683,7 @@ When running in GHCi, avoids reinitializing SDL, reuses the existing window and
 restores the model and (merged) widget tree when code is reloaded.
 -}
 retrieveSDLWindow
-  :: AppConfig s e
+  :: AppConfig e
   -> TChan (RenderMsg s e)
   -> s
   -> IO (SDL.Window, SDL.GLContext, MonomerCtx s e)
@@ -703,7 +703,7 @@ retrieveSDLWindow config channel model = do
 
 retrieveModelAndRoot
   :: WidgetModel s
-  => AppConfig s e
+  => AppConfig e
   -> s
   -> WidgetNode s e
   -> IO (s, Maybe (WidgetNode s e))
