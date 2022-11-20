@@ -2,11 +2,28 @@
 
 ## Stack
 
-In case you don't have Stack installed in your system, you should visit
-[Stack's](https://docs.haskellstack.org/en/stable/install_and_upgrade/) website
-and follow the appropriate installation method for your OS. If you are on
-Linux or macOS, you will be provided with a shell command, while if you are on
-Windows a regular installer is available.
+### Regular Stack installer - All except Apple silicon
+
+Visit [Stack's](https://docs.haskellstack.org/en/stable/install_and_upgrade/)
+website and follow the appropriate installation method for your OS. If you are
+on Linux or macOS, you will be provided with a shell command, while if you are
+on Windows a regular installer is available.
+
+#### Note: Apple silicon
+
+The default Stack installer does not currently provide support for Apple Silicon
+(M1/M2 processors). The best option in this case is installing through GHCup.
+
+### GHCup - All except non-WSL2 Windows
+
+Visit [GHCup's](https://www.haskell.org/ghcup/) website and follow the
+appropriate installation method for your OS. Answer **Yes** when asked: _"Do you
+want to enable better integration of stack with GHCup?"_.
+
+#### Note: Windows without WSL2
+
+To use Windows without installing the Windows Subsystem for Linux, use the
+regular Stack installer described previously.
 
 ## Clone the starter project
 
@@ -171,7 +188,7 @@ Falling back to rendering in the main thread.
 ```
 
 Besides having the content stretched while resizing the window (i.e. not
-dinamically resized), there are no other differences between the threaded and
+dynamically resized), there are no other differences between the threaded and
 non-threaded modes.
 
 ## Development mode
