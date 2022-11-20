@@ -2,14 +2,14 @@
 
 ## Stack
 
-### Regular Stack installer - All except Apple silicon
+### Regular Stack installer - All except Apple Silicon
 
 Visit [Stack's](https://docs.haskellstack.org/en/stable/install_and_upgrade/)
 website and follow the appropriate installation method for your OS. If you are
 on Linux or macOS, you will be provided with a shell command, while if you are
 on Windows a regular installer is available.
 
-#### Note: Apple silicon
+#### Note: Apple Silicon
 
 The default Stack installer does not currently provide support for Apple Silicon
 (M1/M2 processors). The best option in this case is installing through GHCup.
