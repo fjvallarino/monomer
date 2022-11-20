@@ -50,18 +50,6 @@ You may need to install `pkg-config`, in case it was not previously installed:
 brew install pkg-config
 ```
 
-#### Notes: M1
-
-The standard build process currently fails on M1 Macs. This issue should be
-fixed when support for `GHC 9.2` is added to `stack`, since that version of GHC
-includes a native code generator for M1 processors.
-
-It has been [reported](https://github.com/fjvallarino/monomer/issues/1) that:
-
-- Building for x86 and running the application in the Rosetta shell works well.
-- Applying some workarounds, mentioned in the same issue, the build can work on
-  M1.
-
 ### Linux
 
 #### Debian/Ubuntu
@@ -220,7 +208,7 @@ immediately.
 Note: when a file is saved, a new instance of the application will be in a new
 window. The previous window needs to be closed manually.
 
-## Notes for macOS users
+## Notes for Intel Mac users
 
 If you have a discrete GPU, and you'd rather have your application use the
 integrated GPU, you may want to copy `Info.plist` into the bin directory the
