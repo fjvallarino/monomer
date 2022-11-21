@@ -46,6 +46,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
   - nanovg-0.8.1.0@sha256:9131db15822c6593aa73946b56593eb0a14a0d044395bcdfd4fe2d3e6edb6759,4742
+  - recover-rtti-0.4.1.0@sha256:31997127810799666b01f1202efd77033d4737ebd83232d5b2389d2f4b332cf5,4606
 
 # Override default flag values for local packages and extra-deps
 flags:

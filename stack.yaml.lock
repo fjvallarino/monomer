@@ -11,6 +11,13 @@ packages:
       size: 2558
   original:
     hackage: nanovg-0.8.1.0@sha256:9131db15822c6593aa73946b56593eb0a14a0d044395bcdfd4fe2d3e6edb6759,4742
+- completed:
+    hackage: recover-rtti-0.4.1.0@sha256:31997127810799666b01f1202efd77033d4737ebd83232d5b2389d2f4b332cf5,4606
+    pantry-tree:
+      sha256: 97ae15098c59f89ffbc43774e342d9b47aec6082fe3ef0f4554fd8a1908c0f1b
+      size: 2487
+  original:
+    hackage: recover-rtti-0.4.1.0@sha256:31997127810799666b01f1202efd77033d4737ebd83232d5b2389d2f4b332cf5,4606
 snapshots:
 - completed:
     sha256: b73b2b116143aea728c70e65c3239188998bac5bc3be56465813dacd74215dc5
