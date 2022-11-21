@@ -2,11 +2,28 @@
 
 ## Stack
 
-In case you don't have Stack installed in your system, you should visit
-[Stack's](https://docs.haskellstack.org/en/stable/install_and_upgrade/) website
-and follow the appropriate installation method for your OS. If you are on
-Linux or macOS, you will be provided with a shell command, while if you are on
-Windows a regular installer is available.
+### Regular Stack installer - All except Apple Silicon
+
+Visit [Stack's](https://docs.haskellstack.org/en/stable/install_and_upgrade/)
+website and follow the appropriate installation method for your OS. If you are
+on Linux or macOS, you will be provided with a shell command, while if you are
+on Windows a regular installer is available.
+
+#### Note: Apple Silicon
+
+The default Stack installer does not currently provide support for Apple Silicon
+(M1/M2 processors). The best option in this case is installing through GHCup.
+
+### GHCup - All except non-WSL2 Windows
+
+Visit [GHCup's](https://www.haskell.org/ghcup/) website and follow the
+appropriate installation method for your OS. Answer **Yes** when asked: _"Do you
+want to enable better integration of stack with GHCup?"_.
+
+#### Note: Windows without WSL2
+
+To use Windows without installing the Windows Subsystem for Linux, use the
+regular Stack installer described previously.
 
 ## Clone the starter project
 
@@ -32,18 +49,6 @@ You may need to install `pkg-config`, in case it was not previously installed:
 ```bash
 brew install pkg-config
 ```
-
-#### Notes: M1
-
-The standard build process currently fails on M1 Macs. This issue should be
-fixed when support for `GHC 9.2` is added to `stack`, since that version of GHC
-includes a native code generator for M1 processors.
-
-It has been [reported](https://github.com/fjvallarino/monomer/issues/1) that:
-
-- Building for x86 and running the application in the Rosetta shell works well.
-- Applying some workarounds, mentioned in the same issue, the build can work on
-  M1.
 
 ### Linux
 
@@ -171,7 +176,7 @@ Falling back to rendering in the main thread.
 ```
 
 Besides having the content stretched while resizing the window (i.e. not
-dinamically resized), there are no other differences between the threaded and
+dynamically resized), there are no other differences between the threaded and
 non-threaded modes.
 
 ## Development mode
@@ -203,7 +208,7 @@ immediately.
 Note: when a file is saved, a new instance of the application will be in a new
 window. The previous window needs to be closed manually.
 
-## Notes for macOS users
+## Notes for Intel Mac users
 
 If you have a discrete GPU, and you'd rather have your application use the
 integrated GPU, you may want to copy `Info.plist` into the bin directory the
