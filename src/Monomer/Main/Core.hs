@@ -36,7 +36,6 @@ import Data.Text (Text)
 import Data.Time
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Data.Word (Word32)
-import Debug.RecoverRTTI (anythingToString)
 import Graphics.GL
 
 import qualified Data.Map as Map
@@ -155,7 +154,7 @@ startApp newModel eventHandler uiBuilder configs = do
       = (onInit <$> _apcInitEvent config)
       ++ (onDispose <$> _apcDisposeEvent config)
       ++ (onResize <$> _apcResizeEvent config)
-    ~modelFp = anythingToString newModel
+    ~modelFp = maybe "" ($ newModel) (_apcModelFingerprintFn config)
     newRoot = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runAppLoop
@@ -167,7 +166,7 @@ runAppLoop
   -> WidgetNode sp ep
   -> AppConfig s e
   -> m ()
-runAppLoop window glCtx channel moldRoot newRoot config = do
+runAppLoop window glCtx channel mRootOld newRoot config = do
   isGhci <- liftIO isGhciRunning
   dpr <- use L.dpr
   winSize <- use L.windowSize
@@ -220,13 +219,12 @@ runAppLoop window glCtx channel moldRoot newRoot config = do
     _weViewport = Rect 0 0 (winSize ^. L.w) (winSize ^. L.h),
     _weOffset = def
   }
-  -- Need to handle result, because resize may be nededed
   let tmpRoot = newRoot
         & L.info . L.path .~ rootPath
         & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
   let mergeNewRoot newRoot oldRoot = result where
         result = widgetMerge (newRoot ^. L.widget) wenv newRoot oldRoot
-  let result = maybe (resultNode tmpRoot) (mergeNewRoot tmpRoot) moldRoot
+  let result = maybe (resultNode tmpRoot) (mergeNewRoot tmpRoot) mRootOld
   let appRoot = result ^. L.node
   let makeMainThreadRenderer = do
         renderer <- liftIO $ makeRenderer fonts dpr
@@ -259,11 +257,10 @@ runAppLoop window glCtx channel moldRoot newRoot config = do
       makeMainThreadRenderer
 
   handleResourcesInit
-  -- Rethink this
-  (newWenv, newAppRoot, _) <-
-    if isJust moldRoot
-      then handleWidgetResult wenv True result
-      else handleWidgetInit wenv appRoot
+
+  (newWenv, newAppRoot, _) <- if isJust mRootOld
+    then handleWidgetResult wenv True result
+    else handleWidgetInit wenv appRoot
 
   {-
   Deferred initialization step to account for Widgets that rely on OpenGL. They
@@ -714,5 +711,5 @@ retrieveModelAndRoot config newModel newRoot = getReloadData >>= \case
   _ -> do
     return (newModel, Nothing)
   where
-    attemptModelReuse = _apcDisableModelReuse config /= Just True
-    ~fingerprint = anythingToString newModel
+    attemptModelReuse = isJust (_apcModelFingerprintFn config)
+    ~fingerprint = fromJust (_apcModelFingerprintFn config) newModel

@@ -75,7 +75,6 @@ import Data.Map.Strict (Map)
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>), (<|), fromList)
 import Data.Typeable (Typeable, cast, typeOf)
-import Debug.RecoverRTTI (anythingToString)
 
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
@@ -244,6 +243,7 @@ data CompositeCfg s e sp ep = CompositeCfg {
   _cmcMergeRequired :: Maybe (MergeRequired s e),
   _cmcMergeReqs :: [MergeReqsHandler s e sp],
   _cmcMergeModel :: Maybe (MergeModelHandler s e sp),
+  _cmcModelFingerprintFn :: Maybe (s -> String),
   _cmcOnInitReq :: [WidgetRequest s e],
   _cmcOnDisposeReq :: [WidgetRequest s e],
   _cmcOnResize :: [Rect -> e],
@@ -254,9 +254,10 @@ data CompositeCfg s e sp ep = CompositeCfg {
 
 instance Default (CompositeCfg s e sp ep) where
   def = CompositeCfg {
-    _cmcMergeModel = Nothing,
     _cmcMergeRequired = Nothing,
     _cmcMergeReqs = [],
+    _cmcMergeModel = Nothing,
+    _cmcModelFingerprintFn = Nothing,
     _cmcOnInitReq = [],
     _cmcOnDisposeReq = [],
     _cmcOnResize = [],
@@ -267,9 +268,10 @@ instance Default (CompositeCfg s e sp ep) where
 
 instance Semigroup (CompositeCfg s e sp ep) where
   (<>) c1 c2 = CompositeCfg {
-    _cmcMergeModel = _cmcMergeModel c2 <|> _cmcMergeModel c1,
     _cmcMergeRequired = _cmcMergeRequired c2 <|> _cmcMergeRequired c1,
     _cmcMergeReqs = _cmcMergeReqs c1 <> _cmcMergeReqs c2,
+    _cmcMergeModel = _cmcMergeModel c2 <|> _cmcMergeModel c1,
+    _cmcModelFingerprintFn = _cmcModelFingerprintFn c2 <|> _cmcModelFingerprintFn c1,
     _cmcOnInitReq = _cmcOnInitReq c1 <> _cmcOnInitReq c2,
     _cmcOnDisposeReq = _cmcOnDisposeReq c1 <> _cmcOnDisposeReq c2,
     _cmcOnResize = _cmcOnResize c1 <> _cmcOnResize c2,
@@ -342,6 +344,16 @@ compositeMergeReqs fn = def {
 }
 
 {-|
+Generates a fingerprint to detect if the model can be reused.
+
+See 'Monomer.Main.Types.appModelFingerprint' for details.
+-}
+compositeModelFingerprint :: (s -> String) -> CompositeCfg s e sp ep
+compositeModelFingerprint fn = def {
+  _cmcModelFingerprintFn = Just fn
+}
+
+{-|
 Generate events during the merge process.
 
 This function is not called during initialization; 'onInit' can be used.
@@ -379,6 +391,7 @@ data Composite s e sp ep = Composite {
   _cmpMergeRequired :: MergeRequired s e,
   _cmpMergeReqs :: [MergeReqsHandler s e sp],
   _cmpMergeModel :: Maybe (MergeModelHandler s e sp),
+  _cmpModelFingerprintFn :: Maybe (s -> String),
   _cmpOnInitReq :: [WidgetRequest s e],
   _cmpOnDisposeReq :: [WidgetRequest s e],
   _cmpOnResize :: [Rect -> e],
@@ -483,6 +496,7 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpMergeRequired = mergeReq,
     _cmpMergeReqs = _cmcMergeReqs config,
     _cmpMergeModel = _cmcMergeModel config,
+    _cmpModelFingerprintFn = _cmcModelFingerprintFn config,
     _cmpOnInitReq = _cmcOnInitReq config,
     _cmpOnDisposeReq = _cmcOnDisposeReq config,
     _cmpOnResize = _cmcOnResize config,
@@ -543,7 +557,7 @@ compositeInit comp state wenv widgetComp = newResult where
   WidgetResult root reqs = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
   !newState = state {
     -- Using model could cause issues in merge if the model type changes
-    _cpsFingerprint = modelFingerprint cwenv userModel,
+    _cpsFingerprint = modelFingerprint comp cwenv userModel,
     _cpsModel = Just model,
     _cpsRoot = root,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty root
@@ -574,7 +588,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   !mergeModel = _cmpMergeModel comp
   !parentModel = wenv ^. L.model
   !userModel = getUserModel comp wenv
-  !newFingerprint = modelFingerprint cwenv userModel
+  !newFingerprint = modelFingerprint comp cwenv userModel
   !discardModelReload = isReload && oldFingerprint /= newFingerprint
 
   !model = case mergeModel of
@@ -1130,7 +1144,9 @@ lookupNode widgetKeys desc key = case M.lookup key widgetKeys of
 sendMsgTo :: Typeable i => WidgetNode s e -> i -> WidgetRequest sp ep
 sendMsgTo node msg = SendMessage (node ^. L.info . L.widgetId) msg
 
-modelFingerprint :: WidgetEnv s e -> s -> String
-modelFingerprint wenv !model
-  | isWidgetReload wenv = anythingToString model
+modelFingerprint :: Composite s e sp ep -> WidgetEnv s e -> s -> String
+modelFingerprint comp wenv !model
+  | isWidgetReload wenv && isJust fingerprintFn = fromJust fingerprintFn model
   | otherwise = "<ignored>"
+  where
+    fingerprintFn = _cmpModelFingerprintFn comp

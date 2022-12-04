@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -181,7 +181,6 @@ library
     , mtl >=2.1 && <2.3
     , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
-    , recover-rtti >=0.4 && <0.6
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
@@ -229,7 +228,6 @@ executable books
     , mtl >=2.1 && <2.3
     , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
-    , recover-rtti >=0.4 && <0.6
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
@@ -273,7 +271,6 @@ executable dev-test-app
     , mtl >=2.1 && <2.3
     , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
-    , recover-rtti >=0.4 && <0.6
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
@@ -317,7 +314,6 @@ executable generative
     , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , random >=1.1 && <1.3
-    , recover-rtti >=0.4 && <0.6
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
@@ -363,7 +359,6 @@ executable opengl
     , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , random >=1.1 && <1.3
-    , recover-rtti >=0.4 && <0.6
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
@@ -410,7 +405,6 @@ executable ticker
     , mtl >=2.1 && <2.3
     , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
-    , recover-rtti >=0.4 && <0.6
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
@@ -457,7 +451,6 @@ executable todo
     , mtl >=2.1 && <2.3
     , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
-    , recover-rtti >=0.4 && <0.6
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
@@ -510,7 +503,6 @@ executable tutorial
     , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
     , random >=1.1 && <1.3
-    , recover-rtti >=0.4 && <0.6
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1
@@ -605,7 +597,6 @@ test-suite monomer-test
     , mtl >=2.1 && <2.3
     , nanovg >=0.8.1 && <1.0
     , process ==1.6.*
-    , recover-rtti >=0.4 && <0.6
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
     , text >=1.2 && <2.1

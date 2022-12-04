@@ -208,8 +208,9 @@ data AppConfig s e = AppConfig {
   _apcDisableCompositing :: Maybe Bool,
   -- | Whether the screensaver should be disabled. Defaults to False.
   _apcDisableScreensaver :: Maybe Bool,
-  -- | Whether the application should ignore the old model on ghci's reload.
-  _apcDisableModelReuse :: Maybe Bool
+  -- | Extracts a String based fingerprint from the application's model.
+  --   See 'appFingerprint' for more details.
+  _apcModelFingerprintFn :: Maybe (s -> String)
 }
 
 instance Default (AppConfig s e) where
@@ -235,7 +236,7 @@ instance Default (AppConfig s e) where
     _apcInvertWheelY = Nothing,
     _apcDisableCompositing = Nothing,
     _apcDisableScreensaver = Nothing,
-    _apcDisableModelReuse = Nothing
+    _apcModelFingerprintFn = Nothing
   }
 
 instance Semigroup (AppConfig s e) where
@@ -261,7 +262,7 @@ instance Semigroup (AppConfig s e) where
     _apcInvertWheelY = _apcInvertWheelY a2 <|> _apcInvertWheelY a1,
     _apcDisableCompositing = _apcDisableCompositing a2 <|> _apcDisableCompositing a1,
     _apcDisableScreensaver = _apcDisableScreensaver a2 <|> _apcDisableScreensaver a1,
-    _apcDisableModelReuse = _apcDisableModelReuse a2 <|> _apcDisableModelReuse a1
+    _apcModelFingerprintFn = _apcModelFingerprintFn a2 <|> _apcModelFingerprintFn a1
   }
 
 instance Monoid (AppConfig s e) where
@@ -386,7 +387,7 @@ appDisableAutoScale disable = def {
 }
 
 {-|
-Available fonts to the application, loaded from the specified path. 
+Available fonts to the application, loaded from the specified path.
 Specifying no fonts will make it impossible to render text.
 -}
 appFontDef :: Text -> Text -> AppConfig s e
@@ -395,7 +396,7 @@ appFontDef name path = def {
 }
 
 {-|
-Available fonts to the application, loaded from the bytes in memory. 
+Available fonts to the application, loaded from the bytes in memory.
 Specifying no fonts will make it impossible to render text.
 
 One use case for this function is to embed fonts in the application, without the need to distribute the font files.
@@ -495,39 +496,48 @@ appDisableScreensaver disable = def {
 }
 
 {-|
-Indicates whether the application should attempt to reuse the model between
-reloads when running in interpreted mode. Reusing the model greatly improves the
-development experience, but it may not be desired in some scenarios. It defaults
-to True.
+Generates a fingerprint from the application's model. This is used to identify
+whether the application should attempt to reuse the model between reloads when
+running in interpreted mode. Since Monomer uses the model to build the UI,
+reusing the old model allows for quicker iteration as the application will be
+restored to its previous state before being reloaded. By default, unless a
+fingerprint function is provided, the model will not be reused and the
+application will start from scratch.
 
-A fingerprint function is applied to the user provided model on application
-startup only, and it's used to detect if the latest value of the model can be
-reused when the application is reloaded in ghci. If the latest fingerprint of
-the model matches the one of the new model, it is assumed that the old model can
-be reused. If the fingerprint changed because its data or data type changed, the
-new model will be used. Since Monomer uses the model to build the UI, reusing
-the old model allows for quicker iteration as the application will be restored
-to the state it was before reloading.
+The fingerprint function is applied to the user provided model on application's
+startup only, not on subsequent updates during the application's lifetime. When
+a reload occurs, the original fingerprint of the model is compared against the
+fingerprint of the newly provided version of the model; if they match, it is
+assumed that the latest version of the original model can be reused. If the
+fingerprint changed because its data or data type changed, the new model will be
+used. The rationale is that, since the model is provided by the developer at
+startup, if the fingerprints match then only changes to business logic/UI have
+been made.
 
 A fingerprint function is used because trying to compare two different versions
-of a data type using its Eq instance will result in ghci crashing. Creating a
+of a data type using its 'Eq' instance will result in ghci crashing. Creating a
 string based fingerprint as soon as the instance is available is a workaround
-for this issue.
+for this issue. Ideally, the fingerprint would incorporate enough information to
+detect type and data changes.
 
-At this time, 'Debug.RecoverRTTI.anythingToString' is used as the fingerprint
-function. This function returns a string representation of the data, although it
-does not include the name of record fields. In general this is not an issue, but
-changing a field's type from 'Int' to 'Long' will go undetected and cause a
-crash.
+A simple approach is using the 'show' function to generate the fingerprint,
+although in some cases it may not be possible, maybe because the type does not
+implement it or it does not include enough information.
+
+An alternative to 'show' is <https://hackage.haskell.org/package/recover-rtti
+recover-rtti>'s __anythingToString__. This function returns a string
+representation of the data, although it does not include the name of record
+fields. In general this is not an issue, but changing a field's type from 'Int'
+to 'Long' will go undetected and cause a crash.
 
 Ideally, we could use "GHC.Fingerprint.Fingerprint" to detect changes in the
-model's type, but unfortunately this is not reliable since it's based on the
-type's name only.
+model's type, but unfortunately this is not reliable since this fingerprint is
+based on the type's name only.
 
 GHC issue with more details: https://gitlab.haskell.org/ghc/ghc/-/issues/7897.
 Related Hint issue: https://github.com/haskell-hint/hint/issues/31.
 -}
-appDisableModelReuse :: Bool -> AppConfig s e
-appDisableModelReuse disabled = def {
-  _apcDisableModelReuse = Just disabled
+appModelFingerprint :: (s -> String) -> AppConfig s e
+appModelFingerprint fn = def {
+  _apcModelFingerprintFn = Just fn
 }
