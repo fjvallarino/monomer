@@ -199,8 +199,8 @@ With this you will be running your application in interpreted mode (`ghcid`
 under the hood uses `ghci`), allowing you to make changes and test them almost
 immediately.
 
-Then the `appModelFingerprint` setting is provided, Monomer will attempt to
-reuse the active model when the application is reloaded. This allows for faster
+If the `appModelFingerprint` setting is provided, Monomer will attempt to reuse
+the active model when the application is reloaded. This allows for faster
 iteration since the application will return to the previous state but with all
 the code and style changes that triggered the reload. Closing the window causes
 the old model to be discarded, and the application will start from scratch when
@@ -209,7 +209,7 @@ reloaded.
 In general, this will work fine, but in some cases modifying data types can
 cause ghci to crash. Restarting ghcid/ghci will solve the issue. You can read
 more details
-[here](https://hackage.haskell.org/package/monomer/docs/Monomer-Main-Types.html#v:appDisableModelReuse).
+[here](https://hackage.haskell.org/package/monomer/docs/Monomer-Main-Types.html#v:appModelFingerprint).
 
 ### VS Code
 
