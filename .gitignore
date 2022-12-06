@@ -12,4 +12,5 @@ dist-docs.*/
 *.prof
 *.ps
 *.ser
+*.dylib
 cabal.project.local*
