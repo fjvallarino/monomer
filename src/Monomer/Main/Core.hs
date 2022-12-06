@@ -30,7 +30,7 @@ import Control.Monad.State
 import Control.Monad.STM (atomically)
 import Data.Default
 import Data.Either (isLeft)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, fromJust, isJust)
 import Data.Map (Map)
 import Data.List (foldl')
 import Data.Text (Text)
