@@ -154,7 +154,7 @@ data LabelState = LabelState {
   _lstStyle :: StyleState,
   _lstTextRect :: Rect,
   _lstTextLines :: Seq TextLine,
-  _lstPrevResize :: (Millisecond, Bool)
+  _lstResizeStep :: (Millisecond, Bool)
 } deriving (Eq, Show, Generic)
 
 -- | Creates a label using the provided 'Text'.
@@ -201,7 +201,7 @@ makeLabel config state = widget where
     | otherwise = SingleLine
   maxLines = _lscTextMaxLines config
   labelCurrentStyle = fromMaybe currentStyle (_lscCurrentStyle config)
-  LabelState caption textStyle textRect textLines prevResize = state
+  LabelState caption textStyle textRect textLines resizeStep = state
 
   getBaseStyle wenv node
     | ignoreTheme = Nothing
@@ -216,11 +216,12 @@ makeLabel config state = widget where
       & L.widget .~ makeLabel config newState
 
   merge wenv newNode oldNode oldState = result where
+    LabelState prevCaption prevStyle prevRect prevLines prevResize = oldState
+    (tsResized, alreadyResized) = prevResize
+
     widgetId = newNode ^. L.info . L.widgetId
     style = labelCurrentStyle wenv newNode
-    prevStyle = _lstStyle oldState
-
-    captionChanged = _lstCaption oldState /= caption
+    captionChanged = prevCaption /= caption
     styleChanged = prevStyle ^. L.text /= style ^. L.text
       || prevStyle ^. L.padding /= style ^. L.padding
       || prevStyle ^. L.border /= style ^. L.border
@@ -231,11 +232,13 @@ makeLabel config state = widget where
     -- This is used in resize to know if glyphs have to be recalculated
     newRect
       | changeReq = def
-      | otherwise = _lstTextRect oldState
-    newState = oldState {
+      | otherwise = prevRect
+    newState = LabelState {
       _lstCaption = caption,
       _lstStyle = style,
-      _lstTextRect = newRect
+      _lstTextRect = newRect,
+      _lstTextLines = prevLines,
+      _lstResizeStep = (tsResized, alreadyResized && not captionChanged)
     }
 
     reqs = [ ResizeWidgets widgetId | changeReq ]
@@ -246,7 +249,7 @@ makeLabel config state = widget where
   getSizeReq wenv node = (sizeW, sizeH) where
     ts = wenv ^. L.timestamp
     caption = _lstCaption state
-    prevResize = _lstPrevResize state
+    prevResize = _lstResizeStep state
     style = labelCurrentStyle wenv node
 
     cw = getContentArea node style ^. L.w
@@ -286,18 +289,20 @@ makeLabel config state = widget where
       = fitTextToSize fontMgr style overflow mode trim maxLines size caption
     newTextLines = alignTextLines style alignRect fittedLines
 
-    (prevTs, prevStep) = prevResize
-    needsSndResize = mode == MultiLine && (prevTs /= ts || not prevStep)
+    rectEq = textRect == crect
+    (tsResized, alreadyResized) = resizeStep
+    resizeAgain = mode == MultiLine && (tsResized /= ts || not alreadyResized)
+    isResized = (alreadyResized && rectEq) || (resizeAgain && tsResized == ts)
 
     newState = state {
       _lstStyle = style,
       _lstTextRect = crect,
       _lstTextLines = newTextLines,
-      _lstPrevResize = (ts, needsSndResize && prevTs == ts)
+      _lstResizeStep = (ts, isResized)
     }
     newNode = node
       & L.widget .~ makeLabel config newState
-    result = resultReqs newNode [ResizeWidgets widgetId | needsSndResize]
+    result = resultReqs newNode [ResizeWidgets widgetId | resizeAgain]
 
   render wenv node renderer = do
     drawInScissor renderer True scissorVp $

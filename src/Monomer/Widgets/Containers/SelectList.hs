@@ -342,6 +342,12 @@ makeSelectList widgetData items makeRow config state = widget where
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
 
+    Click point _ _
+      | outsideVp point -> Just ignoreEvtResult
+
+    Move point
+      | outsideVp point -> Just ignoreEvtResult
+
     Focus prev -> handleFocusChange node prev (_slcOnFocusReq config)
 
     Blur next -> result where
@@ -363,6 +369,10 @@ makeSelectList widgetData items makeRow config state = widget where
         resultSelected = Just $ selectItem wenv node (_hlIdx state)
         isSelectKey code = isKeyReturn code || isKeySpace code
     _ -> Nothing
+
+    where
+      outsideVp point = not (pointInRect point (wenv ^. L.viewport))
+      ignoreEvtResult = resultReqs node [IgnoreChildrenEvents]
 
   highlightNext wenv node = highlightItem wenv node nextIdx where
     tempIdx = _hlIdx state
