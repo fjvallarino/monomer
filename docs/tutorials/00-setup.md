@@ -152,13 +152,27 @@ still need to install the [dependencies](#libraries-sdl2-and-glew).
 
 ### Running the examples
 
-Inside the cloned directory, you can run each of the examples with `stack run`:
+Inside the cloned directory, you can run each of the examples with:
 
 ```bash
-stack run todo
-stack run books
-stack run ticker
-stack run generative
+.stack-work/dist/<<arch>>/Cabal-<<cabal-ver>>/build/<<name>>/<<name>>
+```
+
+In general, both `arch` (e.g. `x86_64-osx`) and `cabal-ver` (e.g. 3.6.3.0) are
+the only directories you will find in that folder.
+
+For example:
+
+```bash
+.stack-work/dist/x86_64-osx/Cabal-3.6.3.0/build/todo/todo
+```
+
+Unfortunately, `stack run` does not support the `--flags` argument, which forces
+us to run the examples manually. The `dev-test-app`, which is built
+unconditionally, can be run with:
+
+```bash
+stack run dev-test-app
 ```
 
 #### Notes
