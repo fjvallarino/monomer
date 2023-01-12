@@ -228,8 +228,8 @@ selectList_ field items makeRow configs = newNode where
 -- | Creates a select list using the given value and 'onChange' event handler.
 selectListV
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
-  => a                -- ^ The event to raise on change.
-  -> (Int -> a -> e)  -- ^ The list of selectable items.
+  => a                -- ^ The current value.
+  -> (Int -> a -> e)  -- ^ The event to raise on change.
   -> t a              -- ^ The list of selectable items.
   -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> WidgetNode s e   -- ^ The created dropdown.
@@ -240,8 +240,8 @@ selectListV value handler items makeRow = newNode where
 --   Accepts config.
 selectListV_
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
-  => a                      -- ^ The event to raise on change.
-  -> (Int -> a -> e)        -- ^ The list of selectable items.
+  => a                      -- ^ The current value.
+  -> (Int -> a -> e)        -- ^ The event to raise on change.
   -> t a                    -- ^ The list of selectable items.
   -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> [SelectListCfg s e a]  -- ^ The config options.
