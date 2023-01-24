@@ -20,6 +20,7 @@ import Control.Lens hiding ((|>), deep)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Foldable (toList)
+import Data.List (find)
 import Data.Maybe
 import Data.Text (Text)
 import Data.Typeable (Typeable, cast)
@@ -42,6 +43,7 @@ import Monomer.Widgets.Containers.ZStack
 import Monomer.Widgets.Singles.Button
 import Monomer.Widgets.Singles.Checkbox
 import Monomer.Widgets.Singles.Label
+import Monomer.Widgets.Singles.Spacer
 import Monomer.Widgets.Singles.TextField
 import Monomer.Widgets.Util.Widget
 
@@ -139,6 +141,7 @@ spec = describe "Composite" $ do
   findByPoint
   findByPath
   findNextFocus
+  mergeUserResize
   getSizeReq
   resize
 
@@ -614,6 +617,39 @@ findByHelperUI = composite "main" id buildUI handleEvent where
           hgrid [ label "7", label "8", cmpLabels ]
         ]
     ]
+
+mergeUserResize :: Spec
+mergeUserResize = describe "merge resize" $ do
+  it "should not generate a request if user size did not change" $ do
+    let result = mergeSizeReq [] []
+    find isResizeWidgets (result ^. L.requests) `shouldBe` Nothing
+
+  it "should generate a ResizeWidgets request if user size changed" $ do
+    let result = mergeSizeReq [width 100] []
+    find isResizeWidgets (result ^. L.requests) `shouldNotBe` Nothing
+
+  it "should generate a ResizeWidgets request if user size changed" $ do
+    let result = mergeSizeReq [width 100] [width 200]
+    find isResizeWidgets (result ^. L.requests) `shouldNotBe` Nothing
+
+  where
+    wenv = mockWenv def
+    handleEvent
+      :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
+      -> MainModel
+      -> MainEvt
+      -> [EventResponse MainModel MainEvt MainModel MainEvt]
+    handleEvent wenv node model evt = []
+    buildUI wenv model = spacer
+    oldNode = composite "main" id buildUI handleEvent
+    newNode = composite_ "main" id buildUI handleEvent [mergeRequired (const . const . const True)]
+    mergeSizeReq oldStyle newStyle = result where
+      oldNode2 = nodeInit wenv $
+        oldNode `styleBasic` oldStyle
+      newNode2 = newNode
+        `styleBasic` newStyle
+      result = widgetMerge (newNode2 ^. L.widget) wenv newNode2 oldNode2
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

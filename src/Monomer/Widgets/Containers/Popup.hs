@@ -11,7 +11,7 @@ When the popup is open, events will not reach the widgets below it.
 
 In addition to the content that is displayed when open, a popup requires a
 boolean lens or value to indicate if the content should be visible. This flag
-can be used to programatically open/close the popup. The popup can also be
+can be used to programmatically open/close the popup. The popup can also be
 closed by clicking outside its content.
 
 In general, it is a good idea to set a background color to the top level content

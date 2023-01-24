@@ -1,9 +1,23 @@
-## 1.5.0.0 (in development)
+## 1.5.1.0
+
+### Fixed
+
+- Fix rendering artifacts ([PR #215](https://github.com/fjvallarino/monomer/pull/215)).
+
+### Changed
+
+- Add "examples" flag to optionally build examples and tutorials ([PR #218](https://github.com/fjvallarino/monomer/pull/218)).
+- Use pkg-config for glew linking ([PR #219](https://github.com/fjvallarino/monomer/pull/219)).
+
+## 1.5.0.0
 
 ### Added
 
 - Do not disable screensaver unless explicitly requested; add configuration flag ([PR #189](https://github.com/fjvallarino/monomer/pull/189)).
+- Conditional helpers for lists of widgets, styles and configuration options ([PR #185](https://github.com/fjvallarino/monomer/pull/185)).
 - Popup widget ([PR #191](https://github.com/fjvallarino/monomer/pull/191)).
+- Loading fonts from memory ([PR #199](https://github.com/fjvallarino/monomer/pull/199)). Thanks @klausweiss!
+- BoxShadow component ([PR #205](https://github.com/fjvallarino/monomer/pull/205)). Thanks @Dretch!
 
 ### Fixed
 

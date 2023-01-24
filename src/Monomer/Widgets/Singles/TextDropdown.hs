@@ -20,7 +20,7 @@ or list items, "Monomer.Widgets.Containers.Dropdown" can be used.
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Singles.TextDropdown (
-  -- * Configuratiom
+  -- * Configuration
   TextDropdownItem,
   -- * Constructors
   textDropdown,

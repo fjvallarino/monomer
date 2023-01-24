@@ -16,6 +16,7 @@ module Monomer.Graphics.FontManager (
 ) where
 
 import Control.Monad (foldM, when)
+import Control.Lens ((^.))
 
 import Data.Default
 import Data.Sequence (Seq)
@@ -29,6 +30,7 @@ import Monomer.Common.BasicTypes
 import Monomer.Graphics.FFI
 import Monomer.Graphics.Types
 import Monomer.Helper (putStrLnErr)
+import Monomer.Graphics.Lens (fontName, fontPath, fontBytes)
 
 -- | Creates a font manager instance.
 makeFontManager
@@ -101,11 +103,15 @@ newManager ctx = FontManager {..} where
       }
 
 loadFont :: FMContext -> [Text] -> FontDef -> IO [Text]
-loadFont ctx fonts (FontDef name path) = do
-  res <- fmCreateFont ctx name path
+loadFont ctx fonts fontDef = do
+  res <- createFont fontDef
   if res >= 0
-    then return $ path : fonts
+    then return $ name : fonts
     else putStrLnErr ("Failed to load font: " ++ T.unpack name) >> return fonts
+  where
+    name = fontDef ^. fontName
+    createFont FontDefFile{} = fmCreateFont ctx name (fontDef ^. fontPath)
+    createFont FontDefMem{} = fmCreateFontMem ctx name (fontDef ^. fontBytes)
 
 setFont :: FMContext -> Double -> Font -> FontSize -> FontSpace -> IO ()
 setFont ctx scale (Font name) (FontSize size) (FontSpace spaceH) = do

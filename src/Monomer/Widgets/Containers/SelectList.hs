@@ -228,8 +228,8 @@ selectList_ field items makeRow configs = newNode where
 -- | Creates a select list using the given value and 'onChange' event handler.
 selectListV
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
-  => a                -- ^ The event to raise on change.
-  -> (Int -> a -> e)  -- ^ The list of selectable items.
+  => a                -- ^ The current value.
+  -> (Int -> a -> e)  -- ^ The event to raise on change.
   -> t a              -- ^ The list of selectable items.
   -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> WidgetNode s e   -- ^ The created dropdown.
@@ -240,8 +240,8 @@ selectListV value handler items makeRow = newNode where
 --   Accepts config.
 selectListV_
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
-  => a                      -- ^ The event to raise on change.
-  -> (Int -> a -> e)        -- ^ The list of selectable items.
+  => a                      -- ^ The current value.
+  -> (Int -> a -> e)        -- ^ The event to raise on change.
   -> t a                    -- ^ The list of selectable items.
   -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> [SelectListCfg s e a]  -- ^ The config options.
@@ -341,6 +341,12 @@ makeSelectList widgetData items makeRow config state = widget where
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
 
+    Click point _ _
+      | outsideVp point -> Just ignoreEvtResult
+
+    Move point
+      | outsideVp point -> Just ignoreEvtResult
+
     Focus prev -> handleFocusChange node prev (_slcOnFocusReq config)
 
     Blur next -> result where
@@ -362,6 +368,10 @@ makeSelectList widgetData items makeRow config state = widget where
         resultSelected = Just $ selectItem wenv node (_hlIdx state)
         isSelectKey code = isKeyReturn code || isKeySpace code
     _ -> Nothing
+
+    where
+      outsideVp point = not (pointInRect point (wenv ^. L.viewport))
+      ignoreEvtResult = resultReqs node [IgnoreChildrenEvents]
 
   highlightNext wenv node = highlightItem wenv node nextIdx where
     tempIdx = _hlIdx state

@@ -28,7 +28,8 @@ import Control.Monad.Extra
 import Control.Monad.State
 import Control.Monad.STM (atomically)
 import Data.Default
-import Data.Maybe
+import Data.Either (isLeft)
+import Data.Maybe (fromMaybe)
 import Data.Map (Map)
 import Data.List (foldl')
 import Data.Text (Text)
@@ -114,7 +115,7 @@ startApp model eventHandler uiBuilder configs = do
   let monomerCtx = initMonomerCtx window channel vpSize dpr epr model
 
   runStateT (runAppLoop window glCtx channel appWidget config) monomerCtx
-  detroySDLWindow window
+  destroySDLWindow window
   where
     config = mconcat configs
     compCfgs
@@ -254,7 +255,7 @@ mainLoop
 mainLoop window fontManager config loopArgs = do
   let MainLoopArgs{..} = loopArgs
 
-  startTs <- getEllapsedTimestampSince _mlAppStartTs
+  startTs <- getElapsedTimestampSince _mlAppStartTs
   events <- SDL.pumpEvents >> SDL.pollEvents
 
   windowSize <- use L.windowSize
@@ -270,6 +271,7 @@ mainLoop window fontManager config loopArgs = do
   inputStatus <- use L.inputStatus
   mousePos <- liftIO $ getCurrentMousePos epr
   currWinSize <- liftIO $ getViewportSize window dpr
+  prevRenderNeeded <- use L.renderRequested
 
   let Size rw rh = windowSize
   let ts = startTs - _mlFrameStartTs
@@ -331,6 +333,8 @@ mainLoop window fontManager config loopArgs = do
         | otherwise = Seq.Empty
   let baseStep = (wenv, _mlWidgetRoot, Seq.empty)
 
+  L.renderRequested .= False
+
   (rqWenv, rqRoot, _) <- handleRequests baseReqs baseStep
   (wtWenv, wtRoot, _) <- handleWidgetTasks rqWenv rqRoot
   (seWenv, seRoot, _) <- handleSystemEvents wtWenv wtRoot baseSystemEvents
@@ -341,18 +345,18 @@ mainLoop window fontManager config loopArgs = do
       handleResizeWidgets (seWenv, seRoot, Seq.empty)
     else return (seWenv, seRoot, Seq.empty)
 
-  endTs <- getEllapsedTimestampSince _mlAppStartTs
+  endTs <- getElapsedTimestampSince _mlAppStartTs
 
   -- Rendering
   renderCurrentReq <- checkRenderCurrent startTs _mlLatestRenderTs
+  renderMethod <- use L.renderMethod
 
-  let renderEvent = any isActionEvent eventsPayload
-  let winRedrawEvt = windowResized || windowExposed
-  let renderNeeded = winRedrawEvt || renderEvent || renderCurrentReq
+  let actionEvt = any isActionEvent eventsPayload
+  let renderResize = windowResized && (isLinux wenv || isLeft renderMethod)
+  let windowRenderEvt = renderResize || any isWindowRenderEvent eventsPayload
+  let renderNeeded = windowRenderEvt || actionEvt || renderCurrentReq
 
-  when renderNeeded $ do
-    renderMethod <- use L.renderMethod
-
+  when (prevRenderNeeded || renderNeeded) $
     case renderMethod of
       Right renderChan -> do
         liftIO . atomically $ writeTChan renderChan (MsgRender newWenv newRoot)
@@ -361,8 +365,13 @@ mainLoop window fontManager config loopArgs = do
 
         liftIO $ renderWidgets window dpr renderer bgColor newWenv newRoot
 
-  -- Used in the next rendering cycle
-  L.renderRequested .= windowResized
+  {-
+  Used in the next rendering cycle.
+
+  Temporary workaround: when rendering is needed, make sure to render the next
+  frame too in order to avoid visual artifacts.
+  -}
+  L.renderRequested .= renderNeeded
 
   let fps = realToFrac _mlMaxFps
   let frameLength = round (1000000 / fps)
@@ -455,6 +464,7 @@ handleRenderMsg window renderer fontMgr state (MsgRender tmpWenv newRoot) = do
   let newWenv = tmpWenv
         & L.fontManager .~ fontMgr
   let color = newWenv ^. L.theme . L.clearColor
+
   renderWidgets window dpr renderer color newWenv newRoot
   return (RenderState dpr newWenv newRoot)
 handleRenderMsg window renderer fontMgr state (MsgResize _) = do
@@ -564,12 +574,24 @@ isMouseEntered :: [SDL.EventPayload] -> Bool
 isMouseEntered eventsPayload = not status where
   status = null [ e | e@SDL.WindowGainedMouseFocusEvent {} <- eventsPayload ]
 
+isWindowRenderEvent :: SDL.EventPayload -> Bool
+isWindowRenderEvent SDL.WindowShownEvent{} = True
+isWindowRenderEvent SDL.WindowExposedEvent{} = True
+isWindowRenderEvent SDL.WindowMovedEvent{} = True
+isWindowRenderEvent SDL.WindowResizedEvent{} = True
+isWindowRenderEvent SDL.WindowSizeChangedEvent{} = True
+isWindowRenderEvent SDL.WindowMaximizedEvent{} = True
+isWindowRenderEvent SDL.WindowRestoredEvent{} = True
+isWindowRenderEvent SDL.WindowGainedMouseFocusEvent{} = True
+isWindowRenderEvent SDL.WindowGainedKeyboardFocusEvent{} = True
+isWindowRenderEvent _ = False
+
 getCurrentTimestamp :: MonadIO m => m Millisecond
 getCurrentTimestamp = toMs <$> liftIO getCurrentTime
   where
     toMs = floor . (1e3 *) . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds
 
-getEllapsedTimestampSince :: MonadIO m => Millisecond -> m Millisecond
-getEllapsedTimestampSince start = do
+getElapsedTimestampSince :: MonadIO m => Millisecond -> m Millisecond
+getElapsedTimestampSince start = do
   ts <- getCurrentTimestamp
   return (ts - start)

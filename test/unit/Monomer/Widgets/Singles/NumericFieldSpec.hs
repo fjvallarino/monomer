@@ -194,7 +194,7 @@ handleEventMouseDragIntegral = describe "handleEventMouseDragIntegral" $ do
     let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. integralValue `shouldBe` -500
 
-  it "should drag upwnwards 1000 pixels, staying at 500 (the maximum)" $ do
+  it "should drag upwards 1000 pixels, staying at 500 (the maximum)" $ do
     let selStart = Point 50 50
     let selEnd = Point 50 (-950)
     let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]

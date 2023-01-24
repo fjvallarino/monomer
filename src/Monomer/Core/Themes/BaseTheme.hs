@@ -65,6 +65,7 @@ data BaseThemeColors = BaseThemeColors {
   dialogText :: Color,
   dialogTitleText :: Color,
   emptyOverlay :: Color,
+  shadow :: Color,
   externalLinkBasic :: Color,
   externalLinkHover :: Color,
   externalLinkFocus :: Color,
@@ -227,6 +228,7 @@ baseBasic :: BaseThemeColors -> ThemeState
 baseBasic themeMod = def
   & L.emptyOverlayStyle .~ bgColor (emptyOverlay themeMod)
   & L.emptyOverlayStyle . L.padding ?~ padding 8
+  & L.shadowColor .~ shadow themeMod
   & L.btnStyle .~ btnStyle themeMod
   & L.btnMainStyle .~ btnMainStyle themeMod
   & L.colorPopupStyle .~ colorPopupStyle themeMod

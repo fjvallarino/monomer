@@ -49,6 +49,7 @@ data TodoAction
   = TodoNone
   | TodoAdding
   | TodoEditing Int
+  | TodoConfirmingDelete Int Todo
   deriving (Eq, Show)
 
 data TodoModel = TodoModel {
@@ -63,6 +64,8 @@ data TodoEvt
   | TodoAdd
   | TodoEdit Int Todo
   | TodoSave Int
+  | TodoConfirmDelete Int Todo
+  | TodoCancelDelete
   | TodoDeleteBegin Int Todo
   | TodoDelete Int Todo
   | TodoShowEdit

@@ -78,7 +78,7 @@ data ImageFit
   | FitEither
   deriving (Eq, Show)
 
--- | Posible errors when loading an image.
+-- | Possible errors when loading an image.
 data ImageLoadError
   = ImageLoadFailed String
   | ImageInvalid String
@@ -92,7 +92,7 @@ Configuration options for image:
 - 'imageNearest': apply nearest filtering when stretching an image.
 - 'imageRepeatX': repeat the image across the x coordinate.
 - 'imageRepeatY': repeat the image across the y coordinate.
-- 'fitNone': does not perform any streching if the size does not match viewport.
+- 'fitNone': does not perform any stretching if the size does not match viewport.
 - 'fitFill': stretches the image to match the viewport.
 - 'fitWidth': stretches the image to match the viewport width. Maintains ratio.
 - 'fitHeight': stretches the image to match the viewport height. Maintains ratio.

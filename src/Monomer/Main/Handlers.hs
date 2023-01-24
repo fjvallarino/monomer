@@ -281,7 +281,7 @@ handleResizeWidgets previousStep = do
       resizeRequests <- use L.resizeRequests
       paths <- mapM getWidgetIdPath resizeRequests
       let parts = Set.fromDistinctAscList . drop 1 . toList . Seq.inits
-      let sets = fold (parts <$> paths)
+      let sets = foldMap parts paths
 
       return (`Set.member` sets)
 

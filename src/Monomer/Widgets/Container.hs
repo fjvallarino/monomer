@@ -237,7 +237,7 @@ type ContainerMergePostHandler s e a
 Disposes the current node. Only used by widgets which allocate resources during
 /init/ or /merge/, and will usually involve requests to the runtime.
 
-An example can be found "Monomer.Widgets.Containers.Dropdown".
+An example can be found in "Monomer.Widgets.Containers.Dropdown".
 -}
 type ContainerDisposeHandler s e
   = WidgetEnv s e      -- ^ The widget environment.
@@ -259,7 +259,7 @@ type ContainerFindNextFocusHandler s e
 Returns the currently hovered widget, if any. If the widget is rectangular and
 uses the full content area, there is not need to override this function.
 
-An example can be found "Monomer.Widgets.Containers.Dropdown".
+An example can be found in "Monomer.Widgets.Containers.Dropdown".
 -}
 type ContainerFindByPointHandler s e
   = WidgetEnv s e    -- ^ The widget environment.
@@ -353,7 +353,7 @@ type ContainerResizeHandler s e
 
 {-|
 Renders the widget's content using the given Renderer. In general, this method
-needs to be overriden. There are two render methods: one runs before children,
+needs to be overridden. There are two render methods: one runs before children,
 the other one after.
 
 Examples can be found in "Monomer.Widgets.Containers.Draggable" and
@@ -432,9 +432,9 @@ data Container s e a = Container {
   containerGetSizeReq :: ContainerGetSizeReqHandler s e,
   -- | Resizes the widget to the provided size.
   containerResize :: ContainerResizeHandler s e,
-  -- | Renders the widget's content. This runs before childrens' render.
+  -- | Renders the widget's content. This runs before children's render.
   containerRender :: ContainerRenderHandler s e,
-  -- | Renders the widget's content. This runs after childrens' render.
+  -- | Renders the widget's content. This runs after children's render.
   containerRenderAfter :: ContainerRenderHandler s e
 }
 
@@ -662,11 +662,14 @@ mergeWrapper container wenv newNode oldNode = newResult where
     Just (ost, st) -> mergePostHandler wenv mNode oldNode ost st mResult
     Nothing -> mResult
 
-  tmpResult
-    | isResizeAnyResult (Just postRes) = postRes
-        & L.node .~ updateSizeReq wenv (postRes ^. L.node)
-    | otherwise = postRes
-  newResult = handleWidgetIdChange oldNode tmpResult
+  tmpResult = postRes
+    & handleUserSizeReqChange wenv oldNode
+    & handleWidgetIdChange oldNode
+
+  newResult
+    | isResizeAnyResult (Just tmpResult) = tmpResult
+        & L.node .~ updateSizeReq wenv (tmpResult ^. L.node)
+    | otherwise = tmpResult
 
 mergeParent
   :: WidgetModel a

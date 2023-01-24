@@ -2,11 +2,28 @@
 
 ## Stack
 
-In case you don't have Stack installed in your system, you should visit
-[Stack's](https://docs.haskellstack.org/en/stable/install_and_upgrade/) website
-and follow the appropriate installation method for your OS. If you are on
-Linux or macOS, you will be provided with a shell command, while if you are on
-Windows a regular installer is available.
+### Regular Stack installer - All except Apple Silicon
+
+Visit [Stack's](https://docs.haskellstack.org/en/stable/install_and_upgrade/)
+website and follow the appropriate installation method for your OS. If you are
+on Linux or macOS, you will be provided with a shell command, while if you are
+on Windows a regular installer is available.
+
+#### Note: Apple Silicon
+
+The default Stack installer does not currently provide support for Apple Silicon
+(M1/M2 processors). The best option in this case is installing through GHCup.
+
+### GHCup - All except non-WSL2 Windows
+
+Visit [GHCup's](https://www.haskell.org/ghcup/) website and follow the
+appropriate installation method for your OS. Answer **Yes** when asked: _"Do you
+want to enable better integration of stack with GHCup?"_.
+
+#### Note: Windows without WSL2
+
+To use Windows without installing the Windows Subsystem for Linux, use the
+regular Stack installer described previously.
 
 ## Clone the starter project
 
@@ -32,18 +49,6 @@ You may need to install `pkg-config`, in case it was not previously installed:
 ```bash
 brew install pkg-config
 ```
-
-#### Notes: M1
-
-The standard build process currently fails on M1 Macs. This issue should be
-fixed when support for `GHC 9.2` is added to `stack`, since that version of GHC
-includes a native code generator for M1 processors.
-
-It has been [reported](https://github.com/fjvallarino/monomer/issues/1) that:
-
-- Building for x86 and running the application in the Rosetta shell works well.
-- Applying some workarounds, mentioned in the same issue, the build can work on
-  M1.
 
 ### Linux
 
@@ -77,16 +82,25 @@ sudo dnf install SDL2-devel
 sudo dnf install glew-devel
 ```
 
+If you get a `Failed to build double-conversion` error, you may need to run:
+
+```bash
+sudo dnf install gcc-c++
+```
+
 ### Windows
 
 Inside your project's directory:
 
 ```bash
 stack setup
+stack exec -- pacman -S msys2-keyring
 stack exec -- pacman -S mingw-w64-x86_64-pkg-config
 stack exec -- pacman -S mingw-w64-x86_64-SDL2
 stack exec -- pacman -S mingw-w64-x86_64-freeglut
 stack exec -- pacman -S mingw-w64-x86_64-glew
+stack exec -- pacman -S mingw-w64-x86_64-freetype
+stack exec -- pacman -Syu
 ```
 
 #### Notes
@@ -107,13 +121,8 @@ The second location is the directory that contains MinGW. Removing
 enough to get a working environment. If this does not work, removing
 `%STACK_ROOT%` and reinstalling Stack may be required.
 
-If the previous steps did not fix the issue, updating the keyring with the
-following commands and building again may help:
-
-```bash
-stack exec -- pacman -S msys2-keyring
-stack exec -- pacman -Syu
-```
+If the previous steps did not fix the issue, maybe the manual solution
+mentioned here can help: https://github.com/fjvallarino/monomer/issues/201.
 
 ## Build the project
 
@@ -135,7 +144,7 @@ git clone https://github.com/fjvallarino/monomer.git
 Then, inside the cloned directory, build the project with:
 
 ```bash
-stack build
+stack build --flag monomer:examples
 ```
 
 In case you have not followed the instructions for the starter project, you
@@ -143,13 +152,27 @@ still need to install the [dependencies](#libraries-sdl2-and-glew).
 
 ### Running the examples
 
-Inside the cloned directory, you can run each of the examples with `stack run`:
+Inside the cloned directory, you can run each of the examples with:
 
 ```bash
-stack run todo
-stack run books
-stack run ticker
-stack run generative
+.stack-work/dist/<<arch>>/Cabal-<<cabal-ver>>/build/<<name>>/<<name>>
+```
+
+In general, both `arch` (e.g. `x86_64-osx`) and `cabal-ver` (e.g. 3.6.3.0) are
+the only directories you will find in that folder.
+
+For example:
+
+```bash
+.stack-work/dist/x86_64-osx/Cabal-3.6.3.0/build/todo/todo
+```
+
+Unfortunately, `stack run` does not support the `--flags` argument, which forces
+us to run the examples manually. The `dev-test-app`, which is built
+unconditionally, can be run with:
+
+```bash
+stack run dev-test-app
 ```
 
 #### Notes
@@ -167,7 +190,7 @@ Falling back to rendering in the main thread.
 ```
 
 Besides having the content stretched while resizing the window (i.e. not
-dinamically resized), there are no other differences between the threaded and
+dynamically resized), there are no other differences between the threaded and
 non-threaded modes.
 
 ## Development mode
@@ -199,7 +222,7 @@ immediately.
 Note: when a file is saved, a new instance of the application will be in a new
 window. The previous window needs to be closed manually.
 
-## Notes for macOS users
+## Notes for Intel Mac users
 
 If you have a discrete GPU, and you'd rather have your application use the
 integrated GPU, you may want to copy `Info.plist` into the bin directory the

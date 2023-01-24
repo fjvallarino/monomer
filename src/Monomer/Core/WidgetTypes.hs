@@ -40,7 +40,7 @@ import Monomer.Graphics.Types
 
 {-|
 Time expressed in milliseconds. Useful for representing the time of events,
-length of intervals, start time of the application and ellapsed time since its
+length of intervals, start time of the application and elapsed time since its
 start.
 
 It can be converted from/to other numeric types using the standard functions.
@@ -313,7 +313,7 @@ data WidgetEnv s e = WidgetEnv {
   _weDpr :: Double,
   -- | The timestamp in milliseconds when the application started.
   _weAppStartTs :: Millisecond,
-  -- | Provides helper funtions for calculating text size.
+  -- | Provides helper functions for calculating text size.
   _weFontManager :: FontManager,
   -- | Returns the node info, and its parents', given a path from root.
   _weFindBranchByPath :: Path -> Seq WidgetNodeInfo,

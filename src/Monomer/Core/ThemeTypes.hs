@@ -22,6 +22,7 @@ import qualified Data.Map.Strict as M
 import Monomer.Core.StyleTypes
 import Monomer.Graphics.ColorTable
 import Monomer.Graphics.Types
+import Monomer.Graphics.Util
 
 -- | Theme configuration for each state, plus clear/base color.
 data Theme = Theme {
@@ -52,6 +53,9 @@ instance Default Theme where
 -- | Default theme settings for each widget.
 data ThemeState = ThemeState {
   _thsEmptyOverlayStyle :: StyleState,
+  _thsShadowColor :: Color,
+  _thsShadowAlignH :: AlignH,
+  _thsShadowAlignV :: AlignV,
   _thsBtnStyle :: StyleState,
   _thsBtnMainStyle :: StyleState,
   _thsColorPopupStyle :: StyleState,
@@ -110,6 +114,9 @@ data ThemeState = ThemeState {
 instance Default ThemeState where
   def = ThemeState {
     _thsEmptyOverlayStyle = def,
+    _thsShadowColor = darkGray { _colorA = 0.2 },
+    _thsShadowAlignH = ACenter,
+    _thsShadowAlignV = ABottom,
     _thsBtnStyle = def,
     _thsBtnMainStyle = def,
     _thsColorPopupStyle = def,
@@ -168,6 +175,9 @@ instance Default ThemeState where
 instance Semigroup ThemeState where
   (<>) t1 t2 = ThemeState {
     _thsEmptyOverlayStyle = _thsEmptyOverlayStyle t1 <> _thsEmptyOverlayStyle t2,
+    _thsShadowColor = _thsShadowColor t2,
+    _thsShadowAlignH = _thsShadowAlignH t2,
+    _thsShadowAlignV = _thsShadowAlignV t2,
     _thsBtnStyle = _thsBtnStyle t1 <> _thsBtnStyle t2,
     _thsBtnMainStyle = _thsBtnMainStyle t1 <> _thsBtnMainStyle t2,
     _thsColorPopupStyle = _thsColorPopupStyle t1 <> _thsColorPopupStyle t2,
