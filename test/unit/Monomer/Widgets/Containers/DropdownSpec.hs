@@ -76,6 +76,9 @@ handleEvent = describe "handleEvent" $ do
   it "should not update the model if not clicked" $
     model [evtClick (Point 3000 3000)] ^. selectedItem `shouldBe` testItem0
 
+  it "should not update the model if clicked outside the list" $
+    model [evtClick mainP, evtClick (Point 300 500)] ^. selectedItem `shouldBe` testItem0
+
   it "should update the model when clicked" $ do
     let itemP = Point 50 90
     model [evtClick mainP, evtClick itemP] ^. selectedItem `shouldBe` testItem3

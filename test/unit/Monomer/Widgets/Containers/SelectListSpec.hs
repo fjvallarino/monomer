@@ -72,8 +72,8 @@ spec = describe "SelectList" $ do
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
-  it "should not update the model if not clicked" $
-    clickModel (Point 3000 3000) ^. selectedItem `shouldBe` testItem0
+  it "should not update the model if clicked outside the list" $
+    clickModel (Point 300 500) ^. selectedItem `shouldBe` testItem0
 
   it "should update the model when clicked" $
     clickModel (Point 100 70) ^. selectedItem `shouldBe` testItem3
