@@ -33,7 +33,8 @@ module Monomer.Widgets.Singles.Dial (
   dial,
   dial_,
   dialV,
-  dialV_
+  dialV_,
+  dialD_
 ) where
 
 import Control.Applicative ((<|>))
