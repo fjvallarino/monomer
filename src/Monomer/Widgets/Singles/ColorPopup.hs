@@ -55,7 +55,7 @@ type ColorPopupEnv = WidgetEnv ColorPopupModel ColorPopupEvt
 type ColorPopupNode = WidgetNode ColorPopupModel ColorPopupEvt
 
 {-|
-Configuration options for colorPicker:
+Configuration options for colorPopup:
 
 - 'showAlpha': whether to allow modifying the alpha channel or not.
 - 'onFocus': event to raise when focus is received.

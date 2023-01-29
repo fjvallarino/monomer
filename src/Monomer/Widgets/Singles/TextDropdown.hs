@@ -47,7 +47,7 @@ import Monomer.Widgets.Singles.Label
 type TextDropdownItem a = DropdownItem a
 
 {-|
-Creates a text dropdown using the given lens. The type must be have a 'TextShow'
+Creates a text dropdown using the given lens. The type must have a 'TextShow'
 instance.
 -}
 textDropdown
@@ -74,7 +74,6 @@ textDropdown_ field items toText configs = newNode where
 
 {-|
 Creates a text dropdown using the given value and 'onChange' event handler.
-Takes a function for converting the type to Text.
 -}
 textDropdownV
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, TextShow a)
@@ -119,7 +118,7 @@ textDropdownD_ widgetData items toText configs = newNode where
   newNode = dropdownD_ widgetData items makeMain makeRow configs
 
 {-|
-Creates a text dropdown using the given lens. The type must be have a 'Show'
+Creates a text dropdown using the given lens. The type must have a 'Show'
 instance.
 -}
 textDropdownS
@@ -131,7 +130,7 @@ textDropdownS field items = newNode where
   newNode = textDropdownS_ field items def
 
 {-|
-Creates a text dropdown using the given lens. The type must be have a 'Show'
+Creates a text dropdown using the given lens. The type must have a 'Show'
 instance. Accepts config.
 -}
 textDropdownS_
@@ -145,7 +144,7 @@ textDropdownS_ field items configs = newNode where
 
 {-|
 Creates a text dropdown using the given value and 'onChange' event handler. The
-type must be have a 'Show' instance.
+type must have a 'Show' instance.
 -}
 textDropdownSV
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
@@ -158,7 +157,7 @@ textDropdownSV value handler items = newNode where
 
 {-|
 Creates a text dropdown using the given value and 'onChange' event handler. The
-type must be have a 'Show' instance. Accepts config.
+type must have a 'Show' instance. Accepts config.
 -}
 textDropdownSV_
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
@@ -174,7 +173,7 @@ textDropdownSV_ value handler items configs = newNode where
 
 {-|
 Creates a text dropdown providing a 'WidgetData' instance and config. The
-type must be have a 'Show' instance.
+type must have a 'Show' instance.
 -}
 textDropdownDS_
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
