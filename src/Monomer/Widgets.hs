@@ -18,6 +18,7 @@ module Monomer.Widgets (
   -- * Containers
   module Monomer.Widgets.Containers.Alert,
   module Monomer.Widgets.Containers.Box,
+  module Monomer.Widgets.Containers.BoxShadow,
   module Monomer.Widgets.Containers.Confirm,
   module Monomer.Widgets.Containers.Draggable,
   module Monomer.Widgets.Containers.Dropdown,
@@ -66,6 +67,7 @@ import Monomer.Widgets.Animation.Types
 
 import Monomer.Widgets.Containers.Alert
 import Monomer.Widgets.Containers.Box
+import Monomer.Widgets.Containers.BoxShadow
 import Monomer.Widgets.Containers.Confirm
 import Monomer.Widgets.Containers.Draggable
 import Monomer.Widgets.Containers.Dropdown
