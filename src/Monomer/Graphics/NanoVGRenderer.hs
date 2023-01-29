@@ -217,7 +217,7 @@ newRenderer c rdpr envRef = Renderer {..} where
   setPathWinding winding = do
     VG.pathWinding c cwinding
     where
-      cwinding = if winding == CW then 0 else 1
+      cwinding = if winding == CW then 2 else 1
 
   -- Strokes
   stroke =
