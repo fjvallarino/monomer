@@ -42,7 +42,9 @@ module Monomer.Core.StyleUtil (
   subtractBorder,
   subtractPadding,
   subtractBorderFromRadius,
-  mapStyleStates
+  mapStyleStates,
+  borderWidths,
+  radiusWidths
 ) where
 
 import Control.Lens
@@ -338,6 +340,14 @@ borderWidths (Just border) = (bl, br, bt, bb) where
   br = maybe 0 _bsWidth (_brdRight border)
   bt = maybe 0 _bsWidth (_brdTop border)
   bb = maybe 0 _bsWidth (_brdBottom border)
+
+radiusWidths :: Maybe Radius -> (Double, Double, Double, Double)
+radiusWidths Nothing = (0, 0, 0, 0)
+radiusWidths (Just radius) = (btl, btr, bbl, bbr) where
+  btl = maybe 0 _rcrWidth (_radTopLeft radius)
+  btr = maybe 0 _rcrWidth (_radTopRight radius)
+  bbl = maybe 0 _rcrWidth (_radBottomLeft radius)
+  bbr = maybe 0 _rcrWidth (_radBottomRight radius)
 
 mergeNodeStyleState
   :: Lens' Style (Maybe StyleState)
