@@ -56,7 +56,7 @@ type ColorPopupEnv = WidgetEnv ColorPopupModel ColorPopupEvt
 type ColorPopupNode = WidgetNode ColorPopupModel ColorPopupEvt
 
 {-|
-Configuration options for colorPicker:
+Configuration options for colorPopup:
 
 - 'showAlpha': whether to allow modifying the alpha channel or not.
 - 'onFocus': event to raise when focus is received.
@@ -146,33 +146,36 @@ instance Default ColorPopupModel where
 makeLensesWith abbreviatedFields 'ColorPopupModel
 
 -- | Creates a colorPopup using the given lens.
-colorPopup :: (WidgetModel s, WidgetEvent e) => ALens' s Color -> WidgetNode s e
+colorPopup
+  :: (WidgetModel s, WidgetEvent e)
+  => ALens' s Color  -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created color popup.
 colorPopup field = colorPopup_ field def
 
 -- | Creates a colorPopup using the given lens. Accepts config.
 colorPopup_
   :: (WidgetModel s, WidgetEvent e)
-  => ALens' s Color
-  -> [ColorPopupCfg s e]
-  -> WidgetNode s e
+  => ALens' s Color       -- ^ The lens into the model.
+  -> [ColorPopupCfg s e]  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created color popup.
 colorPopup_ field configs = colorPopupD_ (WidgetLens field) configs
 
 -- | Creates a colorPopup using the given value and 'onChange' event handler.
 colorPopupV
   :: (WidgetModel s, WidgetEvent e)
-  => Color
-  -> (Color -> e)
-  -> WidgetNode s e
+  => Color           -- ^ The current value.
+  -> (Color -> e)    -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created color popup.
 colorPopupV value handler = colorPopupV_ value handler def
 
 -- | Creates a colorPopup using the given value and 'onChange' event handler.
 --   Accepts config.
 colorPopupV_
   :: (WidgetModel s, WidgetEvent e)
-  => Color
-  -> (Color -> e)
-  -> [ColorPopupCfg s e]
-  -> WidgetNode s e
+  => Color                -- ^ The current value.
+  -> (Color -> e)         -- ^ The event to raise on change.
+  -> [ColorPopupCfg s e]  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created color popup.
 colorPopupV_ value handler configs = newNode where
   newConfigs = onChange handler : configs
   newNode = colorPopupD_ (WidgetValue value) newConfigs
@@ -180,9 +183,9 @@ colorPopupV_ value handler configs = newNode where
 -- | Creates a colorPopup providing a 'WidgetData' instance and config.
 colorPopupD_
   :: (WidgetModel s, WidgetEvent e)
-  => WidgetData s Color
-  -> [ColorPopupCfg s e]
-  -> WidgetNode s e
+  => WidgetData s Color   -- ^ The 'WidgetData' to retrieve the value from.
+  -> [ColorPopupCfg s e]  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created color popup.
 colorPopupD_ wdata configs = newNode where
   config = mconcat configs
   model = WidgetValue def

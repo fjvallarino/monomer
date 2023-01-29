@@ -187,14 +187,23 @@ mainConfig = def {
 Creates a button with main styling. Useful to highlight an option, such as
 \"Accept\", when multiple buttons are available.
 -}
-mainButton :: WidgetEvent e => Text -> e -> WidgetNode s e
+mainButton
+  :: WidgetEvent e
+  => Text            -- ^ The caption.
+  -> e               -- ^ The event to raise on click.
+  -> WidgetNode s e  -- ^ The created button.
 mainButton caption handler = button_ caption handler [mainConfig]
 
 {-|
 Creates a button with main styling. Useful to highlight an option, such as
 \"Accept\", when multiple buttons are available. Accepts config.
 -}
-mainButton_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
+mainButton_
+  :: WidgetEvent e
+  => Text             -- ^ The caption.
+  -> e                -- ^ The event to raise on click.
+  -> [ButtonCfg s e]  -- ^ The config options.
+  -> WidgetNode s e   -- ^ The created button.
 mainButton_ caption handler configs = button_ caption handler newConfigs where
   newConfigs = mainConfig : configs
 
@@ -203,16 +212,29 @@ Creates a button with main styling. Useful to highlight an option, such as
 \"Accept\", when multiple buttons are available. Accepts config but does not
 require an event. See 'buttonD_'.
 -}
-mainButtonD_ :: WidgetEvent e => Text -> [ButtonCfg s e] -> WidgetNode s e
+mainButtonD_
+  :: WidgetEvent e
+  => Text             -- ^ The caption.
+  -> [ButtonCfg s e]  -- ^ The config options.
+  -> WidgetNode s e   -- ^ The created button.
 mainButtonD_ caption configs = buttonD_ caption newConfigs where
   newConfigs = mainConfig : configs
 
 -- | Creates a button with normal styling.
-button :: WidgetEvent e => Text -> e -> WidgetNode s e
+button
+  :: WidgetEvent e
+  => Text            -- ^ The caption.
+  -> e               -- ^ The event to raise on click.
+  -> WidgetNode s e  -- ^ The created button.
 button caption handler = button_ caption handler def
 
 -- | Creates a button with normal styling. Accepts config.
-button_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
+button_
+  :: WidgetEvent e
+  => Text             -- ^ The caption.
+  -> e                -- ^ The event to raise on click.
+  -> [ButtonCfg s e]  -- ^ The config options.
+  -> WidgetNode s e   -- ^ The created button.
 button_ caption handler configs = buttonNode where
   buttonNode = buttonD_ caption (onClick handler : configs)
 
@@ -226,7 +248,11 @@ outside the scope of the Composite that contains the button. This parent
 Composite can be reached by sending a message ('SendMessage') to its 'WidgetId'
 using 'onClickReq'.
 -}
-buttonD_ :: WidgetEvent e => Text -> [ButtonCfg s e] -> WidgetNode s e
+buttonD_
+  :: WidgetEvent e
+  => Text             -- ^ The caption.
+  -> [ButtonCfg s e]  -- ^ The config options.
+  -> WidgetNode s e   -- ^ The created button.
 buttonD_ caption configs = buttonNode where
   config = mconcat configs
   widget = makeButton caption config

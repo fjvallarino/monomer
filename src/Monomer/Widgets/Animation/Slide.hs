@@ -21,15 +21,15 @@ Messages:
 module Monomer.Widgets.Animation.Slide (
   -- * Configuration
   SlideCfg,
+  slideLeft,
+  slideRight,
+  slideTop,
+  slideBottom,
   -- * Constructors
   animSlideIn,
   animSlideIn_,
   animSlideOut,
-  animSlideOut_,
-  slideLeft,
-  slideRight,
-  slideTop,
-  slideBottom
+  animSlideOut_
 ) where
 
 import Control.Applicative ((<|>))
@@ -132,23 +132,37 @@ instance Default SlideState where
   }
 
 -- | Animates a widget from the left to fully visible.
-animSlideIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
+animSlideIn
+  :: WidgetEvent e
+  => WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created animation container.
 animSlideIn managed = animSlideIn_ def managed
 
 -- | Animates a widget from the provided direction to fully visible (defaults
 --   to left). Accepts config.
-animSlideIn_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
+animSlideIn_
+  :: WidgetEvent e
+  => [SlideCfg e]    -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created animation container.
 animSlideIn_ configs managed = makeNode "animSlideIn" widget managed where
   config = mconcat configs
   widget = makeSlide True config def
 
 -- | Animates a widget to the left from visible to not visible.
-animSlideOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
+animSlideOut
+  :: WidgetEvent e
+  => WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created animation container.
 animSlideOut managed = animSlideOut_ def managed
 
 -- | Animates a widget to the the provided direction from visible to not
 --   visible (defaults to left). Accepts config.
-animSlideOut_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
+animSlideOut_
+  :: WidgetEvent e
+  => [SlideCfg e]    -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created animation container.
 animSlideOut_ configs managed = makeNode "animSlideOut" widget managed where
   config = mconcat configs
   widget = makeSlide False config def

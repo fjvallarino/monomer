@@ -113,30 +113,36 @@ instance CmbSizeReqUpdater StackCfg where
   }
 
 -- | Creates a horizontal stack.
-hstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
+hstack
+  :: (Traversable t)
+  => t (WidgetNode s e)  -- ^ The list of items.
+  -> WidgetNode s e      -- ^ The created stack.
 hstack children = hstack_ def children
 
 -- | Creates a horizontal stack. Accepts config.
 hstack_
   :: (Traversable t)
-  => [StackCfg]
-  -> t (WidgetNode s e)
-  -> WidgetNode s e
+  => [StackCfg]          -- ^ The config options.
+  -> t (WidgetNode s e)  -- ^ The list of items.
+  -> WidgetNode s e      -- ^ The created stack.
 hstack_ configs children = newNode where
   config = mconcat configs
   newNode = defaultWidgetNode "hstack" (makeStack True config)
     & L.children .~ foldl' (|>) Empty children
 
 -- | Creates a vertical stack.
-vstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
+vstack
+  :: (Traversable t)
+  => t (WidgetNode s e)  -- ^ The list of items.
+  -> WidgetNode s e      -- ^ The created stack.
 vstack children = vstack_ def children
 
 -- | Creates a vertical stack. Accepts config.
 vstack_
   :: (Traversable t)
-  => [StackCfg]
-  -> t (WidgetNode s e)
-  -> WidgetNode s e
+  => [StackCfg]          -- ^ The config options.
+  -> t (WidgetNode s e)  -- ^ The list of items.
+  -> WidgetNode s e      -- ^ The created stack.
 vstack_ configs children = newNode where
   config = mconcat configs
   newNode = defaultWidgetNode "vstack" (makeStack False config)

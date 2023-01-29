@@ -147,16 +147,26 @@ instance CmbOnChangeReq (CheckboxCfg s e) s e Bool where
   }
 
 -- | Creates a checkbox using the given lens.
-checkbox :: WidgetEvent e => ALens' s Bool -> WidgetNode s e
+checkbox
+  :: WidgetEvent e
+  => ALens' s Bool   -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created checkbox.
 checkbox field = checkbox_ field def
 
 -- | Creates a checkbox using the given lens. Accepts config.
 checkbox_
-  :: WidgetEvent e => ALens' s Bool -> [CheckboxCfg s e] -> WidgetNode s e
+  :: WidgetEvent e
+  => ALens' s Bool      -- ^ The lens into the model.
+  -> [CheckboxCfg s e]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created checkbox.
 checkbox_ field config = checkboxD_ (WidgetLens field) config
 
 -- | Creates a checkbox using the given value and 'onChange' event handler.
-checkboxV :: WidgetEvent e => Bool -> (Bool -> e) -> WidgetNode s e
+checkboxV
+  :: WidgetEvent e
+  => Bool            -- ^ The current value.
+  -> (Bool -> e)     -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created checkbox.
 checkboxV value handler = checkboxV_ value handler def
 
 {-|
@@ -164,13 +174,20 @@ Creates a checkbox using the given value and 'onChange' event handler. Accepts
 config.
 -}
 checkboxV_
-  :: WidgetEvent e => Bool -> (Bool -> e) -> [CheckboxCfg s e] -> WidgetNode s e
+  :: WidgetEvent e
+  => Bool               -- ^ The current value.
+  -> (Bool -> e)        -- ^ The event to raise on change.
+  -> [CheckboxCfg s e]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created checkbox.
 checkboxV_ value handler config = checkboxD_ (WidgetValue value) newConfig where
   newConfig = onChange handler : config
 
 -- | Creates a checkbox providing a 'WidgetData' instance and config.
 checkboxD_
-  :: WidgetEvent e => WidgetData s Bool -> [CheckboxCfg s e] -> WidgetNode s e
+  :: WidgetEvent e
+  => WidgetData s Bool  -- ^ The 'WidgetData' to retrieve the value from.
+  -> [CheckboxCfg s e]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created checkbox.
 checkboxD_ widgetData configs = checkboxNode where
   config = mconcat configs
   widget = makeCheckbox widgetData config

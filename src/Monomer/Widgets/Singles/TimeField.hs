@@ -37,14 +37,14 @@ module Monomer.Widgets.Singles.TimeField (
   TimeFieldFormat,
   TimeOfDayConverter(..),
   TimeTextConverter(..),
+  timeFormatHHMM,
+  timeFormatHHMMSS,
   -- * Constructors
   timeField,
   timeField_,
   timeFieldV,
   timeFieldV_,
-  timeFieldD_,
-  timeFormatHHMM,
-  timeFormatHHMMSS
+  timeFieldD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -318,32 +318,35 @@ timeFormatHHMMSS = def {
 -- | Creates a time field using the given lens.
 timeField
   :: (FormattableTime a, WidgetEvent e)
-  => ALens' s a -> WidgetNode s e
+  => ALens' s a      -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created time field.
 timeField field = timeField_ field def
 
 -- | Creates a time field using the given lens. Accepts config.
 timeField_
   :: (FormattableTime a, WidgetEvent e)
-  => ALens' s a
-  -> [TimeFieldCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a            -- ^ The lens into the model.
+  -> [TimeFieldCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e        -- ^ The created time field.
 timeField_ field configs = widget where
   widget = timeFieldD_ (WidgetLens field) configs
 
 -- | Creates a time field using the given value and 'onChange' event handler.
 timeFieldV
   :: (FormattableTime a, WidgetEvent e)
-  => a -> (a -> e) -> WidgetNode s e
+  => a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created time field.
 timeFieldV value handler = timeFieldV_ value handler def
 
 -- | Creates a time field using the given value and 'onChange' event handler.
 --   Accepts config.
 timeFieldV_
   :: (FormattableTime a, WidgetEvent e)
-  => a
-  -> (a -> e)
-  -> [TimeFieldCfg s e a]
-  -> WidgetNode s e
+  => a                     -- ^ The current value.
+  -> (a -> e)              -- ^ The event to raise on change.
+  -> [TimeFieldCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e        -- ^ The created time field.
 timeFieldV_ value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -352,9 +355,9 @@ timeFieldV_ value handler configs = newNode where
 -- | Creates a time field providing a 'WidgetData' instance and config.
 timeFieldD_
   :: (FormattableTime a, WidgetEvent e)
-  => WidgetData s a
-  -> [TimeFieldCfg s e a]
-  -> WidgetNode s e
+  => WidgetData s a        -- ^ The 'WidgetData' to retrieve the value from.
+  -> [TimeFieldCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e        -- ^ The created time field.
 timeFieldD_ widgetData configs = newNode where
   config = mconcat configs
   format = fromMaybe defaultTimeFormat (_tfcTimeFormat config)

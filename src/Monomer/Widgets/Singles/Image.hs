@@ -256,11 +256,18 @@ data ImageMessage
   | ImageFailed ImageLoadError
 
 -- | Creates an image with the given local path or url.
-image :: WidgetEvent e => Text -> WidgetNode s e
+image
+  :: WidgetEvent e
+  => Text            -- ^ The local path or url.
+  -> WidgetNode s e  -- ^ The created image widget.
 image path = image_ path def
 
 -- | Creates an image with the given local path or url. Accepts config.
-image_ :: WidgetEvent e => Text -> [ImageCfg e] -> WidgetNode s e
+image_
+  :: WidgetEvent e
+  => Text            -- ^ The local path or url.
+  -> [ImageCfg e]    -- ^ The configuration of the image.
+  -> WidgetNode s e  -- ^ The created image widget.
 image_ path configs = defaultWidgetNode "image" widget where
   config = mconcat configs
   source = ImagePath path

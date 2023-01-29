@@ -88,22 +88,36 @@ instance CmbSizeReqUpdater GridCfg where
   }
 
 -- | Creates a grid of items with the same width.
-hgrid :: Traversable t => t (WidgetNode s e) -> WidgetNode s e
+hgrid
+  :: Traversable t
+  => t (WidgetNode s e)  -- ^ The list of items.
+  -> WidgetNode s e      -- ^ The created grid.
 hgrid children = hgrid_ def children
 
 -- | Creates a grid of items with the same width. Accepts config.
-hgrid_ :: Traversable t => [GridCfg] -> t (WidgetNode s e) -> WidgetNode s e
+hgrid_
+  :: Traversable t
+  => [GridCfg]           -- ^ The config options.
+  -> t (WidgetNode s e)  -- ^ The list of items.
+  -> WidgetNode s e      -- ^ The created grid.
 hgrid_ configs children = newNode where
   config = mconcat configs
   newNode = defaultWidgetNode "hgrid" (makeFixedGrid True config)
     & L.children .~ foldl' (|>) Empty children
 
 -- | Creates a grid of items with the same height.
-vgrid :: Traversable t => t (WidgetNode s e) -> WidgetNode s e
+vgrid
+  :: Traversable t
+  => t (WidgetNode s e)  -- ^ The list of items.
+  -> WidgetNode s e      -- ^ The created grid.
 vgrid children = vgrid_ def children
 
 -- | Creates a grid of items with the same height. Accepts config.
-vgrid_ :: Traversable t => [GridCfg] -> t (WidgetNode s e) -> WidgetNode s e
+vgrid_
+  :: Traversable t
+  => [GridCfg]           -- ^ The config options.
+  -> t (WidgetNode s e)  -- ^ The list of items.
+  -> WidgetNode s e      -- ^ The created grid.
 vgrid_ configs children = newNode where
   config = mconcat configs
   newNode = defaultWidgetNode "vgrid" (makeFixedGrid False config)

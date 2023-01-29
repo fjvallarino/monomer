@@ -109,11 +109,18 @@ data TooltipState = TooltipState {
 } deriving (Eq, Show, Generic)
 
 -- | Creates a tooltip for the child widget.
-tooltip :: Text -> WidgetNode s e -> WidgetNode s e
+tooltip
+  :: Text            -- ^ The text message.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created tooltip container.
 tooltip caption managed = tooltip_ caption def managed
 
 -- | Creates a tooltip for the child widget. Accepts config.
-tooltip_ :: Text -> [TooltipCfg] -> WidgetNode s e -> WidgetNode s e
+tooltip_
+  :: Text            -- ^ The text message.
+  -> [TooltipCfg]    -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created tooltip container.
 tooltip_ caption configs managed = makeNode widget managed where
   config = mconcat configs
   state = TooltipState def maxBound

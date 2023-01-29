@@ -142,36 +142,40 @@ instance CmbOnChangeReq (RadioCfg s e a) s e a where
   }
 
 -- | Creates a radio using the given lens.
-radio :: (RadioValue a, WidgetEvent e) => a -> ALens' s a -> WidgetNode s e
+radio
+  :: (RadioValue a, WidgetEvent e)
+  => a               -- ^ The option value.
+  -> ALens' s a      -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created radio.
 radio option field = radio_ option field def
 
 -- | Creates a radio using the given lens. Accepts config.
 radio_
   :: (RadioValue a, WidgetEvent e)
-  => a
-  -> ALens' s a
-  -> [RadioCfg s e a]
-  -> WidgetNode s e
+  => a                 -- ^ The option value.
+  -> ALens' s a        -- ^ The lens into the model.
+  -> [RadioCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e    -- ^ The created radio.
 radio_ option field configs = radioD_ option (WidgetLens field) configs
 
 -- | Creates a radio using the given value and 'onChange' event handler.
 radioV
   :: (RadioValue a, WidgetEvent e)
-  => a
-  -> a
-  -> (a -> e)
-  -> WidgetNode s e
+  => a               -- ^ The option value.
+  -> a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created radio.
 radioV option value handler = radioV_ option value handler def
 
 -- | Creates a radio using the given value and 'onChange' event handler.
 --   Accepts config.
 radioV_
   :: (RadioValue a, WidgetEvent e)
-  => a
-  -> a
-  -> (a -> e)
-  -> [RadioCfg s e a]
-  -> WidgetNode s e
+  => a                 -- ^ The option value.
+  -> a                 -- ^ The current value.
+  -> (a -> e)          -- ^ The event to raise on change.
+  -> [RadioCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e    -- ^ The created radio.
 radioV_ option value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -180,10 +184,10 @@ radioV_ option value handler configs = newNode where
 -- | Creates a radio providing a 'WidgetData' instance and config.
 radioD_
   :: (RadioValue a, WidgetEvent e)
-  => a
-  -> WidgetData s a
-  -> [RadioCfg s e a]
-  -> WidgetNode s e
+  => a                 -- ^ The option value.
+  -> WidgetData s a    -- ^ The 'WidgetData' to retrieve the value from.
+  -> [RadioCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e    -- ^ The created radio.
 radioD_ option widgetData configs = radioNode where
   config = mconcat configs
   wtype = WidgetType ("radio-" <> showt (typeOf option))

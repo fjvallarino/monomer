@@ -55,11 +55,11 @@ clickableItem = box_ [onClick ItemClicked] content
 module Monomer.Widgets.Containers.Box (
   -- * Configuration
   BoxCfg,
+  expandContent,
+  boxFilterEvent,
   -- * Constructors
   box,
-  box_,
-  expandContent,
-  boxFilterEvent
+  box_
 ) where
 
 import Control.Applicative ((<|>))
@@ -314,15 +314,18 @@ newtype BoxState s = BoxState {
 }
 
 -- | Creates a box widget with a single node as child.
-box :: (WidgetModel s, WidgetEvent e) => WidgetNode s e -> WidgetNode s e
+box
+  :: (WidgetModel s, WidgetEvent e)
+  => WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created box container.
 box managed = box_ def managed
 
 -- | Creates a box widget with a single node as child. Accepts config.
 box_
   :: (WidgetModel s, WidgetEvent e)
-  => [BoxCfg s e]
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => [BoxCfg s e]    -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created box container.
 box_ configs managed = makeNode (makeBox config state) managed where
   config = mconcat configs
   state = BoxState Nothing

@@ -26,8 +26,8 @@ label_ "This is a\\nmultiline label" [multiline]
 module Monomer.Widgets.Singles.Label (
   -- * Configuration
   LabelCfg,
-  -- * Constructors
   labelCurrentStyle,
+  -- * Constructors
   label,
   label_,
   labelS,
@@ -158,22 +158,34 @@ data LabelState = LabelState {
 } deriving (Eq, Show, Generic)
 
 -- | Creates a label using the provided 'Text'.
-label :: Text -> WidgetNode s e
+label
+  :: Text            -- ^ The caption.
+  -> WidgetNode s e  -- ^ The created label.
 label caption = label_ caption def
 
 -- | Creates a label using the provided 'Text'. Accepts config.
-label_ :: Text -> [LabelCfg s e] -> WidgetNode s e
+label_
+  :: Text            -- ^ The caption.
+  -> [LabelCfg s e]  -- ^ The config options.
+  -> WidgetNode s e  -- ^ The created label.
 label_ caption configs = defaultWidgetNode "label" widget where
   config = mconcat configs
   state = LabelState caption def def Seq.Empty (0, False)
   widget = makeLabel config state
 
 -- | Creates a label using the 'Show' instance of the type.
-labelS :: Show a => a -> WidgetNode s e
+labelS
+  :: Show a
+  => a               -- ^ The value with a 'Show' instance.
+  -> WidgetNode s e  -- ^ The created label.
 labelS caption = labelS_ caption def
 
 -- | Creates a label using the 'Show' instance of the type. Accepts config.
-labelS_ :: Show a => a -> [LabelCfg s e] -> WidgetNode s e
+labelS_
+  :: Show a
+  => a               -- ^ The value with a 'Show' instance.
+  -> [LabelCfg s e]  -- ^ The config options.
+  -> WidgetNode s e  -- ^ The created label.
 labelS_ caption configs = label_ (T.pack . show $ caption) configs
 
 makeLabel :: LabelCfg s e -> LabelState -> Widget s e

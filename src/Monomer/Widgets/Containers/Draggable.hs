@@ -125,16 +125,20 @@ draggableRender render = def {
 }
 
 -- | Creates a draggable container with a single node as child.
-draggable :: DragMsg a => a -> WidgetNode s e -> WidgetNode s e
+draggable
+  :: DragMsg a
+  => a               -- ^ The identifying value.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created draggable container.
 draggable msg managed = draggable_ msg def managed
 
 -- | Creates a draggable container with a single node as child. Accepts config.
 draggable_
   :: DragMsg a
-  => a
-  -> [DraggableCfg s e]
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => a                   -- ^ The identifying value.
+  -> [DraggableCfg s e]  -- ^ The config options.
+  -> WidgetNode s e      -- ^ The child node.
+  -> WidgetNode s e      -- ^ The created draggable container.
 draggable_ msg configs managed = makeNode widget managed where
   config = mconcat configs
   widget = makeDraggable msg config

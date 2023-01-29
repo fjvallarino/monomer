@@ -220,31 +220,31 @@ optionButtonOffStyle style = def {
 -- | Creates an optionButton using the given lens.
 optionButton
   :: OptionButtonValue a
-  => Text
-  -> a
-  -> ALens' s a
-  -> WidgetNode s e
+  => Text            -- ^ The caption.
+  -> a               -- ^ The option value.
+  -> ALens' s a      -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created option button.
 optionButton caption option field = optionButton_ caption option field def
 
 -- | Creates an optionButton using the given lens. Accepts config.
 optionButton_
   :: OptionButtonValue a
-  => Text
-  -> a
-  -> ALens' s a
-  -> [OptionButtonCfg s e a]
-  -> WidgetNode s e
+  => Text                     -- ^ The caption.
+  -> a                        -- ^ The option value.
+  -> ALens' s a               -- ^ The lens into the model.
+  -> [OptionButtonCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e           -- ^ The created option button.
 optionButton_ caption option field cfgs = newNode where
   newNode = optionButtonD_ caption option (WidgetLens field) cfgs
 
 -- | Creates an optionButton using the given value and 'onChange' event handler.
 optionButtonV
   :: (OptionButtonValue a, WidgetEvent e)
-  => Text
-  -> a
-  -> a
-  -> (a -> e)
-  -> WidgetNode s e
+  => Text            -- ^ The caption.
+  -> a               -- ^ The option value.
+  -> a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created option button.
 optionButtonV caption option value handler = newNode where
   newNode = optionButtonV_ caption option value handler def
 
@@ -252,12 +252,12 @@ optionButtonV caption option value handler = newNode where
 --   Accepts config.
 optionButtonV_
   :: (OptionButtonValue a, WidgetEvent e)
-  => Text
-  -> a
-  -> a
-  -> (a -> e)
-  -> [OptionButtonCfg s e a]
-  -> WidgetNode s e
+  => Text                     -- ^ The caption.
+  -> a                        -- ^ The option value.
+  -> a                        -- ^ The current value.
+  -> (a -> e)                 -- ^ The event to raise on change.
+  -> [OptionButtonCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e           -- ^ The created option button.
 optionButtonV_ caption option value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -266,11 +266,11 @@ optionButtonV_ caption option value handler configs = newNode where
 -- | Creates an optionButton providing a 'WidgetData' instance and config.
 optionButtonD_
   :: OptionButtonValue a
-  => Text
-  -> a
-  -> WidgetData s a
-  -> [OptionButtonCfg s e a]
-  -> WidgetNode s e
+  => Text                     -- ^ The caption.
+  -> a                        -- ^ The option value.
+  -> WidgetData s a           -- ^ The 'WidgetData' to retrieve the value from.
+  -> [OptionButtonCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e           -- ^ The created option button.
 optionButtonD_ caption option widgetData configs = optionButtonNode where
   config = mconcat configs
   makeWithStyle = makeOptionButton L.optionBtnOnStyle L.optionBtnOffStyle
@@ -285,14 +285,14 @@ _optionButton_ and _toggleButton_.
 -}
 makeOptionButton
   :: OptionButtonValue a
-  => Lens' ThemeState StyleState
-  -> Lens' ThemeState StyleState
-  -> WidgetData s a
-  -> Text
-  -> (a -> Bool)
-  -> (a -> a)
-  -> OptionButtonCfg s e a
-  -> Widget s e
+  => Lens' ThemeState StyleState  -- ^ The on style lens.
+  -> Lens' ThemeState StyleState  -- ^ The off style lens.
+  -> WidgetData s a               -- ^ The 'WidgetData' to retrieve the value from.
+  -> Text                         -- ^ The caption.
+  -> (a -> Bool)                  -- ^ Set the on or off state depending on the value.
+  -> (a -> a)                     -- ^ How to change the value on click.
+  -> OptionButtonCfg s e a        -- ^ The config.
+  -> Widget s e                   -- ^ The created widget.
 makeOptionButton styleOn styleOff !field !caption !isSelVal !getNextVal !config = widget where
   widget = createContainer () def {
     containerAddStyleReq = False,

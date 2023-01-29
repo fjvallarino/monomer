@@ -104,16 +104,16 @@ alert
   :: (WidgetModel s, WidgetEvent e)
   => e                -- ^ The event to raise when the dialog is closed.
   -> WidgetNode () e  -- ^ The content to display in the dialog.
-  -> WidgetNode s e  -- ^ The created dialog.
+  -> WidgetNode s e   -- ^ The created dialog.
 alert evt dialogBody = alert_ evt def dialogBody
 
 -- | Creates an alert dialog with the provided content. Accepts config.
 alert_
   :: (WidgetModel s, WidgetEvent e)
   => e                -- ^ The event to raise when the dialog is closed.
-  -> [AlertCfg]        -- ^ The config options for the dialog.
+  -> [AlertCfg]       -- ^ The config options for the dialog.
   -> WidgetNode () e  -- ^ The content to display in the dialog.
-  -> WidgetNode s e  -- ^ The created dialog.
+  -> WidgetNode s e   -- ^ The created dialog.
 alert_ evt configs dialogBody = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) evt config
@@ -122,17 +122,17 @@ alert_ evt configs dialogBody = newNode where
 -- | Creates an alert dialog with a text message as content.
 alertMsg
   :: (WidgetModel s, WidgetEvent e)
-  => Text              -- ^ The message to display.
-  -> e                -- ^ The event to raise when the dialog is closed.
+  => Text            -- ^ The message to display.
+  -> e               -- ^ The event to raise when the dialog is closed.
   -> WidgetNode s e  -- ^ The created dialog.
 alertMsg message evt = alertMsg_ message evt def
 
 -- | Creates an alert dialog with a text message as content. Accepts config.
 alertMsg_
   :: (WidgetModel s, WidgetEvent e)
-  => Text              -- ^ The message to display.
-  -> e                -- ^ The event to raise when the dialog is closed.
-  -> [AlertCfg]        -- ^ The config options for the dialog.
+  => Text            -- ^ The message to display.
+  -> e               -- ^ The event to raise when the dialog is closed.
+  -> [AlertCfg]      -- ^ The config options for the dialog.
   -> WidgetNode s e  -- ^ The created dialog.
 alertMsg_ message evt configs = newNode where
   config = mconcat configs

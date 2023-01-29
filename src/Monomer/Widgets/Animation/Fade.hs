@@ -102,21 +102,35 @@ instance Default FadeState where
   }
 
 -- | Animates a widget from not visible state to fully visible.
-animFadeIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
+animFadeIn
+  :: WidgetEvent e
+  => WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created animation container.
 animFadeIn managed = animFadeIn_ def managed
 
 -- | Animates a widget from not visible state to fully visible. Accepts config.
-animFadeIn_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
+animFadeIn_
+  :: WidgetEvent e
+  => [FadeCfg e]     -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created animation container.
 animFadeIn_ configs managed = makeNode "animFadeIn" widget managed where
   config = mconcat configs
   widget = makeFade True config def
 
 -- | Animates a widget from visible state to not visible.
-animFadeOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
+animFadeOut
+  :: WidgetEvent e
+  => WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created animation container.
 animFadeOut managed = animFadeOut_ def managed
 
 -- | Animates a widget from visible state to not visible. Accepts config.
-animFadeOut_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
+animFadeOut_
+  :: WidgetEvent e
+  => [FadeCfg e]     -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created animation container.
 animFadeOut_ configs managed = makeNode "animFadeOut" widget managed where
   config = mconcat configs
   widget = makeFade False config def

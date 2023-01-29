@@ -246,7 +246,7 @@ popupAnchor node = def {
   _ppcAnchor = Just node
 }
 
-{-
+{-|
 Align the popup to the horizontal outer edges of the anchor. It only works with
 'alignLeft' and 'alignRight', which need to be specified separately.
 
@@ -267,7 +267,7 @@ popupAlignToOuterH_ align = def {
   _ppcAlignToOuterH = Just align
 }
 
-{-
+{-|
 Align the popup vertically to the outer edges of the anchor. It only works with
 'alignTop' and 'alignBottom', which need to be specified separately.
 
@@ -335,9 +335,9 @@ data PopupState = PopupState {
 -- | Creates a popup with the given lens to determine its visibility.
 popup
   :: WidgetModel s
-  => ALens' s Bool
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => ALens' s Bool   -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created popup.
 popup field content = popup_ field def content
 
 {-|
@@ -345,10 +345,10 @@ Creates a popup with the given lens to determine its visibility. Accepts config.
 -}
 popup_
   :: WidgetModel s
-  => ALens' s Bool
-  -> [PopupCfg s e]
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => ALens' s Bool   -- ^ The lens into the model.
+  -> [PopupCfg s e]  -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created popup.
 popup_ field configs content = newNode where
   newNode = popupD_ (WidgetLens field) configs content
 
@@ -358,10 +358,10 @@ event handler.
 -}
 popupV
   :: (WidgetModel s, WidgetEvent e)
-  => Bool
-  -> (Bool -> e)
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => Bool            -- ^ The current value.
+  -> (Bool -> e)     -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created popup.
 popupV value handler content = popupV_ value handler def content
 
 {-|
@@ -370,11 +370,11 @@ event handler. Accepts config.
 -}
 popupV_
   :: (WidgetModel s, WidgetEvent e)
-  => Bool
-  -> (Bool -> e)
-  -> [PopupCfg s e]
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => Bool            -- ^ The current value.
+  -> (Bool -> e)     -- ^ The event to raise on change.
+  -> [PopupCfg s e]  -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created popup.
 popupV_ value handler configs content = newNode where
   newConfigs = onChange handler : configs
   newNode = popupD_ (WidgetValue value) newConfigs content
@@ -385,10 +385,10 @@ and config.
 -}
 popupD_
   :: WidgetModel s
-  => WidgetData s Bool
-  -> [PopupCfg s e]
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => WidgetData s Bool  -- ^ The 'WidgetData' to retrieve the value from.
+  -> [PopupCfg s e]     -- ^ The config options.
+  -> WidgetNode s e     -- ^ The child node.
+  -> WidgetNode s e     -- ^ The created popup.
 popupD_ wdata configs content = makeNode widget anchor content where
   config = mconcat configs
   state = PopupState def (-1)
