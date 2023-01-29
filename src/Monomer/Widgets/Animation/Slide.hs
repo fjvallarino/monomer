@@ -21,15 +21,15 @@ Messages:
 module Monomer.Widgets.Animation.Slide (
   -- * Configuration
   SlideCfg,
+  slideLeft,
+  slideRight,
+  slideTop,
+  slideBottom,
   -- * Constructors
   animSlideIn,
   animSlideIn_,
   animSlideOut,
-  animSlideOut_,
-  slideLeft,
-  slideRight,
-  slideTop,
-  slideBottom
+  animSlideOut_
 ) where
 
 import Control.Applicative ((<|>))

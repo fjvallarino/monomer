@@ -26,8 +26,8 @@ label_ "This is a\\nmultiline label" [multiline]
 module Monomer.Widgets.Singles.Label (
   -- * Configuration
   LabelCfg,
-  -- * Constructors
   labelCurrentStyle,
+  -- * Constructors
   label,
   label_,
   labelS,

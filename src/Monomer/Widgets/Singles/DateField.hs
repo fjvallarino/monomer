@@ -38,16 +38,16 @@ module Monomer.Widgets.Singles.DateField (
   FormattableDate,
   DayConverter(..),
   DateTextConverter(..),
+  dateFormatDelimiter,
+  dateFormatDDMMYYYY,
+  dateFormatMMDDYYYY,
+  dateFormatYYYYMMDD,
   -- * Constructors
   dateField,
   dateField_,
   dateFieldV,
   dateFieldV_,
-  dateFieldD_,
-  dateFormatDelimiter,
-  dateFormatDDMMYYYY,
-  dateFormatMMDDYYYY,
-  dateFormatYYYYMMDD
+  dateFieldD_
 ) where
 
 import Control.Applicative ((<|>))

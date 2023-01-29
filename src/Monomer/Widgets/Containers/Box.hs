@@ -55,11 +55,11 @@ clickableItem = box_ [onClick ItemClicked] content
 module Monomer.Widgets.Containers.Box (
   -- * Configuration
   BoxCfg,
+  expandContent,
+  boxFilterEvent,
   -- * Constructors
   box,
-  box_,
-  expandContent,
-  boxFilterEvent
+  box_
 ) where
 
 import Control.Applicative ((<|>))

@@ -37,14 +37,14 @@ module Monomer.Widgets.Singles.TimeField (
   TimeFieldFormat,
   TimeOfDayConverter(..),
   TimeTextConverter(..),
+  timeFormatHHMM,
+  timeFormatHHMMSS,
   -- * Constructors
   timeField,
   timeField_,
   timeFieldV,
   timeFieldV_,
-  timeFieldD_,
-  timeFormatHHMM,
-  timeFormatHHMMSS
+  timeFieldD_
 ) where
 
 import Control.Applicative ((<|>))
