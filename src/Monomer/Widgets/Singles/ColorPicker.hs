@@ -8,9 +8,18 @@ Portability : non-portable
 
 Color picker, displayed inside its parent container as a regular widget.
 
+Shows sliders for the color components.
+
 @
 colorPicker colorLens
 @
+
+Optionally shows a slider for the alpha channel.
+
+@
+colorPicker_ colorLens [showAlpha]
+@
+
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}

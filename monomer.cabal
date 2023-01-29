@@ -111,6 +111,7 @@ library
       Monomer.Widgets.Singles.Button
       Monomer.Widgets.Singles.Checkbox
       Monomer.Widgets.Singles.ColorPicker
+      Monomer.Widgets.Singles.ColorPopup
       Monomer.Widgets.Singles.DateField
       Monomer.Widgets.Singles.Dial
       Monomer.Widgets.Singles.ExternalLink

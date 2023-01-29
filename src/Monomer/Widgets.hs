@@ -36,6 +36,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Singles.Button,
   module Monomer.Widgets.Singles.Checkbox,
   module Monomer.Widgets.Singles.ColorPicker,
+  module Monomer.Widgets.Singles.ColorPopup,
   module Monomer.Widgets.Singles.DateField,
   module Monomer.Widgets.Singles.Dial,
   module Monomer.Widgets.Singles.ExternalLink,
@@ -83,6 +84,7 @@ import Monomer.Widgets.Containers.ZStack
 import Monomer.Widgets.Singles.Button
 import Monomer.Widgets.Singles.Checkbox
 import Monomer.Widgets.Singles.ColorPicker
+import Monomer.Widgets.Singles.ColorPopup
 import Monomer.Widgets.Singles.DateField
 import Monomer.Widgets.Singles.Dial
 import Monomer.Widgets.Singles.ExternalLink
