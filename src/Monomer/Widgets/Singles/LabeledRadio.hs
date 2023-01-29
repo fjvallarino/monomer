@@ -211,31 +211,31 @@ instance CmbOnChangeReq (LabeledRadioCfg s e a) s e a where
 -- | Creates a labeled radio using the given lens.
 labeledRadio
   :: (RadioValue a, WidgetEvent e)
-  => Text
-  -> a
-  -> ALens' s a
-  -> WidgetNode s e
+  => Text            -- ^ The caption.
+  -> a               -- ^ The option value.
+  -> ALens' s a      -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created labeled radio.
 labeledRadio caption option field = labeledRadio_ caption option field def
 
 -- | Creates a labeled radio using the given lens. Accepts config.
 labeledRadio_
   :: (RadioValue a, WidgetEvent e)
-  => Text
-  -> a
-  -> ALens' s a
-  -> [LabeledRadioCfg s e a]
-  -> WidgetNode s e
+  => Text                     -- ^ The caption.
+  -> a                        -- ^ The option value.
+  -> ALens' s a               -- ^ The lens into the model.
+  -> [LabeledRadioCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e           -- ^ The created labeled radio.
 labeledRadio_ caption option field config = newNode where
   newNode = labeledRadioD_ caption option (WidgetLens field) config
 
 -- | Creates a labeled radio using the given value and 'onChange' event handler.
 labeledRadioV
   :: (RadioValue a, WidgetEvent e)
-  => Text
-  -> a
-  -> a
-  -> (a -> e)
-  -> WidgetNode s e
+  => Text            -- ^ The caption.
+  -> a               -- ^ The option value.
+  -> a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created labeled radio.
 labeledRadioV caption option value handler = newNode where
   newNode = labeledRadioV_ caption option value handler def
 
@@ -245,12 +245,12 @@ Accepts config.
 -}
 labeledRadioV_
   :: (RadioValue a, WidgetEvent e)
-  => Text
-  -> a
-  -> a
-  -> (a -> e)
-  -> [LabeledRadioCfg s e a]
-  -> WidgetNode s e
+  => Text                     -- ^ The caption.
+  -> a                        -- ^ The option value.
+  -> a                        -- ^ The current value.
+  -> (a -> e)                 -- ^ The event to raise on change.
+  -> [LabeledRadioCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e           -- ^ The created labeled radio.
 labeledRadioV_ caption option value handler config = newNode where
   newConfig = onChange handler : config
   newNode = labeledRadioD_ caption option (WidgetValue value) newConfig
@@ -258,11 +258,11 @@ labeledRadioV_ caption option value handler config = newNode where
 -- | Creates a labeled radio providing a 'WidgetData' instance and config.
 labeledRadioD_
   :: (RadioValue a, WidgetEvent e)
-  => Text
-  -> a
-  -> WidgetData s a
-  -> [LabeledRadioCfg s e a]
-  -> WidgetNode s e
+  => Text                     -- ^ The caption.
+  -> a                        -- ^ The option value.
+  -> WidgetData s a           -- ^ The 'WidgetData' to retrieve the value from.
+  -> [LabeledRadioCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e           -- ^ The created labeled radio.
 labeledRadioD_ caption option widgetData configs = newNode where
   config = mconcat configs
   labelSide = fromMaybe SideLeft (_lchTextSide config)

@@ -155,10 +155,10 @@ data DialState = DialState {
 -- | Creates a dial using the given lens, providing minimum and maximum values.
 dial
   :: (DialValue a, WidgetEvent e)
-  => ALens' s a
-  -> a
-  -> a
-  -> WidgetNode s e
+  => ALens' s a      -- ^ The lens into the model.
+  -> a               -- ^ Minimum value.
+  -> a               -- ^ Maximum value.
+  -> WidgetNode s e  -- ^ The created dial.
 dial field minVal maxVal = dial_ field minVal maxVal def
 
 {-|
@@ -167,11 +167,11 @@ Accepts config.
 -}
 dial_
   :: (DialValue a, WidgetEvent e)
-  => ALens' s a
-  -> a
-  -> a
-  -> [DialCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a       -- ^ The lens into the model.
+  -> a                -- ^ Minimum value.
+  -> a                -- ^ Maximum value.
+  -> [DialCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e   -- ^ The created dial.
 dial_ field minVal maxVal cfgs = dialD_ (WidgetLens field) minVal maxVal cfgs
 
 {-|
@@ -180,11 +180,11 @@ minimum and maximum values.
 -}
 dialV
   :: (DialValue a, WidgetEvent e)
-  => a
-  -> (a -> e)
-  -> a
-  -> a
-  -> WidgetNode s e
+  => a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> a               -- ^ Minimum value.
+  -> a               -- ^ Maximum value.
+  -> WidgetNode s e  -- ^ The created dial.
 dialV value handler minVal maxVal = dialV_ value handler minVal maxVal def
 
 {-|
@@ -194,12 +194,12 @@ Accepts config.
 -}
 dialV_
   :: (DialValue a, WidgetEvent e)
-  => a
-  -> (a -> e)
-  -> a
-  -> a
-  -> [DialCfg s e a]
-  -> WidgetNode s e
+  => a                -- ^ The current value.
+  -> (a -> e)         -- ^ The event to raise on change.
+  -> a                -- ^ Minimum value.
+  -> a                -- ^ Maximum value.
+  -> [DialCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e   -- ^ The created dial.
 dialV_ value handler minVal maxVal configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -211,11 +211,11 @@ config.
 -}
 dialD_
   :: (DialValue a, WidgetEvent e)
-  => WidgetData s a
-  -> a
-  -> a
-  -> [DialCfg s e a]
-  -> WidgetNode s e
+  => WidgetData s a   -- ^ The 'WidgetData' to retrieve the value from.
+  -> a                -- ^ Minimum value.
+  -> a                -- ^ Maximum value.
+  -> [DialCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e   -- ^ The created dial.
 dialD_ widgetData minVal maxVal configs = dialNode where
   config = mconcat configs
   state = DialState 0 0

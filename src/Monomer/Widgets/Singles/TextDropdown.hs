@@ -52,9 +52,9 @@ instance.
 -}
 textDropdown
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, TextShow a)
-  => ALens' s a
-  -> t a
-  -> WidgetNode s e
+  => ALens' s a      -- ^ The lens into the model.
+  -> t a             -- ^ The list of items.
+  -> WidgetNode s e  -- ^ The created text dropdown.
 textDropdown field items = newNode where
   newNode = textDropdown_ field items showt def
 
@@ -64,11 +64,11 @@ the type to Text. Accepts config.
 -}
 textDropdown_
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
-  => ALens' s a
-  -> t a
-  -> (a -> Text)
-  -> [DropdownCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a           -- ^ The lens into the model.
+  -> t a                  -- ^ The list of items.
+  -> (a -> Text)          -- ^ The function for converting to Text.
+  -> [DropdownCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created text dropdown.
 textDropdown_ field items toText configs = newNode where
   newNode = textDropdownD_ (WidgetLens field) items toText configs
 
@@ -78,10 +78,10 @@ Takes a function for converting the type to Text.
 -}
 textDropdownV
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, TextShow a)
-  => a
-  -> (a -> e)
-  -> t a
-  -> WidgetNode s e
+  => a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> t a             -- ^ The list of items.
+  -> WidgetNode s e  -- ^ The created text dropdown.
 textDropdownV value handler items = newNode where
   newNode = textDropdownV_ value handler items showt def
 
@@ -91,12 +91,12 @@ Takes a function for converting the type to Text. Accepts config.
 -}
 textDropdownV_
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
-  => a
-  -> (a -> e)
-  -> t a
-  -> (a -> Text)
-  -> [DropdownCfg s e a]
-  -> WidgetNode s e
+  => a                    -- ^ The current value.
+  -> (a -> e)             -- ^ The event to raise on change.
+  -> t a                  -- ^ The list of items.
+  -> (a -> Text)          -- ^ The function for converting to Text.
+  -> [DropdownCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created text dropdown.
 textDropdownV_ value handler items toText configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -108,11 +108,11 @@ a function for converting the type to Text.
 -}
 textDropdownD_
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
-  => WidgetData s a
-  -> t a
-  -> (a -> Text)
-  -> [DropdownCfg s e a]
-  -> WidgetNode s e
+  => WidgetData s a       -- ^ The 'WidgetData' to retrieve the value from.
+  -> t a                  -- ^ The list of items.
+  -> (a -> Text)          -- ^ The function for converting to Text.
+  -> [DropdownCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created text dropdown.
 textDropdownD_ widgetData items toText configs = newNode where
   makeMain t = label_ (toText t) [resizeFactorW 0.01]
   makeRow t = label_ (toText t) [resizeFactorW 0.01]
@@ -124,9 +124,9 @@ instance.
 -}
 textDropdownS
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
-  => ALens' s a
-  -> t a
-  -> WidgetNode s e
+  => ALens' s a      -- ^ The lens into the model.
+  -> t a             -- ^ The list of items.
+  -> WidgetNode s e  -- ^ The created text dropdown.
 textDropdownS field items = newNode where
   newNode = textDropdownS_ field items def
 
@@ -136,10 +136,10 @@ instance. Accepts config.
 -}
 textDropdownS_
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
-  => ALens' s a
-  -> t a
-  -> [DropdownCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a           -- ^ The lens into the model.
+  -> t a                  -- ^ The list of items.
+  -> [DropdownCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created text dropdown.
 textDropdownS_ field items configs = newNode where
   newNode = textDropdownDS_ (WidgetLens field) items configs
 
@@ -149,10 +149,10 @@ type must be have a 'Show' instance.
 -}
 textDropdownSV
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
-  => a
-  -> (a -> e)
-  -> t a
-  -> WidgetNode s e
+  => a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> t a             -- ^ The list of items.
+  -> WidgetNode s e  -- ^ The created text dropdown.
 textDropdownSV value handler items = newNode where
   newNode = textDropdownSV_ value handler items def
 
@@ -162,11 +162,11 @@ type must be have a 'Show' instance. Accepts config.
 -}
 textDropdownSV_
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
-  => a
-  -> (a -> e)
-  -> t a
-  -> [DropdownCfg s e a]
-  -> WidgetNode s e
+  => a                    -- ^ The current value.
+  -> (a -> e)             -- ^ The event to raise on change.
+  -> t a                  -- ^ The list of items.
+  -> [DropdownCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created text dropdown.
 textDropdownSV_ value handler items configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -178,10 +178,10 @@ type must be have a 'Show' instance.
 -}
 textDropdownDS_
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
-  => WidgetData s a
-  -> t a
-  -> [DropdownCfg s e a]
-  -> WidgetNode s e
+  => WidgetData s a       -- ^ The 'WidgetData' to retrieve the value from.
+  -> t a                  -- ^ The list of items.
+  -> [DropdownCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created text dropdown.
 textDropdownDS_ widgetData items configs = newNode where
   toText = pack . show
   makeMain t = label_ (toText t) [resizeFactorW 0.01]

@@ -91,11 +91,18 @@ data ThemeSwitchState = ThemeSwitchState {
 }
 
 -- | Switches to a new theme starting from its child node.
-themeSwitch :: Theme -> WidgetNode s e -> WidgetNode s e
+themeSwitch
+  :: Theme           -- ^ The new theme.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created themeSwitch container.
 themeSwitch theme managed = themeSwitch_ theme def managed
 
 -- | Switches to a new theme starting from its child node. Accepts config.
-themeSwitch_ :: Theme -> [ThemeSwitchCfg] -> WidgetNode s e -> WidgetNode s e
+themeSwitch_
+  :: Theme             -- ^ The new theme.
+  -> [ThemeSwitchCfg]  -- ^ The config options.
+  -> WidgetNode s e    -- ^ The child node.
+  -> WidgetNode s e    -- ^ The created themeSwitch container.
 themeSwitch_ theme configs managed = makeNode widget managed where
   config = mconcat configs
   state = ThemeSwitchState Nothing False

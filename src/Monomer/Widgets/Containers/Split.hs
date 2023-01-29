@@ -135,25 +135,33 @@ data SplitState = SplitState {
 } deriving (Eq, Show, Generic)
 
 -- | Creates a horizontal split between the two provided nodes.
-hsplit :: WidgetEvent e => (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+hsplit
+  :: WidgetEvent e
+  => (WidgetNode s e, WidgetNode s e)  -- ^ The child nodes.
+  -> WidgetNode s e                    -- ^ The created split.
 hsplit nodes = hsplit_ def nodes
 
 -- | Creates a horizontal split between the two provided nodes. Accepts config.
 hsplit_
   :: WidgetEvent e
-  => [SplitCfg s e] -> (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+  => [SplitCfg s e]                    -- ^ The config options.
+  -> (WidgetNode s e, WidgetNode s e)  -- ^ The child nodes.
+  -> WidgetNode s e                    -- ^ The created split.
 hsplit_ configs nodes = split_ True nodes configs
 
 -- | Creates a vertical split between the two provided nodes.
-vsplit :: WidgetEvent e => (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+vsplit
+  :: WidgetEvent e
+  => (WidgetNode s e, WidgetNode s e)  -- ^ The child nodes.
+  -> WidgetNode s e                    -- ^ The created split.
 vsplit nodes = vsplit_ def nodes
 
 -- | Creates a vertical split between the two provided nodes. Accepts config.
 vsplit_
   :: WidgetEvent e
-  => [SplitCfg s e]
-  -> (WidgetNode s e, WidgetNode s e)
-  -> WidgetNode s e
+  => [SplitCfg s e]                    -- ^ The config options.
+  -> (WidgetNode s e, WidgetNode s e)  -- ^ The child nodes.
+  -> WidgetNode s e                    -- ^ The created split.
 vsplit_ configs nodes = split_ False nodes configs
 
 split_

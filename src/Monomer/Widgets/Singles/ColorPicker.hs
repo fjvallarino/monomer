@@ -147,25 +147,25 @@ data ColorPickerEvt
 -- | Creates a color picker using the given lens.
 colorPicker
   :: (WidgetModel s, WidgetEvent e)
-  => ALens' s Color
-  -> WidgetNode s e
+  => ALens' s Color  -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created color picker.
 colorPicker field = colorPicker_ field def
 
 -- | Creates a color picker using the given lens. Accepts config.
 colorPicker_
   :: (WidgetModel s, WidgetEvent e)
-  => ALens' s Color
-  -> [ColorPickerCfg s e]
-  -> WidgetNode s e
+  => ALens' s Color        -- ^ The lens into the model.
+  -> [ColorPickerCfg s e]  -- ^ The config options.
+  -> WidgetNode s e        -- ^ The created color picker.
 colorPicker_ field configs = colorPickerD_ wlens configs [] where
   wlens = WidgetLens field
 
 -- | Creates a color picker using the given value and 'onChange' event handler.
 colorPickerV
   :: (WidgetModel s, WidgetEvent e)
-  => Color
-  -> (Color -> e)
-  -> WidgetNode s e
+  => Color           -- ^ The current value.
+  -> (Color -> e)    -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created color picker.
 colorPickerV value handler = colorPickerV_ value handler def
 
 {-|
@@ -174,10 +174,10 @@ Accepts config.
 -}
 colorPickerV_
   :: (WidgetModel s, WidgetEvent e)
-  => Color
-  -> (Color -> e)
-  -> [ColorPickerCfg s e]
-  -> WidgetNode s e
+  => Color                 -- ^ The current value.
+  -> (Color -> e)          -- ^ The event to raise on change.
+  -> [ColorPickerCfg s e]  -- ^ The config options.
+  -> WidgetNode s e        -- ^ The created color picker.
 colorPickerV_ value handler configs = colorPickerD_ wdata newCfgs [] where
   wdata = WidgetValue value
   newCfgs = onChange handler : configs
@@ -186,9 +186,13 @@ colorPickerV_ value handler configs = colorPickerD_ wdata newCfgs [] where
 colorPickerD_
   :: (WidgetModel s, WidgetEvent e)
   => WidgetData s Color
+  -- ^ The 'WidgetData' to retrieve the value from.
   -> [ColorPickerCfg s e]
+  -- ^ The config options.
   -> [CompositeCfg Color ColorPickerEvt s e]
+  -- ^ The composite config options.
   -> WidgetNode s e
+  -- ^ The created color picker.
 colorPickerD_ wdata cfgs cmpCfgs = newNode where
   cfg = mconcat cfgs
   uiBuilder = buildUI cfg

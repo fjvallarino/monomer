@@ -213,16 +213,20 @@ instance CmbOnChangeReq (LabeledCheckboxCfg s e) s e Bool where
   }
 
 -- | Creates a labeled checkbox using the given lens.
-labeledCheckbox :: WidgetEvent e => Text -> ALens' s Bool -> WidgetNode s e
+labeledCheckbox
+  :: WidgetEvent e
+  => Text            -- ^ The caption.
+  -> ALens' s Bool   -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created labeled checkbox.
 labeledCheckbox caption field = labeledCheckbox_ caption field def
 
 -- | Creates a labeled checkbox using the given lens. Accepts config.
 labeledCheckbox_
   :: WidgetEvent e
-  => Text
-  -> ALens' s Bool
-  -> [LabeledCheckboxCfg s e]
-  -> WidgetNode s e
+  => Text                      -- ^ The caption.
+  -> ALens' s Bool             -- ^ The lens into the model.
+  -> [LabeledCheckboxCfg s e]  -- ^ The config options.
+  -> WidgetNode s e            -- ^ The created labeled checkbox.
 labeledCheckbox_ caption field config = newNode where
   newNode = labeledCheckboxD_ caption (WidgetLens field) config
 
@@ -230,10 +234,10 @@ labeledCheckbox_ caption field config = newNode where
 --   handler.
 labeledCheckboxV
   :: WidgetEvent e
-  => Text
-  -> Bool
-  -> (Bool -> e)
-  -> WidgetNode s e
+  => Text            -- ^ The caption.
+  -> Bool            -- ^ The current value.
+  -> (Bool -> e)     -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created labeled checkbox.
 labeledCheckboxV caption value handler = newNode where
   newNode = labeledCheckboxV_ caption value handler def
 
@@ -243,11 +247,11 @@ Accepts config.
 -}
 labeledCheckboxV_
   :: WidgetEvent e
-  => Text
-  -> Bool
-  -> (Bool -> e)
-  -> [LabeledCheckboxCfg s e]
-  -> WidgetNode s e
+  => Text                      -- ^ The caption.
+  -> Bool                      -- ^ The current value.
+  -> (Bool -> e)               -- ^ The event to raise on change.
+  -> [LabeledCheckboxCfg s e]  -- ^ The config options.
+  -> WidgetNode s e            -- ^ The created labeled checkbox.
 labeledCheckboxV_ caption value handler config = newNode where
   newConfig = onChange handler : config
   newNode = labeledCheckboxD_ caption (WidgetValue value) newConfig
@@ -255,10 +259,10 @@ labeledCheckboxV_ caption value handler config = newNode where
 -- | Creates a labeled checkbox providing a 'WidgetData' instance and config.
 labeledCheckboxD_
   :: WidgetEvent e
-  => Text
-  -> WidgetData s Bool
-  -> [LabeledCheckboxCfg s e]
-  -> WidgetNode s e
+  => Text                      -- ^ The caption.
+  -> WidgetData s Bool         -- ^ The 'WidgetData' to retrieve the value from.
+  -> [LabeledCheckboxCfg s e]  -- ^ The config options.
+  -> WidgetNode s e            -- ^ The created labeled checkbox.
 labeledCheckboxD_ caption widgetData configs = newNode where
   config = mconcat configs
   labelSide = fromMaybe SideLeft (_lchTextSide config)

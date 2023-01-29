@@ -287,32 +287,35 @@ instance CmbOnChangeReq (NumericFieldCfg s e a) s e a where
 -- | Creates a numeric field using the given lens.
 numericField
   :: (FormattableNumber a, WidgetEvent e)
-  => ALens' s a -> WidgetNode s e
+  => ALens' s a      -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created numeric field.
 numericField field = numericField_ field def
 
 -- | Creates a numeric field using the given lens. Accepts config.
 numericField_
   :: (FormattableNumber a, WidgetEvent e)
-  => ALens' s a
-  -> [NumericFieldCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a               -- ^ The lens into the model.
+  -> [NumericFieldCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e           -- ^ The created numeric field.
 numericField_ field configs = widget where
   widget = numericFieldD_ (WidgetLens field) configs
 
 -- | Creates a numeric field using the given value and 'onChange' event handler.
 numericFieldV
   :: (FormattableNumber a, WidgetEvent e)
-  => a -> (a -> e) -> WidgetNode s e
+  => a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created numeric field.
 numericFieldV value handler = numericFieldV_ value handler def
 
 -- | Creates a numeric field using the given value and 'onChange' event handler.
 --   Accepts config.
 numericFieldV_
   :: (FormattableNumber a, WidgetEvent e)
-  => a
-  -> (a -> e)
-  -> [NumericFieldCfg s e a]
-  -> WidgetNode s e
+  => a                        -- ^ The current value.
+  -> (a -> e)                 -- ^ The event to raise on change.
+  -> [NumericFieldCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e           -- ^ The created numeric field.
 numericFieldV_ value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -321,9 +324,9 @@ numericFieldV_ value handler configs = newNode where
 -- | Creates a numeric field providing a 'WidgetData' instance and config.
 numericFieldD_
   :: forall s e a . (FormattableNumber a, WidgetEvent e)
-  => WidgetData s a
-  -> [NumericFieldCfg s e a]
-  -> WidgetNode s e
+  => WidgetData s a           -- ^ The 'WidgetData' to retrieve the value from.
+  -> [NumericFieldCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e           -- ^ The created numeric field.
 numericFieldD_ widgetData configs = newNode where
   config = mconcat configs
   minVal = _nfcMinValue config

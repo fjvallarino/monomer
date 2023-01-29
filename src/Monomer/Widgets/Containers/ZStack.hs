@@ -90,15 +90,18 @@ data ZStackState = ZStackState {
 } deriving (Eq, Show, Generic)
 
 -- | Creates a zstack container with the provided nodes.
-zstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
+zstack
+  :: (Traversable t)
+  => t (WidgetNode s e)  -- ^ The list of child nodes.
+  -> WidgetNode s e      -- ^ The created zstack container.
 zstack children = zstack_ def children
 
 -- | Creates a zstack container with the provided nodes. Accepts config.
 zstack_
   :: (Traversable t)
-  => [ZStackCfg]
-  -> t (WidgetNode s e)
-  -> WidgetNode s e
+  => [ZStackCfg]         -- ^ The config options.
+  -> t (WidgetNode s e)  -- ^ The list of child nodes.
+  -> WidgetNode s e      -- ^ The created zstack container.
 zstack_ configs children = newNode where
   config = mconcat configs
   state = ZStackState M.empty 0

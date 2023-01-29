@@ -72,11 +72,16 @@ instance CmbWidth IconCfg where
   }
 
 -- | Creates an icon of the given type.
-icon :: IconType -> WidgetNode s e
+icon
+  :: IconType        -- ^ The icon type.
+  -> WidgetNode s e  -- ^ The created icon.
 icon iconType = icon_ iconType def
 
 -- | Creates an icon of the given type. Accepts config.
-icon_ :: IconType -> [IconCfg] -> WidgetNode s e
+icon_
+  :: IconType        -- ^ The icon type.
+  -> [IconCfg]       -- ^ The config options.
+  -> WidgetNode s e  -- ^ The created icon.
 icon_ iconType configs = defaultWidgetNode widgetType widget where
   iconName = T.pack $ show iconType
   widgetType = WidgetType ("i" <> T.tail iconName)

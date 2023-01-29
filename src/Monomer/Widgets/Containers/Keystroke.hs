@@ -163,16 +163,20 @@ makeLensesWith abbreviatedFields ''KeyStroke
 makeLensesWith abbreviatedFields ''KeyStrokeState
 
 -- | Creates a keystroke container with a single node as child.
-keystroke :: WidgetEvent e => [(Text, e)] -> WidgetNode s e -> WidgetNode s e
+keystroke
+  :: WidgetEvent e
+  => [(Text, e)]     -- ^ The list of key combinations and events.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created keystroke container.
 keystroke bindings managed = keystroke_ bindings def managed
 
 -- | Creates a keystroke container with a single node as child. Accepts config,
 keystroke_
   :: WidgetEvent e
-  => [(Text, e)]
-  -> [KeystrokeCfg]
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => [(Text, e)]     -- ^ The list of key combinations and events.
+  -> [KeystrokeCfg]  -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created keystroke container.
 keystroke_ bindings configs managed = makeNode widget managed where
   config = mconcat configs
   newBindings = fmap (first textToStroke) bindings

@@ -46,13 +46,13 @@ the click events received. Positioning is configurable.
 -}
 labeledItem
   :: WidgetEvent e
-  => WidgetType
-  -> RectSide
-  -> Maybe Double
-  -> Text
-  -> LabelCfg s e
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => WidgetType      -- ^ The 'WidgetType' of the provided widget.
+  -> RectSide        -- ^ The side of the label.
+  -> Maybe Double    -- ^ The child spacing.
+  -> Text            -- ^ The caption.
+  -> LabelCfg s e    -- ^ The config options.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created stack.
 labeledItem wtype textSide childSpacing caption labelCfg itemNode = labeledNode where
   widget = makeLabeledItem textSide childSpacing caption labelCfg itemNode
   labeledNode = defaultWidgetNode wtype widget

@@ -137,12 +137,20 @@ instance CmbOnBlurReq (ExternalLinkCfg s e) s e Path where
   }
 
 -- | Creates an external link with the given caption and url.
-externalLink :: WidgetEvent e => Text -> Text -> WidgetNode s e
+externalLink
+  :: WidgetEvent e
+  => Text            -- ^ The caption.
+  -> Text            -- ^ The url.
+  -> WidgetNode s e  -- ^ The created external link.
 externalLink caption url = externalLink_ caption url def
 
 -- | Creates an external link with the given caption and url. Accepts config.
 externalLink_
-  :: WidgetEvent e => Text -> Text -> [ExternalLinkCfg s e] -> WidgetNode s e
+  :: WidgetEvent e
+  => Text                   -- ^ The caption.
+  -> Text                   -- ^ The url.
+  -> [ExternalLinkCfg s e]  -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created external link.
 externalLink_ caption url configs = externalLinkNode where
   config = mconcat configs
   widget = makeExternalLink caption url config

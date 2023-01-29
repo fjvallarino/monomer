@@ -339,32 +339,35 @@ dateFormatYYYYMMDD = def {
 -- | Creates a date field using the given lens.
 dateField
   :: (FormattableDate a, WidgetEvent e)
-  => ALens' s a -> WidgetNode s e
+  => ALens' s a      -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created date field.
 dateField field = dateField_ field def
 
 -- | Creates a date field using the given lens. Accepts config.
 dateField_
   :: (FormattableDate a, WidgetEvent e)
-  => ALens' s a
-  -> [DateFieldCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a            -- ^ The lens into the model.
+  -> [DateFieldCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e        -- ^ The created date field.
 dateField_ field configs = widget where
   widget = dateFieldD_ (WidgetLens field) configs
 
 -- | Creates a date field using the given value and 'onChange' event handler.
 dateFieldV
   :: (FormattableDate a, WidgetEvent e)
-  => a -> (a -> e) -> WidgetNode s e
+  => a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created date field.
 dateFieldV value handler = dateFieldV_ value handler def
 
 -- | Creates a date field using the given value and 'onChange' event handler.
 --   Accepts config.
 dateFieldV_
   :: (FormattableDate a, WidgetEvent e)
-  => a
-  -> (a -> e)
-  -> [DateFieldCfg s e a]
-  -> WidgetNode s e
+  => a                     -- ^ The current value.
+  -> (a -> e)              -- ^ The event to raise on change.
+  -> [DateFieldCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e        -- ^ The created date field.
 dateFieldV_ value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -373,9 +376,9 @@ dateFieldV_ value handler configs = newNode where
 -- | Creates a date field providing a 'WidgetData' instance and config.
 dateFieldD_
   :: (FormattableDate a, WidgetEvent e)
-  => WidgetData s a
-  -> [DateFieldCfg s e a]
-  -> WidgetNode s e
+  => WidgetData s a        -- ^ The 'WidgetData' to retrieve the value from.
+  -> [DateFieldCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e        -- ^ The created date field.
 dateFieldD_ widgetData configs = newNode where
   config = mconcat configs
   format = fromMaybe defaultDateFormat (_dfcDateFormat config)

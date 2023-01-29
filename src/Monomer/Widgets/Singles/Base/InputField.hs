@@ -214,9 +214,9 @@ defCaretMs = 500
 -- | Creates an instance of an input field, with customizations in config.
 inputField_
   :: (InputFieldValue a, WidgetEvent e)
-  => WidgetType
-  -> InputFieldCfg s e a
-  -> WidgetNode s e
+  => WidgetType           -- ^ The 'WidgetType' of an input field.
+  -> InputFieldCfg s e a  -- ^ The config options.
+  -> WidgetNode s e       -- ^ The created instance of an input field.
 inputField_ widgetType config = node where
   value = _ifcInitialValue config
   widget = makeInputField config (initialState value)

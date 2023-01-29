@@ -78,17 +78,20 @@ dropTargetStyle styles = def {
 
 -- | Creates a drop target container with a single node as child.
 dropTarget
-  :: (DragMsg a, WidgetEvent e) => (a -> e) -> WidgetNode s e -> WidgetNode s e
+  :: (DragMsg a, WidgetEvent e)
+  => (a -> e)        -- ^ The event to raise on drop.
+  -> WidgetNode s e  -- ^ The child node.
+  -> WidgetNode s e  -- ^ The created drop target container.
 dropTarget dropEvt managed = dropTarget_ dropEvt def managed
 
 -- | Creates a drop target container with a single node as child. Accepts
 --   config.
 dropTarget_
   :: (DragMsg a, WidgetEvent e)
-  => (a -> e)
-  -> [DropTargetCfg]
-  -> WidgetNode s e
-  -> WidgetNode s e
+  => (a -> e)         -- ^ The event to raise on drop.
+  -> [DropTargetCfg]  -- ^ The config options.
+  -> WidgetNode s e   -- ^ The child node.
+  -> WidgetNode s e   -- ^ The created drop target container.
 dropTarget_ dropEvt configs managed = makeNode widget managed where
   config = mconcat configs
   widget = makeDropTarget dropEvt config

@@ -75,27 +75,27 @@ toggleButtonOffStyle = optionButtonOffStyle
 
 -- | Creates a toggleButton using the given lens.
 toggleButton
-  :: Text
-  -> ALens' s Bool
-  -> WidgetNode s e
+  :: Text            -- ^ The caption.
+  -> ALens' s Bool   -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created toggle button.
 toggleButton caption field = toggleButton_ caption field def
 
 -- | Creates a toggleButton using the given lens. Accepts config.
 toggleButton_
-  :: Text
-  -> ALens' s Bool
-  -> [ToggleButtonCfg s e]
-  -> WidgetNode s e
+  :: Text                   -- ^ The caption.
+  -> ALens' s Bool          -- ^ The lens into the model.
+  -> [ToggleButtonCfg s e]  -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created toggle button.
 toggleButton_ caption field cfgs = newNode where
   newNode = toggleButtonD_ caption (WidgetLens field) cfgs
 
 -- | Creates a toggleButton using the given value and 'onChange' event handler.
 toggleButtonV
   :: WidgetEvent e
-  => Text
-  -> Bool
-  -> (Bool -> e)
-  -> WidgetNode s e
+  => Text            -- ^ The caption.
+  -> Bool            -- ^ The current value.
+  -> (Bool -> e)     -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created toggle button.
 toggleButtonV caption value handler = newNode where
   newNode = toggleButtonV_ caption value handler def
 
@@ -103,11 +103,11 @@ toggleButtonV caption value handler = newNode where
 --   Accepts config.
 toggleButtonV_
   :: WidgetEvent e
-  => Text
-  -> Bool
-  -> (Bool -> e)
-  -> [ToggleButtonCfg s e]
-  -> WidgetNode s e
+  => Text                   -- ^ The caption.
+  -> Bool                   -- ^ The current value.
+  -> (Bool -> e)            -- ^ The event to raise on change.
+  -> [ToggleButtonCfg s e]  -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created toggle button.
 toggleButtonV_ caption value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -115,10 +115,10 @@ toggleButtonV_ caption value handler configs = newNode where
 
 -- | Creates a toggleButton providing a 'WidgetData' instance and config.
 toggleButtonD_
-  :: Text
-  -> WidgetData s Bool
-  -> [ToggleButtonCfg s e]
-  -> WidgetNode s e
+  :: Text                   -- ^ The caption.
+  -> WidgetData s Bool      -- ^ The 'WidgetData' to retrieve the value from.
+  -> [ToggleButtonCfg s e]  -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created toggle button.
 toggleButtonD_ caption widgetData configs = toggleButtonNode where
   config = mconcat configs
   makeWithStyle = makeOptionButton L.toggleBtnOnStyle L.toggleBtnOffStyle

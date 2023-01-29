@@ -205,29 +205,46 @@ textFieldDisplayChar char = def {
   }
 
 -- | Creates a text field using the given lens.
-textField :: WidgetEvent e => ALens' s Text -> WidgetNode s e
+textField
+  :: WidgetEvent e
+  => ALens' s Text   -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created text field.
 textField field = textField_ field def
 
 -- | Creates a text field using the given lens. Accepts config.
 textField_
-  :: WidgetEvent e => ALens' s Text -> [TextFieldCfg s e] -> WidgetNode s e
+  :: WidgetEvent e
+  => ALens' s Text       -- ^ The lens into the model.
+  -> [TextFieldCfg s e]  -- ^ The config options.
+  -> WidgetNode s e      -- ^ The created text field.
 textField_ field configs = textFieldD_ (WidgetLens field) configs
 
 -- | Creates a text field using the given value and 'onChange' event handler.
-textFieldV :: WidgetEvent e => Text -> (Text -> e) -> WidgetNode s e
+textFieldV
+  :: WidgetEvent e
+  => Text            -- ^ The current value.
+  -> (Text -> e)     -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created text field.
 textFieldV value handler = textFieldV_ value handler def
 
 -- | Creates a text field using the given value and 'onChange' event handler.
 --   Accepts config.
 textFieldV_
-  :: WidgetEvent e => Text -> (Text -> e) -> [TextFieldCfg s e] -> WidgetNode s e
+  :: WidgetEvent e
+  => Text                -- ^ The current value.
+  -> (Text -> e)         -- ^ The event to raise on change.
+  -> [TextFieldCfg s e]  -- ^ The config options.
+  -> WidgetNode s e      -- ^ The created text field.
 textFieldV_ value handler configs = textFieldD_ widgetData newConfig where
   widgetData = WidgetValue value
   newConfig = onChange handler : configs
 
 -- | Creates a text field providing a 'WidgetData' instance and config.
 textFieldD_
-  :: WidgetEvent e => WidgetData s Text -> [TextFieldCfg s e] -> WidgetNode s e
+  :: WidgetEvent e
+  => WidgetData s Text   -- ^ The 'WidgetData' to retrieve the value from.
+  -> [TextFieldCfg s e]  -- ^ The config options.
+  -> WidgetNode s e      -- ^ The created text field.
 textFieldD_ widgetData configs = inputField where
   config = mconcat configs
   fromText = textToText (_tfcMaxLength config)

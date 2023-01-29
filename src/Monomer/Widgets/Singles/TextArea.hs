@@ -221,23 +221,37 @@ instance Default TextAreaState where
   }
 
 -- | Creates a text area using the given lens.
-textArea :: WidgetEvent e => ALens' s Text -> WidgetNode s e
+textArea
+  :: WidgetEvent e
+  => ALens' s Text   -- ^ The lens into the model.
+  -> WidgetNode s e  -- ^ The created text area.
 textArea field = textArea_ field def
 
 -- | Creates a text area using the given lens. Accepts config.
 textArea_
-  :: WidgetEvent e => ALens' s Text -> [TextAreaCfg s e] -> WidgetNode s e
+  :: WidgetEvent e
+  => ALens' s Text      -- ^ The lens into the model.
+  -> [TextAreaCfg s e]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created text area.
 textArea_ field configs = textAreaD_ wdata configs where
   wdata = WidgetLens field
 
 -- | Creates a text area using the given value and 'onChange' event handler.
-textAreaV :: WidgetEvent e => Text -> (Text -> e) -> WidgetNode s e
+textAreaV
+  :: WidgetEvent e
+  => Text            -- ^ The current value.
+  -> (Text -> e)     -- ^ The event to raise on change.
+  -> WidgetNode s e  -- ^ The created text area.
 textAreaV value handler = textAreaV_ value handler def
 
 -- | Creates a text area using the given value and 'onChange' event handler.
 --   Accepts config.
 textAreaV_
-  :: WidgetEvent e => Text -> (Text -> e) -> [TextAreaCfg s e] -> WidgetNode s e
+  :: WidgetEvent e
+  => Text               -- ^ The current value.
+  -> (Text -> e)        -- ^ The event to raise on change.
+  -> [TextAreaCfg s e]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created text area.
 textAreaV_ value handler configs = textAreaD_ wdata newConfig where
   wdata = WidgetValue value
   newConfig = onChange handler : configs
@@ -245,9 +259,9 @@ textAreaV_ value handler configs = textAreaD_ wdata newConfig where
 -- | Creates a text area providing a 'WidgetData' instance and config.
 textAreaD_
   :: WidgetEvent e
-  => WidgetData s Text
-  -> [TextAreaCfg s e]
-  -> WidgetNode s e
+  => WidgetData s Text  -- ^ The 'WidgetData' to retrieve the value from.
+  -> [TextAreaCfg s e]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created text area.
 textAreaD_ wdata configs = scrollNode where
   config = mconcat configs
   widget = makeTextArea wdata config def

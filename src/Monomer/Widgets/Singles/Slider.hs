@@ -190,10 +190,10 @@ values.
 -}
 hslider
   :: (SliderValue a, WidgetEvent e)
-  => ALens' s a
-  -> a
-  -> a
-  -> WidgetNode s e
+  => ALens' s a      -- ^ The lens into the model.
+  -> a               -- ^ Minimum value.
+  -> a               -- ^ Maximum value.
+  -> WidgetNode s e  -- ^ The created slider.
 hslider field minVal maxVal = hslider_ field minVal maxVal def
 
 {-|
@@ -202,11 +202,11 @@ values. Accepts config.
 -}
 hslider_
   :: (SliderValue a, WidgetEvent e)
-  => ALens' s a
-  -> a
-  -> a
-  -> [SliderCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a         -- ^ The lens into the model.
+  -> a                  -- ^ Minimum value.
+  -> a                  -- ^ Maximum value.
+  -> [SliderCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created slider.
 hslider_ field minVal maxVal cfg = sliderD_ True wlens minVal maxVal cfg where
   wlens = WidgetLens field
 
@@ -216,10 +216,10 @@ values.
 -}
 vslider
   :: (SliderValue a, WidgetEvent e)
-  => ALens' s a
-  -> a
-  -> a
-  -> WidgetNode s e
+  => ALens' s a      -- ^ The lens into the model.
+  -> a               -- ^ Minimum value.
+  -> a               -- ^ Maximum value.
+  -> WidgetNode s e  -- ^ The created slider.
 vslider field minVal maxVal = vslider_ field minVal maxVal def
 
 {-|
@@ -228,11 +228,11 @@ values. Accepts config.
 -}
 vslider_
   :: (SliderValue a, WidgetEvent e)
-  => ALens' s a
-  -> a
-  -> a
-  -> [SliderCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a         -- ^ The lens into the model.
+  -> a                  -- ^ Minimum value.
+  -> a                  -- ^ Maximum value.
+  -> [SliderCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created slider.
 vslider_ field minVal maxVal cfg = sliderD_ False wlens minVal maxVal cfg where
   wlens = WidgetLens field
 
@@ -242,11 +242,11 @@ providing minimum and maximum values.
 -}
 hsliderV
   :: (SliderValue a, WidgetEvent e)
-  => a
-  -> (a -> e)
-  -> a
-  -> a
-  -> WidgetNode s e
+  => a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> a               -- ^ Minimum value.
+  -> a               -- ^ Maximum value.
+  -> WidgetNode s e  -- ^ The created slider.
 hsliderV value handler minVal maxVal = hsliderV_ value handler minVal maxVal def
 
 {-|
@@ -255,12 +255,12 @@ providing minimum and maximum values. Accepts config.
 -}
 hsliderV_
   :: (SliderValue a, WidgetEvent e)
-  => a
-  -> (a -> e)
-  -> a
-  -> a
-  -> [SliderCfg s e a]
-  -> WidgetNode s e
+  => a                  -- ^ The current value.
+  -> (a -> e)           -- ^ The event to raise on change.
+  -> a                  -- ^ Minimum value.
+  -> a                  -- ^ Maximum value.
+  -> [SliderCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created slider.
 hsliderV_ value handler minVal maxVal configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -272,11 +272,11 @@ providing minimum and maximum values.
 -}
 vsliderV
   :: (SliderValue a, WidgetEvent e)
-  => a
-  -> (a -> e)
-  -> a
-  -> a
-  -> WidgetNode s e
+  => a               -- ^ The current value.
+  -> (a -> e)        -- ^ The event to raise on change.
+  -> a               -- ^ Minimum value.
+  -> a               -- ^ Maximum value.
+  -> WidgetNode s e  -- ^ The created slider.
 vsliderV value handler minVal maxVal = vsliderV_ value handler minVal maxVal def
 
 {-|
@@ -285,12 +285,12 @@ providing minimum and maximum values. Accepts config.
 -}
 vsliderV_
   :: (SliderValue a, WidgetEvent e)
-  => a
-  -> (a -> e)
-  -> a
-  -> a
-  -> [SliderCfg s e a]
-  -> WidgetNode s e
+  => a                  -- ^ The current value.
+  -> (a -> e)           -- ^ The event to raise on change.
+  -> a                  -- ^ Minimum value.
+  -> a                  -- ^ Maximum value.
+  -> [SliderCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created slider.
 vsliderV_ value handler minVal maxVal configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
@@ -302,12 +302,12 @@ maximum values and config.
 -}
 sliderD_
   :: (SliderValue a, WidgetEvent e)
-  => Bool
-  -> WidgetData s a
-  -> a
-  -> a
-  -> [SliderCfg s e a]
-  -> WidgetNode s e
+  => Bool               -- ^ True if horizontal, False if vertical
+  -> WidgetData s a     -- ^ The 'WidgetData' to retrieve the value from.
+  -> a                  -- ^ Minimum value.
+  -> a                  -- ^ Maximum value.
+  -> [SliderCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e     -- ^ The created slider.
 sliderD_ isHz widgetData minVal maxVal configs = sliderNode where
   config = mconcat configs
   state = SliderState 0 0
