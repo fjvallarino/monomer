@@ -544,7 +544,6 @@ makePopup field config state = widget where
     when isVisible $
       createOverlay renderer $
         drawInTranslation renderer scrollOffset $ do
-          drawRectBoxGradient renderer shadowVp maxrad (maxrad * 2) (rgba 255 0 0 0.5) (rgba 0 255 0 0)
           widgetRender (content ^. L.widget) cwenv content renderer
     where
       isVisible = widgetDataGet (wenv ^. L.model) field
@@ -558,11 +557,6 @@ makePopup field config state = widget where
       anchorVp = anchor ^. L.info . L.viewport
       content = Seq.index (node ^. L.children) contentIdx
       contentVp = content ^. L.info . L.viewport
-
-      Rect cvx cvy cvw cvh = contentVp
-      cstyle = currentStyle wenv content
-      maxrad = maximum $ radiusWidths (_sstRadius cstyle) ^.. each
-      shadowVp = Rect (cvx + maxrad) (cvy + maxrad) cvw cvh
 
       -- Hacky solution to avoid the anchor acting as if it were top-level.
       updateOverlay overlay
