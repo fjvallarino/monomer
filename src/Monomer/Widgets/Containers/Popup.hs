@@ -246,7 +246,7 @@ popupAnchor node = def {
   _ppcAnchor = Just node
 }
 
-{-
+{-|
 Align the popup to the horizontal outer edges of the anchor. It only works with
 'alignLeft' and 'alignRight', which need to be specified separately.
 
@@ -267,7 +267,7 @@ popupAlignToOuterH_ align = def {
   _ppcAlignToOuterH = Just align
 }
 
-{-
+{-|
 Align the popup vertically to the outer edges of the anchor. It only works with
 'alignTop' and 'alignBottom', which need to be specified separately.
 
