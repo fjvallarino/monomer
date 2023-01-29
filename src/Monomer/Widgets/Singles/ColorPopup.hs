@@ -44,6 +44,7 @@ import Monomer.Core.Combinators
 import Monomer.Graphics.Types
 
 import Monomer.Widgets.Composite
+import Monomer.Widgets.Containers.BoxShadow
 import Monomer.Widgets.Containers.Popup
 import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.ColorPicker
@@ -216,8 +217,9 @@ buildUI config wenv model = widgetTree where
   picker = colorPicker_ popupColor [pickerCfg, onChange ColorChanged]
     & L.info . L.style .~ containerStyle
 
+  content = boxShadow picker
   popupCfg = [popupAlignToOuterV, popupOffset (Point 0 10), alignBottom, alignLeft]
-  widgetTree = popup_ popupShowColor (popupAnchor toggle : popupCfg) picker
+  widgetTree = popup_ popupShowColor (popupAnchor toggle : popupCfg) content
 
 handleEvent
   :: WidgetModel sp

@@ -22,6 +22,7 @@ module Monomer.Widgets.Util.Drawing (
   drawLine,
   drawRect,
   drawRectBorder,
+  drawRectBoxGradient,
   drawTriangle,
   drawTriangleBorder,
   drawArc,
@@ -206,6 +207,23 @@ drawRectBorder renderer rect border Nothing =
   drawRectSimpleBorder renderer rect border
 drawRectBorder renderer rect border (Just radius) =
   drawRoundedRectBorder renderer rect border radius
+
+-- | Draws a box gradient rect with the given radius, inner and outer colors.
+drawRectBoxGradient
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rectangle to be drawn.
+  -> Double        -- ^ The radius width.
+  -> Double        -- ^ The feather size.
+  -> Color         -- ^ The inner color.
+  -> Color         -- ^ The outer color.
+  -> IO ()         -- ^ The resulting action.
+drawRectBoxGradient renderer rect rad feather inner outer = do
+  beginPath renderer
+  renderRoundedRect renderer rect rad rad rad rad
+  setFillBoxGradient renderer rect rad feather inner outer
+  fill renderer
+  where
+    Rect rx ry rw rh = rect
 
 {-|
 Draws a filled triangle with the given color.
