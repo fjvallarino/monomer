@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/fjvallarino/monomer/actions">
-    <img src="https://img.shields.io/github/workflow/status/fjvallarino/monomer/Build" alt="CI badge" />
+    <img src="https://img.shields.io/github/actions/workflow/status/fjvallarino/monomer/build.yml?branch=main" alt="CI badge" />
   </a>
   <a href="https://haskell.org">
     <img src="https://img.shields.io/badge/Made%20in-Haskell-%235e5086?logo=haskell&style=flat-square" alt="made with Haskell"/>
