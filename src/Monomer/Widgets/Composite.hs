@@ -60,7 +60,11 @@ module Monomer.Widgets.Composite (
   composite_,
   compositeV,
   compositeV_,
-  compositeD_
+  compositeD_,
+
+  -- * Helpers
+  responseIf,
+  responseMaybe
 ) where
 
 import Debug.Trace
@@ -207,6 +211,8 @@ data EventResponse s e sp ep
   producer crashes without sending a value, composite will not know about it.
   -}
   | Producer (ProducerHandler e)
+  -- | Does nothing. Useful with 'responseIf' and 'responseMaybe' helpers.
+  | NoOpResponse
 
 {-|
 Configuration options for composite:
@@ -942,6 +948,7 @@ evtResponseToRequest widgetComp widgetKeys response = case response of
   Message key msg -> Just $ sendMsgTo widgetComp (CompMsgMessage key msg)
   Task task -> Just $ RunTask widgetId path task
   Producer producer -> Just $ RunProducer widgetId path producer
+  NoOpResponse -> Nothing
   where
     widgetId = widgetComp ^. L.info . L.widgetId
     path = widgetComp ^. L.info . L.path
@@ -1116,3 +1123,31 @@ lookupNode widgetKeys desc key = case M.lookup key widgetKeys of
 
 sendMsgTo :: Typeable i => WidgetNode s e -> i -> WidgetRequest sp ep
 sendMsgTo node msg = SendMessage (node ^. L.info . L.widgetId) msg
+
+{-|
+Returns the provided 'EventResponse' when True, otherwise returns a no-op.
+
+Useful for conditionally returning a response.
+
+@
+...
+_ -> [Model newModel, responseIf isValid (SetFocusOnKey "widgetKey")]
+@
+-}
+responseIf :: Bool -> EventResponse s e sp ep -> EventResponse s e sp ep
+responseIf True resp = resp
+responseIf False _ = NoOpResponse
+
+{-|
+Returns the provided 'EventResponse' when 'Just', otherwise returns a no-op.
+
+Useful for conditionally returning a response.
+
+@
+...
+_ -> [Model newModel, responseMaybe maybeResp]
+@
+-}
+responseMaybe :: Maybe (EventResponse s e sp ep) -> EventResponse s e sp ep
+responseMaybe (Just resp) = resp
+responseMaybe Nothing = NoOpResponse

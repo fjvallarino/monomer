@@ -298,6 +298,10 @@ application (you can check the [lens](external/01-optics.md) tutorial to better
 understand those operators). If the model changed, this will trigger a call to
 the build UI function.
 
+Similar to `widgetIf` and `widgetMaybe`, a couple of helper functions exist for
+event responses: `responseIf` and `responseMaybe`. Their usage pattern is the
+same as in the widget helpers.
+
 ## Configuration
 
 By default, the starter app sets a few configuration options, including window
