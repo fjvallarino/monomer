@@ -94,7 +94,7 @@ Configuration options for box:
 - 'alignCenter': aligns the inner widget to the horizontal center.
 - 'alignRight': aligns the inner widget to the right.
 - 'alignTop': aligns the inner widget to the top.
-- 'alignMiddle': aligns the inner widget to the left.
+- 'alignMiddle': aligns the inner widget to the vertical middle.
 - 'alignBottom': aligns the inner widget to the bottom.
 - 'onClick': click event.
 - 'onClickReq': generates a WidgetRequest on click.
