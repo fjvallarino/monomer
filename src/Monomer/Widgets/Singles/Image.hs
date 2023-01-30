@@ -96,6 +96,8 @@ Configuration options for image:
 - 'fitFill': stretches the image to match the viewport.
 - 'fitWidth': stretches the image to match the viewport width. Maintains ratio.
 - 'fitHeight': stretches the image to match the viewport height. Maintains ratio.
+- 'fitEither': stretches the image to match either the viewport width or height
+  such that image does not overflow viewport. Maintains ratio.
 - 'alignLeft': aligns left if extra space is available.
 - 'alignRight': aligns right if extra space is available.
 - 'alignCenter': aligns center if extra space is available.
