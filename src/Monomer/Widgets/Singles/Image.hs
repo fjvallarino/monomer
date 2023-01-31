@@ -98,12 +98,12 @@ Configuration options for image:
 - 'fitHeight': stretches the image to match the viewport height. Maintains ratio.
 - 'fitEither': stretches the image to match either the viewport width or height
   such that image does not overflow viewport. Maintains ratio.
-- 'alignLeft': aligns left if extra space is available.
-- 'alignRight': aligns right if extra space is available.
-- 'alignCenter': aligns center if extra space is available.
-- 'alignTop': aligns top if extra space is available.
-- 'alignMiddle': aligns middle if extra space is available.
-- 'alignBottom': aligns bottom if extra space is available.
+- 'alignLeft': aligns to the left if extra space is available.
+- 'alignRight': aligns to the right if extra space is available.
+- 'alignCenter': aligns to the horizontal center if extra space is available.
+- 'alignTop': aligns to the top if extra space is available.
+- 'alignMiddle': aligns to the vertical middle if extra space is available.
+- 'alignBottom': aligns to the bottom if extra space is available.
 -}
 data ImageCfg e = ImageCfg {
   _imcLoadError :: [ImageLoadError -> e],
