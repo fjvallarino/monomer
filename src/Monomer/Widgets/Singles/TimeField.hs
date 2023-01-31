@@ -141,6 +141,8 @@ type FormattableTime a
 {-|
 Configuration options for timeField:
 
+- 'caretWidth': the width of the caret.
+- 'caretMs': the blink period of the caret.
 - 'validInput': field indicating if the current input is valid. Useful to show
 warnings in the UI, or disable buttons if needed.
 - 'resizeOnChange': Whether input causes ResizeWidgets requests.
