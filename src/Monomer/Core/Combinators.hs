@@ -350,7 +350,7 @@ class CmbThumbFactor t where
 class CmbThumbRadius t where
   thumbRadius :: Double -> t
 
--- | Whether the thumb is visible, for example in a scroll.
+-- | Whether the thumb is visible, for example in a slider.
 class CmbThumbVisible t where
   thumbVisible :: t
   thumbVisible = thumbVisible_ True
