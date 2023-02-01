@@ -138,9 +138,9 @@ Configuration options for popup:
 - 'popupDisableClose': do not close the popup when clicking outside the content.
 - 'alignLeft': left align relative to the widget location or main window.
 - 'alignRight': right align relative to the widget location or main window.
-- 'alignCenter': center align relative to the widget location or main window.
+- 'alignCenter': horizontal center align relative to the widget location or main window.
 - 'alignTop': top align relative to the widget location or main window.
-- 'alignMiddle': middle align relative to the widget location or main window.
+- 'alignMiddle': vertical middle align relative to the widget location or main window.
 - 'alignBottom': bottom align relative to the widget location or main window.
 - 'onChange': event to raise when the popup is opened/closed.
 - 'onChangeReq': 'WidgetRequest' to generate when the popup is opened/closed.

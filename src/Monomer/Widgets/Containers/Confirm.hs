@@ -72,7 +72,7 @@ Configuration options for confirm:
 
 - 'titleCaption': the title of the alert dialog.
 - 'acceptCaption': the caption of the accept button.
-- 'closeCaption': the caption of the close button.
+- 'cancelCaption': the caption of the cancel button.
 -}
 data ConfirmCfg = ConfirmCfg {
   _cfcTitle :: Maybe Text,
@@ -132,7 +132,7 @@ confirm
 confirm acceptEvt cancelEvt dialogBody = newNode where
   newNode = confirm_ acceptEvt cancelEvt def dialogBody
 
--- | Creates an alert dialog with the provided content. Accepts config.
+-- | Creates a confirm dialog with the provided content. Accepts config.
 confirm_
   :: (WidgetModel s, WidgetEvent e)
   => e                                  -- ^ The accept button event.
@@ -146,7 +146,7 @@ confirm_ acceptEvt cancelEvt configs dialogBody = newNode where
   compCfg = [compositeMergeReqs mergeReqs]
   newNode = compositeD_ "confirm" (WidgetValue ()) createUI handleEvent compCfg
 
--- | Creates an alert dialog with a text message as content.
+-- | Creates a confirm dialog with a text message as content.
 confirmMsg
   :: (WidgetModel s, WidgetEvent e)
   => Text            -- ^ The message to display in the dialog.
@@ -155,7 +155,7 @@ confirmMsg
   -> WidgetNode s e  -- ^ The created dialog.
 confirmMsg msg acceptEvt cancelEvt = confirmMsg_ msg acceptEvt cancelEvt def
 
--- | Creates an alert dialog with a text message as content. Accepts config.
+-- | Creates a confirm dialog with a text message as content. Accepts config.
 confirmMsg_
   :: (WidgetModel s, WidgetEvent e)
   => Text            -- ^ The message to display in the dialog.

@@ -55,6 +55,9 @@ import qualified Monomer.Lens as L
 {-|
 Configuration options for textField:
 
+- 'caretWidth': the width of the caret.
+- 'caretMs': the blink period of the caret.
+- 'placeholder': the placeholder to use when main value is empty.
 - 'validInput': field indicating if the current input is valid. Useful to show
   warnings in the UI, or disable buttons if needed.
 - 'resizeOnChange': Whether input causes ResizeWidgets requests.

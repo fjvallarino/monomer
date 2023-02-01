@@ -303,7 +303,7 @@ class CmbFitWidth t where
 class CmbFitHeight t where
   fitHeight :: t
 
--- | Either fitWidth or fitHeight such that image does not overflow viewport
+-- | Either fitWidth or fitHeight such that image does not overflow viewport.
 class CmbFitEither t where
   fitEither :: t
 
@@ -350,7 +350,7 @@ class CmbThumbFactor t where
 class CmbThumbRadius t where
   thumbRadius :: Double -> t
 
--- | Whether the thumb is visible, for example in a scroll.
+-- | Whether the thumb is visible, for example in a slider.
 class CmbThumbVisible t where
   thumbVisible :: t
   thumbVisible = thumbVisible_ True
@@ -746,7 +746,7 @@ class CmbAlignLeft t where
   alignLeft = alignLeft_ True
   alignLeft_ :: Bool -> t
 
--- | Align object to the center (not text).
+-- | Align object to the horizontal center (not text).
 class CmbAlignCenter t where
   alignCenter :: t
   alignCenter = alignCenter_ True
@@ -764,7 +764,7 @@ class CmbAlignTop t where
   alignTop = alignTop_ True
   alignTop_ :: Bool -> t
 
--- | Align object to the middle (not text).
+-- | Align object to the vertical middle (not text).
 class CmbAlignMiddle t where
   alignMiddle :: t
   alignMiddle = alignMiddle_ True

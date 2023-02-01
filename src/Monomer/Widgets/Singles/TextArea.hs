@@ -67,6 +67,8 @@ defCaretMs = 500
 {-|
 Configuration options for textArea:
 
+- 'caretWidth': the width of the caret.
+- 'caretMs': the blink period of the caret.
 - 'maxLength': the maximum length of input text.
 - 'maxLines': the maximum number of lines of input text.
 - 'acceptTab': whether to handle tab and convert it to spaces (cancelling change

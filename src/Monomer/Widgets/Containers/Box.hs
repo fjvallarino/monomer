@@ -94,12 +94,24 @@ Configuration options for box:
 - 'alignCenter': aligns the inner widget to the horizontal center.
 - 'alignRight': aligns the inner widget to the right.
 - 'alignTop': aligns the inner widget to the top.
-- 'alignMiddle': aligns the inner widget to the left.
+- 'alignMiddle': aligns the inner widget to the vertical middle.
 - 'alignBottom': aligns the inner widget to the bottom.
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onEnter': on mouse enter event.
+- 'onEnterReq': generates a WidgetRequest on mouse enter.
+- 'onLeave': on mouse leave event.
+- 'onLeaveReq': generates a WidgetRequest on mouse leave.
 - 'onClick': click event.
 - 'onClickReq': generates a WidgetRequest on click.
 - 'onClickEmpty': click event on empty area.
 - 'onClickEmptyReq': generates a WidgetRequest on click in empty area.
+- 'onBtnPressed': on button pressed event.
+- 'onBtnPressedReq': generates a WidgetRequest when button is pressed.
+- 'onBtnReleased': on button released event.
+- 'onBtnReleasedReq': generates a WidgetRequest when button is released.
 - 'expandContent': if the inner widget should use all the available space. To be
   able to use alignment options, this must be False (the default).
 - 'boxFilterEvent': allows filtering or modifying a 'SystemEvent'.
