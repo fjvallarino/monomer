@@ -60,11 +60,7 @@ module Monomer.Widgets.Composite (
   composite_,
   compositeV,
   compositeV_,
-  compositeD_,
-
-  -- * Helpers
-  responseIf,
-  responseMaybe
+  compositeD_
 ) where
 
 import Debug.Trace
@@ -1123,31 +1119,3 @@ lookupNode widgetKeys desc key = case M.lookup key widgetKeys of
 
 sendMsgTo :: Typeable i => WidgetNode s e -> i -> WidgetRequest sp ep
 sendMsgTo node msg = SendMessage (node ^. L.info . L.widgetId) msg
-
-{-|
-Returns the provided 'EventResponse' when True, otherwise returns a no-op.
-
-Useful for conditionally returning a response.
-
-@
-...
-_ -> [Model newModel, responseIf isValid (SetFocusOnKey "widgetKey")]
-@
--}
-responseIf :: Bool -> EventResponse s e sp ep -> EventResponse s e sp ep
-responseIf True resp = resp
-responseIf False _ = NoOpResponse
-
-{-|
-Returns the provided 'EventResponse' when 'Just', otherwise returns a no-op.
-
-Useful for conditionally returning a response.
-
-@
-...
-_ -> [Model newModel, responseMaybe maybeResp]
-@
--}
-responseMaybe :: Maybe (EventResponse s e sp ep) -> EventResponse s e sp ep
-responseMaybe (Just resp) = resp
-responseMaybe Nothing = NoOpResponse

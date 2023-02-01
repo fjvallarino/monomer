@@ -133,3 +133,31 @@ Useful for conditionally setting a configuration value.
 configMaybe :: Monoid a => Maybe b -> (b -> a) -> a
 configMaybe Nothing _ = mempty
 configMaybe (Just val) fn = fn val
+
+{-|
+Returns the provided 'EventResponse' when True, otherwise returns a no-op.
+
+Useful for conditionally returning a response.
+
+@
+...
+_ -> [Model newModel, responseIf isValid (SetFocusOnKey "widgetKey")]
+@
+-}
+responseIf :: Bool -> EventResponse s e sp ep -> EventResponse s e sp ep
+responseIf True resp = resp
+responseIf False _ = NoOpResponse
+
+{-|
+Returns the provided 'EventResponse' when 'Just', otherwise returns a no-op.
+
+Useful for conditionally returning a response.
+
+@
+...
+_ -> [Model newModel, responseMaybe maybeResp]
+@
+-}
+responseMaybe :: Maybe (EventResponse s e sp ep) -> EventResponse s e sp ep
+responseMaybe (Just resp) = resp
+responseMaybe Nothing = NoOpResponse
