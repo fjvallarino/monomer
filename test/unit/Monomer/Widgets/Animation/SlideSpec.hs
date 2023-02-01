@@ -73,7 +73,7 @@ handleMessage = describe "handleMessage" $ do
     evts AnimationStop `shouldBe` Seq.empty
 
   it "should generate an event if AnimationFinished is received" $
-    evts AnimationFinished `shouldBe` Seq.singleton OnTestFinished
+    evts (AnimationFinished 0) `shouldBe` Seq.singleton OnTestFinished
 
   where
     wenv = mockWenv ()
