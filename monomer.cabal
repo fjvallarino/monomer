@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           monomer
-version:        1.5.0.0
+version:        1.5.1.0
 synopsis:       A GUI library for writing native Haskell applications.
 description:    Monomer is an easy to use, cross platform, GUI library for writing native
                 Haskell applications.
