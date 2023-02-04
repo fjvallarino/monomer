@@ -1,13 +1,25 @@
 ## 1.5.1.0
 
+### Added
+
+- Add color popup widget ([PR #247](https://github.com/fjvallarino/monomer/pull/247)).
+- Add responseIf and responseMaybe helpers ([PR #250](https://github.com/fjvallarino/monomer/pull/250)).
+
 ### Fixed
 
 - Fix rendering artifacts ([PR #215](https://github.com/fjvallarino/monomer/pull/215)).
+- Trigger ResizeWidgets when user defined size requests change ([PR #229](https://github.com/fjvallarino/monomer/pull/229)).
+- Do not pass events to selectList's children when they are not visible ([PR #230](https://github.com/fjvallarino/monomer/pull/230)).
+- Avoid infinite resize loop in multiline label ([PR #233](https://github.com/fjvallarino/monomer/pull/233)).
+- [Several](https://github.com/fjvallarino/monomer/pull/222) [really](https://github.com/fjvallarino/monomer/pull/244) [nice](https://github.com/fjvallarino/monomer/pull/249) [documentation](https://github.com/fjvallarino/monomer/pull/253) [improvements](https://github.com/fjvallarino/monomer/pull/254). Thanks @Deltaspace0!
+- Modify tests for selectList and dropdown ([PR #245](https://github.com/fjvallarino/monomer/pull/245)). Thanks @Deltaspace0!
+- Fix animation widget raising onFinished event when it is no longer relevant ([PR #252](https://github.com/fjvallarino/monomer/pull/252)). Thanks @Deltaspace0!
 
 ### Changed
 
 - Add "examples" flag to optionally build examples and tutorials ([PR #218](https://github.com/fjvallarino/monomer/pull/218)).
 - Use pkg-config for glew linking ([PR #219](https://github.com/fjvallarino/monomer/pull/219)).
+- Export dialD_ ([PR #246](https://github.com/fjvallarino/monomer/pull/246)). Thanks @Deltaspace0!
 
 ## 1.5.0.0
 
