@@ -207,6 +207,8 @@ data EventResponse s e sp ep
   producer crashes without sending a value, composite will not know about it.
   -}
   | Producer (ProducerHandler e)
+  -- | Does nothing. Useful with 'responseIf' and 'responseMaybe' helpers.
+  | NoOpResponse
 
 {-|
 Configuration options for composite:
@@ -942,6 +944,7 @@ evtResponseToRequest widgetComp widgetKeys response = case response of
   Message key msg -> Just $ sendMsgTo widgetComp (CompMsgMessage key msg)
   Task task -> Just $ RunTask widgetId path task
   Producer producer -> Just $ RunProducer widgetId path producer
+  NoOpResponse -> Nothing
   where
     widgetId = widgetComp ^. L.info . L.widgetId
     path = widgetComp ^. L.info . L.path
