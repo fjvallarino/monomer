@@ -151,6 +151,7 @@ mockRenderer = Renderer {
   renderRoundedRect = \rect r1 r2 r3 r4 -> return (),
   renderArc = \center radius angleStart angleEnd winding -> return (),
   renderQuadTo = \p1 p2 -> return (),
+  renderBezierTo = \p1 p2 p3 -> return (),
   renderEllipse = \rect -> return (),
   -- Text
   renderText = mockRenderText,

@@ -322,6 +322,13 @@ newRenderer c rdpr envRef = Renderer {..} where
       CPoint x1 y1 = pointToCPoint p1 dpr
       CPoint x2 y2 = pointToCPoint p2 dpr
 
+  renderBezierTo p1 p2 p3 =
+    VG.bezierTo c x1 y1 x2 y2 x3 y3
+    where
+      CPoint x1 y1 = pointToCPoint p1 dpr
+      CPoint x2 y2 = pointToCPoint p2 dpr
+      CPoint x3 y3 = pointToCPoint p3 dpr
+
   renderEllipse !rect =
     VG.ellipse c cx cy rx ry
     where

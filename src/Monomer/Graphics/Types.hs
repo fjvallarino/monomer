@@ -382,6 +382,8 @@ data Renderer = Renderer {
   renderArc :: Point -> Double -> Double -> Double -> Winding -> IO (),
   -- | Quadratic bezier segment from head via control point to target.
   renderQuadTo :: Point -> Point -> IO (),
+  -- | Cubic bezier segment from head via two control points to target.
+  renderBezierTo :: Point -> Point -> Point -> IO (),
   -- | Renders an ellipse.
   renderEllipse :: Rect -> IO (),
   {-|
