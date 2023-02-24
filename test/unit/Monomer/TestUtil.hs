@@ -177,6 +177,7 @@ mockWenv :: s -> WidgetEnv s e
 mockWenv model = WidgetEnv {
   _weOs = "Mac OS X",
   _weDpr = 2,
+  _weIsGhci = False,
   _weAppStartTs = 0,
   _weFontManager = mockFontManager,
   _weFindBranchByPath = const Seq.empty,

@@ -245,6 +245,7 @@ data CompositeCfg s e sp ep = CompositeCfg {
   _cmcMergeRequired :: Maybe (MergeRequired s e),
   _cmcMergeReqs :: [MergeReqsHandler s e sp],
   _cmcMergeModel :: Maybe (MergeModelHandler s e sp),
+  _cmcModelFingerprintFn :: Maybe (s -> String),
   _cmcOnInitReq :: [WidgetRequest s e],
   _cmcOnDisposeReq :: [WidgetRequest s e],
   _cmcOnResize :: [Rect -> e],
@@ -255,9 +256,10 @@ data CompositeCfg s e sp ep = CompositeCfg {
 
 instance Default (CompositeCfg s e sp ep) where
   def = CompositeCfg {
-    _cmcMergeModel = Nothing,
     _cmcMergeRequired = Nothing,
     _cmcMergeReqs = [],
+    _cmcMergeModel = Nothing,
+    _cmcModelFingerprintFn = Nothing,
     _cmcOnInitReq = [],
     _cmcOnDisposeReq = [],
     _cmcOnResize = [],
@@ -268,9 +270,10 @@ instance Default (CompositeCfg s e sp ep) where
 
 instance Semigroup (CompositeCfg s e sp ep) where
   (<>) c1 c2 = CompositeCfg {
-    _cmcMergeModel = _cmcMergeModel c2 <|> _cmcMergeModel c1,
     _cmcMergeRequired = _cmcMergeRequired c2 <|> _cmcMergeRequired c1,
     _cmcMergeReqs = _cmcMergeReqs c1 <> _cmcMergeReqs c2,
+    _cmcMergeModel = _cmcMergeModel c2 <|> _cmcMergeModel c1,
+    _cmcModelFingerprintFn = _cmcModelFingerprintFn c2 <|> _cmcModelFingerprintFn c1,
     _cmcOnInitReq = _cmcOnInitReq c1 <> _cmcOnInitReq c2,
     _cmcOnDisposeReq = _cmcOnDisposeReq c1 <> _cmcOnDisposeReq c2,
     _cmcOnResize = _cmcOnResize c1 <> _cmcOnResize c2,
@@ -343,6 +346,16 @@ compositeMergeReqs fn = def {
 }
 
 {-|
+Generates a fingerprint to detect if the model can be reused.
+
+See 'Monomer.Main.Types.appModelFingerprint' for details.
+-}
+compositeModelFingerprint :: (s -> String) -> CompositeCfg s e sp ep
+compositeModelFingerprint fn = def {
+  _cmcModelFingerprintFn = Just fn
+}
+
+{-|
 Generate events during the merge process.
 
 This function is not called during initialization; 'onInit' can be used.
@@ -361,7 +374,7 @@ Allows updating the composite model with information from the parent model.
 Useful when the composite needs a more complex model than what the user is
 binding.
 
-For example, a database record may be binded as the model from the parent, but
+For example, a database record may be bound as the model from the parent, but
 the composite needs its own boolean flags to toggle visibility on different
 sections.
 
@@ -380,6 +393,7 @@ data Composite s e sp ep = Composite {
   _cmpMergeRequired :: MergeRequired s e,
   _cmpMergeReqs :: [MergeReqsHandler s e sp],
   _cmpMergeModel :: Maybe (MergeModelHandler s e sp),
+  _cmpModelFingerprintFn :: Maybe (s -> String),
   _cmpOnInitReq :: [WidgetRequest s e],
   _cmpOnDisposeReq :: [WidgetRequest s e],
   _cmpOnResize :: [Rect -> e],
@@ -389,10 +403,11 @@ data Composite s e sp ep = Composite {
 }
 
 data CompositeState s e = CompositeState {
+  _cpsFingerprint :: !String,
   _cpsModel :: !(Maybe s),
   _cpsRoot :: !(WidgetNode s e),
   _cpsWidgetKeyMap :: WidgetKeyMap s e
-}
+} deriving Show
 
 data ReducedEvents s e sp ep = ReducedEvents {
   _reModel :: s,
@@ -483,6 +498,7 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpMergeRequired = mergeReq,
     _cmpMergeReqs = _cmcMergeReqs config,
     _cmpMergeModel = _cmcMergeModel config,
+    _cmpModelFingerprintFn = _cmcModelFingerprintFn config,
     _cmpOnInitReq = _cmcOnInitReq config,
     _cmpOnDisposeReq = _cmcOnDisposeReq config,
     _cmpOnResize = _cmcOnResize config,
@@ -490,7 +506,7 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpOnEnabledChange = _cmcOnEnabledChange config,
     _cmpOnVisibleChange = _cmcOnVisibleChange config
   }
-  state = CompositeState Nothing widgetRoot M.empty
+  state = CompositeState "" Nothing widgetRoot M.empty
   widget = createComposite composite state
   !newNode = defaultWidgetNode wType widget
 
@@ -542,6 +558,8 @@ compositeInit comp state wenv widgetComp = newResult where
 
   WidgetResult root reqs = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
   !newState = state {
+    -- Using model could cause issues in merge if the model type changes
+    _cpsFingerprint = modelFingerprint comp cwenv userModel,
     _cpsModel = Just model,
     _cpsRoot = root,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty root
@@ -567,14 +585,19 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   widgetId = oldComp ^. L.info . L.widgetId
   oldState = widgetGetState (oldComp ^. L.widget) wenv oldComp
   validState = fromMaybe state (useState oldState)
-  CompositeState oldModel oldRoot oldWidgetKeys = validState
+  CompositeState oldFingerprint oldModel oldRoot oldWidgetKeys = validState
 
   !mergeModel = _cmpMergeModel comp
   !parentModel = wenv ^. L.model
   !userModel = getUserModel comp wenv
+  !newFingerprint = modelFingerprint comp cwenv userModel
+  !discardModelReload = isReload && oldFingerprint /= newFingerprint
+
   !model = case mergeModel of
-    Just merge -> merge cwenv parentModel (fromJust oldModel) userModel where
-      cwenv = convertWidgetEnv wenv oldWidgetKeys userModel
+    Just merge
+      | not discardModelReload -> mergedModel where
+        cwenv = convertWidgetEnv wenv oldWidgetKeys userModel
+        mergedModel = merge cwenv parentModel (fromJust oldModel) userModel
     _ -> userModel
 
   -- Creates new UI using provided function
@@ -589,10 +612,11 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   enabledChg = nodeEnabledChanged oldComp newComp
   flagsChanged = visibleChg || enabledChg
   themeChanged = wenv ^. L.themeChanged
+  isReload = isWidgetReload wenv
   mergeRequired
-    | isJust oldModel = modelChanged || flagsChanged || themeChanged
+    | isJust oldModel = modelChanged || flagsChanged || themeChanged || isReload
     | otherwise = True
-  initRequired = not (nodeMatches tempRoot oldRoot)
+  initRequired = not (nodeMatches tempRoot oldRoot) || discardModelReload
   useNewRoot = initRequired || mergeRequired
 
   WidgetResult !newRoot !tmpReqs
@@ -600,6 +624,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
     | mergeRequired = widgetMerge tempWidget cwenv tempRoot oldRoot
     | otherwise = resultNode oldRoot
   !newState = validState {
+    _cpsFingerprint = newFingerprint,
     _cpsModel = Just model,
     _cpsRoot = newRoot,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty newRoot
@@ -619,9 +644,10 @@ compositeMerge comp state wenv newComp oldComp = newResult where
     | otherwise = []
   evts = RaiseEvent <$> Seq.fromList (visibleEvts ++ enabledEvts)
 
+  resizeReqs = [ResizeWidgets widgetId | initRequired]
   mergeReqsFns = _cmpMergeReqs comp
   mergeHelper f = f cwenv newRoot oldRoot parentModel (fromJust oldModel) model
-  mergeReqs = concatMap mergeHelper mergeReqsFns
+  mergeReqs = resizeReqs ++ concatMap mergeHelper mergeReqsFns
   extraReqs = seqCatMaybes (toParentReq widgetId <$> Seq.fromList mergeReqs)
 
   tmpResult = WidgetResult newRoot (RenderOnce <| tmpReqs <> extraReqs <> evts)
@@ -1073,6 +1099,7 @@ convertWidgetEnv :: WidgetEnv sp ep -> WidgetKeyMap s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv widgetKeyMap model = WidgetEnv {
   _weOs = _weOs wenv,
   _weDpr = _weDpr wenv,
+  _weIsGhci = _weIsGhci wenv,
   _weAppStartTs = _weAppStartTs wenv,
   _weFontManager = _weFontManager wenv,
   _weFindBranchByPath = _weFindBranchByPath wenv,
@@ -1119,3 +1146,10 @@ lookupNode widgetKeys desc key = case M.lookup key widgetKeys of
 
 sendMsgTo :: Typeable i => WidgetNode s e -> i -> WidgetRequest sp ep
 sendMsgTo node msg = SendMessage (node ^. L.info . L.widgetId) msg
+
+modelFingerprint :: Composite s e sp ep -> WidgetEnv s e -> s -> String
+modelFingerprint comp wenv !model
+  | isWidgetReload wenv && isJust fingerprintFn = fromJust fingerprintFn model
+  | otherwise = "<ignored>"
+  where
+    fingerprintFn = _cmpModelFingerprintFn comp

@@ -88,7 +88,7 @@ themeClearBg_ clear = def {
 data ThemeSwitchState = ThemeSwitchState {
   _tssPrevTheme :: Maybe Theme,
   _tssChanged :: Bool
-}
+} deriving (Show)
 
 -- | Switches to a new theme starting from its child node.
 themeSwitch

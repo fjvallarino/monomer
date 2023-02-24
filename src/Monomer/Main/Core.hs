@@ -9,6 +9,7 @@ Portability : non-portable
 Core glue for running an application.
 -}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE Strict #-}
 
@@ -22,25 +23,27 @@ module Monomer.Main.Core (
 import Control.Concurrent
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
 import Control.Exception
-import Control.Lens ((&), (^.), (.=), (.~), use)
+import Control.Lens ((&), (^.), (.=), (.~), _2, use)
 import Control.Monad (unless, void, when)
 import Control.Monad.Extra
 import Control.Monad.State
 import Control.Monad.STM (atomically)
 import Data.Default
 import Data.Either (isLeft)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, fromJust, isJust)
 import Data.Map (Map)
 import Data.List (foldl')
 import Data.Text (Text)
 import Data.Time
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+import Data.Word (Word32)
 import Graphics.GL
 
 import qualified Data.Map as Map
-import qualified Data.Text as T
-import qualified SDL
 import qualified Data.Sequence as Seq
+import qualified Data.Text as T
+import qualified Foreign.Store as FS
+import qualified SDL
 
 import Monomer.Core
 import Monomer.Core.Combinators
@@ -51,7 +54,7 @@ import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics
-import Monomer.Helper (catchAny, putStrLnErr)
+import Monomer.Helper (catchAny, putStrLnErr, isGhciRunning)
 import Monomer.Widgets.Composite
 
 import qualified Monomer.Lens as L
@@ -60,7 +63,7 @@ import qualified Monomer.Lens as L
 Type of response an App event handler can return, with __s__ being the model and
 __e__ the user's event type.
 -}
-type AppEventResponse s e = EventResponse s e s ()
+type AppEventResponse s e = EventResponse s e s e
 
 -- | Type of an App event handler.
 type AppEventHandler s e
@@ -73,7 +76,9 @@ type AppEventHandler s e
 -- | Type of the function responsible of creating the App UI.
 type AppUIBuilder s e = UIBuilder s e
 
+-- | Updated information for the current step of the event loop.
 data MainLoopArgs sp e ep = MainLoopArgs {
+  _mlIsGhci :: Bool,
   _mlOS :: Text,
   _mlTheme :: Theme,
   _mlAppStartTs :: Millisecond,
@@ -87,10 +92,30 @@ data MainLoopArgs sp e ep = MainLoopArgs {
   _mlWidgetShared :: MVar (Map Text WidgetShared)
 }
 
+-- | State information for the rendering thread.
 data RenderState s e = RenderState {
   _rstDpr :: Double,
   _rstWidgetEnv :: WidgetEnv s e,
   _rstRootNode :: WidgetNode s e
+}
+
+{-|
+Information for hot reload of an application running on ghci.
+
+When running in interpreted mode, SDL initialization and window creation data
+will be reused on further code updates.
+-}
+data MonomerReloadData s e = MonomerReloadData {
+  -- | The active window.
+  _mrdWindow :: !SDL.Window,
+  -- | The OpenGL context associated to the window.
+  _mrdGlContext :: !SDL.GLContext,
+  -- | The latest context.
+  _mrdMonomerCtx :: !(MonomerCtx s e),
+  -- | The fingerprint of the model. Used to detect changes in the data type.
+  _mrdModelFp :: !String,
+  -- | The latest widget tree.
+  _mrdRoot :: !(WidgetNode s e)
 }
 
 {-|
@@ -105,34 +130,45 @@ startApp
   => s                    -- ^ The initial model.
   -> AppEventHandler s e  -- ^ The event handler.
   -> AppUIBuilder s e     -- ^ The UI builder.
-  -> [AppConfig e]        -- ^ The application config.
+  -> [AppConfig s e]      -- ^ The application config.
   -> IO ()                -- ^ The application action.
-startApp model eventHandler uiBuilder configs = do
-  (window, dpr, epr, glCtx) <- initSDLWindow config
-  vpSize <- getViewportSize window dpr
+startApp newModel eventHandler uiBuilder configs = do
+  isGhci <- isGhciRunning
   channel <- newTChanIO
 
-  let monomerCtx = initMonomerCtx window channel vpSize dpr epr model
+  (model, oldRoot) <- retrieveModelAndRoot config newModel newRoot
+  (window, glCtx, ctx) <- retrieveSDLWindow config channel model
 
-  runStateT (runAppLoop window glCtx channel appWidget config) monomerCtx
-  destroySDLWindow window
+  when isGhci $
+    setReloadData (MonomerReloadData window glCtx ctx modelFp newRoot)
+
+  resp <- runStateT (runAppLoop window glCtx channel oldRoot newRoot config) ctx
+
+  -- Even when running on ghci, if exitApplication == True it means the user
+  -- closed the window and it will need to be created again on reload.
+  when (not isGhci || resp ^. _2 . L.exitApplication) $ do
+    destroySDLWindow window
+    resetReloadData
   where
     config = mconcat configs
     compCfgs
       = (onInit <$> _apcInitEvent config)
       ++ (onDispose <$> _apcDisposeEvent config)
       ++ (onResize <$> _apcResizeEvent config)
-    appWidget = composite_ "app" id uiBuilder eventHandler compCfgs
+    ~modelFp = maybe "" ($ newModel) (_apcModelFingerprintFn config)
+    newRoot = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runAppLoop
   :: (MonomerM sp ep m, Eq sp, WidgetEvent e, WidgetEvent ep)
   => SDL.Window
   -> SDL.GLContext
   -> TChan (RenderMsg sp ep)
+  -> Maybe (WidgetNode sp ep)
   -> WidgetNode sp ep
-  -> AppConfig e
+  -> AppConfig s e
   -> m ()
-runAppLoop window glCtx channel widgetRoot config = do
+runAppLoop window glCtx channel mRootOld newRoot config = do
+  isGhci <- liftIO isGhciRunning
   dpr <- use L.dpr
   winSize <- use L.windowSize
 
@@ -150,10 +186,16 @@ runAppLoop window glCtx channel widgetRoot config = do
   os <- liftIO getPlatform
   widgetSharedMVar <- liftIO $ newMVar Map.empty
   fontManager <- liftIO $ makeFontManager fonts dpr
+  -- Restore previous state
+  hovered <- getHoveredPath
+  focused <- getFocusedPath
+  overlay <- getOverlayPath
+  dragged <- getDraggedMsgInfo
 
   let wenv = WidgetEnv {
     _weOs = os,
     _weDpr = dpr,
+    _weIsGhci = isGhci,
     _weAppStartTs = appStartTs,
     _weFontManager = fontManager,
     _weFindBranchByPath = const Seq.empty,
@@ -164,10 +206,10 @@ runAppLoop window glCtx channel widgetRoot config = do
     _weWidgetShared = widgetSharedMVar,
     _weWidgetKeyMap = Map.empty,
     _weCursor = Nothing,
-    _weHoveredPath = Nothing,
-    _weFocusedPath = emptyPath,
-    _weOverlayPath = Nothing,
-    _weDragStatus = Nothing,
+    _weHoveredPath = hovered,
+    _weFocusedPath = focused,
+    _weOverlayPath = overlay,
+    _weDragStatus = dragged,
     _weMainBtnPress = Nothing,
     _weModel = model,
     _weInputStatus = def,
@@ -178,9 +220,13 @@ runAppLoop window glCtx channel widgetRoot config = do
     _weViewport = Rect 0 0 (winSize ^. L.w) (winSize ^. L.h),
     _weOffset = def
   }
-  let pathReadyRoot = widgetRoot
+  let tmpRoot = newRoot
         & L.info . L.path .~ rootPath
         & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
+  let mergeNewRoot newRoot oldRoot = result where
+        result = widgetMerge (newRoot ^. L.widget) wenv newRoot oldRoot
+  let result = maybe (resultNode tmpRoot) (mergeNewRoot tmpRoot) mRootOld
+  let appRoot = result ^. L.node
   let makeMainThreadRenderer = do
         renderer <- liftIO $ makeRenderer fonts dpr
         L.renderMethod .= Left renderer
@@ -192,10 +238,10 @@ runAppLoop window glCtx channel widgetRoot config = do
 
       liftIO . void . forkOS $
         {-
-        The wenv and widgetRoot values are not used, since they are replaced
+        The wenv and appRoot values are not used, since they are replaced
         during MsgInit. Kept to avoid issues with the Strict pragma.
         -}
-        startRenderThread stpChan channel window glCtx fonts dpr wenv widgetRoot
+        startRenderThread stpChan channel window glCtx fonts dpr wenv appRoot
 
       setupRes <- liftIO . atomically $ readTChan stpChan
 
@@ -212,7 +258,10 @@ runAppLoop window glCtx channel widgetRoot config = do
       makeMainThreadRenderer
 
   handleResourcesInit
-  (newWenv, newRoot, _) <- handleWidgetInit wenv pathReadyRoot
+
+  (newWenv, newAppRoot, _) <- if isJust mRootOld
+    then handleWidgetResult wenv True result
+    else handleWidgetInit wenv appRoot
 
   {-
   Deferred initialization step to account for Widgets that rely on OpenGL. They
@@ -221,13 +270,14 @@ runAppLoop window glCtx channel widgetRoot config = do
   -}
   case setupRes of
     RenderSetupMulti -> do
-      liftIO . atomically $ writeTChan channel (MsgInit newWenv newRoot)
+      liftIO . atomically $ writeTChan channel (MsgInit newWenv newAppRoot)
 
       unless (isLinux newWenv) $
         liftIO $ watchWindowResize channel
     _ -> return ()
 
   let loopArgs = MainLoopArgs {
+    _mlIsGhci = isGhci,
     _mlOS = os,
     _mlTheme = theme,
     _mlMaxFps = maxFps,
@@ -237,7 +287,7 @@ runAppLoop window glCtx channel widgetRoot config = do
     _mlFrameAccumTs = 0,
     _mlFrameCount = 0,
     _mlExitEvents = exitEvents,
-    _mlWidgetRoot = newRoot,
+    _mlWidgetRoot = newAppRoot,
     _mlWidgetShared = widgetSharedMVar
   }
 
@@ -249,7 +299,7 @@ mainLoop
   :: (MonomerM sp ep m, WidgetEvent e)
   => SDL.Window
   -> FontManager
-  -> AppConfig e
+  -> AppConfig s e
   -> MainLoopArgs sp e ep
   -> m ()
 mainLoop window fontManager config loopArgs = do
@@ -301,6 +351,7 @@ mainLoop window fontManager config loopArgs = do
   let wenv = WidgetEnv {
     _weOs = _mlOS,
     _weDpr = dpr,
+    _weIsGhci = _mlIsGhci,
     _weAppStartTs = _mlAppStartTs,
     _weFontManager = fontManager,
     _weFindBranchByPath = findChildBranchByPath wenv _mlWidgetRoot,
@@ -379,6 +430,7 @@ mainLoop window fontManager config loopArgs = do
   let tempDelay = abs (frameLength - fromIntegral remainingMs * 1000)
   let nextFrameDelay = min frameLength tempDelay
   let latestRenderTs = if renderNeeded then startTs else _mlLatestRenderTs
+  let newModel = newWenv ^. L.model
   let newLoopArgs = loopArgs {
     _mlLatestRenderTs = latestRenderTs,
     _mlFrameStartTs = startTs,
@@ -386,6 +438,10 @@ mainLoop window fontManager config loopArgs = do
     _mlFrameCount = if newSecond then 0 else _mlFrameCount + 1,
     _mlWidgetRoot = newRoot
   }
+
+  when _mlIsGhci $ do
+    ctx <- get
+    liftIO $ updateReloadData ctx newRoot
 
   liftIO $ threadDelay nextFrameDelay
 
@@ -595,3 +651,66 @@ getElapsedTimestampSince :: MonadIO m => Millisecond -> m Millisecond
 getElapsedTimestampSince start = do
   ts <- getCurrentTimestamp
   return (ts - start)
+
+-- Hot reload support
+
+reloadStoreId :: Word32
+reloadStoreId = 0
+
+getReloadData :: IO (Maybe (MonomerReloadData s e))
+getReloadData = FS.lookupStore reloadStoreId >>= \case
+  Just{} -> Just <$> FS.readStore (FS.Store reloadStoreId)
+  _ -> return Nothing
+
+setReloadData :: MonomerReloadData s e -> IO ()
+setReloadData = FS.writeStore (FS.Store reloadStoreId)
+
+resetReloadData :: IO ()
+resetReloadData = FS.deleteStore (FS.Store reloadStoreId)
+
+updateReloadData :: MonomerCtx s e -> WidgetNode s e -> IO ()
+updateReloadData context widgetRoot = do
+  whenJustM getReloadData $ \rd ->
+    setReloadData rd {
+      _mrdMonomerCtx = context,
+      _mrdRoot = widgetRoot
+    }
+
+{-|
+When running in GHCi, avoids reinitializing SDL, reuses the existing window and
+restores the model and (merged) widget tree when code is reloaded.
+-}
+retrieveSDLWindow
+  :: AppConfig s e
+  -> TChan (RenderMsg s e)
+  -> s
+  -> IO (SDL.Window, SDL.GLContext, MonomerCtx s e)
+retrieveSDLWindow config channel model = do
+  getReloadData >>= \case
+    Just rd -> return (_mrdWindow rd, _mrdGlContext rd, newCtx) where
+      ctx = _mrdMonomerCtx rd
+      newCtx = ctx {
+        _mcMainModel = model,
+        _mcRenderMethod = Right channel
+      }
+    Nothing -> do
+      (window, dpr, epr, ctxRender) <- initSDLWindow config
+      vpSize <- getViewportSize window dpr
+      let newCtx = initMonomerCtx window channel vpSize dpr epr model
+      return (window, ctxRender, newCtx)
+
+retrieveModelAndRoot
+  :: WidgetModel s
+  => AppConfig s e
+  -> s
+  -> WidgetNode s e
+  -> IO (s, Maybe (WidgetNode s e))
+retrieveModelAndRoot config newModel newRoot = getReloadData >>= \case
+  Just rd
+    | attemptModelReuse && fingerprint == _mrdModelFp rd ->
+        return (_mrdMonomerCtx rd ^. L.mainModel, Just (_mrdRoot rd))
+  _ -> do
+    return (newModel, Nothing)
+  where
+    attemptModelReuse = isJust (_apcModelFingerprintFn config)
+    ~fingerprint = fromJust (_apcModelFingerprintFn config) newModel

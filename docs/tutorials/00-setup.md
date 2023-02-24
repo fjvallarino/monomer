@@ -195,7 +195,7 @@ non-threaded modes.
 
 ## Development mode
 
-Since compilation times can be annoying, I personally prefer to rely on
+Since compilation times can be annoying, I prefer to rely on
 [ghcid](https://github.com/ndmitchell/ghcid) for a nicer development experience.
 First, you need to install it:
 
@@ -209,18 +209,29 @@ Then, inside your project's directory:
 ghcid
 ```
 
+With this you will be running your application in interpreted mode (`ghcid`
+under the hood uses `ghci`), allowing you to make changes and test them almost
+immediately.
+
+If the `appModelFingerprint` setting is provided, Monomer will attempt to reuse
+the active model when the application is reloaded. This allows for faster
+iteration since the application will return to the previous state but with all
+the code and style changes that triggered the reload. Closing the window causes
+the old model to be discarded, and the application will start from scratch when
+reloaded.
+
+In general, this will work fine, but in some cases modifying data types can
+cause ghci to crash. Restarting ghcid/ghci will solve the issue. You can read
+more details
+[here](https://hackage.haskell.org/package/monomer/docs/Monomer-Main-Types.html#v:appModelFingerprint).
+
+### VS Code
+
 If you use Visual Studio Code, you can also use this [very nice
 extension](https://marketplace.visualstudio.com/items?itemName=ndmitchell.haskell-ghcid).
 
 Once installed, pressing `Ctrl-Shift-P` will allow you to invoke the
 `Start Ghcid` command. You can also run `ghcid` on the command line directly.
-
-With this you will be running your application in interpreted mode (`ghcid`
-under the hood uses `ghci`), allowing you to make changes and test them almost
-immediately.
-
-Note: when a file is saved, a new instance of the application will be in a new
-window. The previous window needs to be closed manually.
 
 ## Notes for Intel Mac users
 
@@ -257,7 +268,7 @@ Reference: http://supermegaultragroovy.com/2016/12/10/auto-graphics-switching
 ### ghcid
 
 The sample project includes custom .ghci and .ghcid files. The most important
-change in .ghci is for Mac users, since macOS does not allow graphics setup to
+change in .ghci is for Mac users since macOS does not allow graphics setup to
 happen outside the main thread (by default `ghci` spawns a thread for user
 code). If you create your custom GHCi config and run into issues, check if you
 are providing the necessary flags.

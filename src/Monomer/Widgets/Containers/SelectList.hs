@@ -315,8 +315,9 @@ makeSelectList widgetData items makeRow config state = widget where
 
   mergeChildrenReq wenv node oldNode oldState = result where
     oldItems = _prevItems oldState
+    isReload = isWidgetReload wenv
     mergeRequiredFn = fromMaybe (const (/=)) (_slcMergeRequired config)
-    result = mergeRequiredFn wenv oldItems items
+    result = isReload || mergeRequiredFn wenv oldItems items
 
   merge wenv node oldNode oldState = resultNode newNode where
     selected = currentValue wenv

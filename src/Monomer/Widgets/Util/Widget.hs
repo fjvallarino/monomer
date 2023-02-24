@@ -34,7 +34,8 @@ module Monomer.Widgets.Util.Widget (
   nodeMatches,
   handleWidgetIdChange,
   delayedMessage,
-  delayedMessage_
+  delayedMessage_,
+  isWidgetReload
 ) where
 
 import Control.Concurrent (threadDelay)
@@ -213,3 +214,6 @@ delayedMessage_
 delayedMessage_ widgetId path msg delay = RunTask widgetId path $ do
   threadDelay (fromIntegral delay * 1000)
   return msg
+
+isWidgetReload :: WidgetEnv s e -> Bool
+isWidgetReload wenv = wenv ^. L.isGhci && wenv ^. L.timestamp == 0

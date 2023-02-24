@@ -499,7 +499,7 @@ handleFocusRequest wenv oldNode evt mResult = newResult where
 
   newReq = SetFocus (node ^. L.info . L.widgetId)
   newResult
-    | isFocusReq && isJust mResult = (& L.requests %~ (|> newReq)) <$> mResult
+    | isFocusReq && isJust mResult = (L.requests %~ (|> newReq)) <$> mResult
     | isFocusReq = Just $ resultReqs node [newReq]
     | otherwise = mResult
 
