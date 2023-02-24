@@ -102,6 +102,6 @@ putStrLnErr msg = catchAny
   (hPutStrLn stderr msg)
   (const $ putStrLn msg)
 
--- | Checks if the application is runnign in ghci.
+-- | Checks if the application is running in ghci.
 isGhciRunning :: IO Bool
 isGhciRunning = SE.getProgName <&> (== "<interactive>")
