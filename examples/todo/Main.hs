@@ -168,7 +168,7 @@ handleEvent
   -> TodoNode
   -> TodoModel
   -> TodoEvt
-  -> [EventResponse TodoModel TodoEvt TodoModel ()]
+  -> [EventResponse TodoModel TodoEvt TodoModel TodoEvt]
 handleEvent wenv node model evt = case evt of
   TodoInit -> [SetFocusOnKey "todoNew"]
 

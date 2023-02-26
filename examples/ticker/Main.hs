@@ -123,7 +123,7 @@ handleEvent
   -> TickerNode
   -> TickerModel
   -> TickerEvt
-  -> [EventResponse TickerModel TickerEvt TickerModel ()]
+  -> [EventResponse TickerModel TickerEvt TickerModel TickerEvt]
 handleEvent env wenv node model evt = case evt of
   TickerInit -> [
     Model $ model

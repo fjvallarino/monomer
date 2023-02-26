@@ -140,7 +140,7 @@ handleEvent
   -> WidgetNode BooksModel BooksEvt
   -> BooksModel
   -> BooksEvt
-  -> [EventResponse BooksModel BooksEvt BooksModel ()]
+  -> [EventResponse BooksModel BooksEvt BooksModel BooksEvt]
 handleEvent sess wenv node model evt = case evt of
   BooksInit -> [SetFocusOnKey "query"]
   BooksSearch -> [

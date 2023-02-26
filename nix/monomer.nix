@@ -23,7 +23,7 @@ with super.haskellPackages.extend (self: super:
   }); rec {
     libraries = recurseIntoAttrs {
       monomer = addExtraLibrary
-        (overrideCabal (callCabal2nix "monomer" ../. { }) (o: {
+        (overrideCabal (callCabal2nixWithOptions "monomer" ../. "-fexamples" { }) (o: {
           version = "${o.version}.${version}";
           doCheck = true;
           checkPhase = ''

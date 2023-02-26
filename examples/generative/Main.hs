@@ -101,7 +101,7 @@ handleEvent
   -> GenerativeNode
   -> GenerativeModel
   -> GenerativeEvt
-  -> [EventResponse GenerativeModel GenerativeEvt GenerativeModel ()]
+  -> [EventResponse GenerativeModel GenerativeEvt GenerativeModel GenerativeEvt]
 handleEvent wenv node model evt = case evt of
   GenerativeInit -> [SetFocusOnKey "activeType"]
 
