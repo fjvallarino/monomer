@@ -29,5 +29,13 @@
         };
         defaultPackage = packages.monomer;
         defaultApp = apps.tutorial;
+        devShell = haskellPackages.shellFor {
+          packages = p: [ packages.monomer ];
+          withHoogle = true;
+          buildInputs = with haskellPackages; [
+            haskell-language-server
+            cabal-install
+          ];
+        };
       });
 }
