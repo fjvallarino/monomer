@@ -92,14 +92,14 @@ in rec {
             };
           };
 
-          virtualisation = {
-            graphics = true;
-            cores = 4;
-            qemu.networkingOptions = [
-              "-device virtio-net-pci,netdev=user.0"
-              "-netdev type=user,id=user.0\${QEMU_NET_OPTS:+,$QEMU_NET_OPTS}"
-            ];
-          };
+          # virtualisation = {
+          #   graphics = true;
+          #   cores = 4;
+          #   qemu.networkingOptions = [
+          #     "-device virtio-net-pci,netdev=user.0"
+          #     "-netdev type=user,id=user.0\${QEMU_NET_OPTS:+,$QEMU_NET_OPTS}"
+          #   ];
+          # };
         };
     }).vm;
   };

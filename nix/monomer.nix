@@ -16,7 +16,7 @@ with super.haskellPackages.extend (self: super:
       rev = "283516a337c4d3606555728df0a39294e78a7cdf";
       sha256 = "1vggli76ijqmx633yix4yg5dv58a14p8561jnprjc061sjngphzv";
     }) "-fexamples -fstb_truetype" {
-      inherit GLEW glew libGL libGLU;
+      inherit glew libGL libGLU;
       inherit (xorg) libX11;
     });
     GLEW = glew;
