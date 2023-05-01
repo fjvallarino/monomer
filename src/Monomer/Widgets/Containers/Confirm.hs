@@ -124,31 +124,31 @@ newtype InnerConfirmEvt e
 
 -- | Creates a confirm dialog with the provided content.
 confirm
-  :: (WidgetModel s, WidgetEvent e)
+  :: (CompositeModel s, WidgetEvent e)
   => e                                  -- ^ The accept button event.
   -> e                                  -- ^ The cancel button event.
-  -> WidgetNode () (InnerConfirmEvt e)  -- ^ Content to display in the dialog.
+  -> WidgetNode s (InnerConfirmEvt e)   -- ^ Content to display in the dialog.
   -> WidgetNode s e                     -- ^ The created dialog.
 confirm acceptEvt cancelEvt dialogBody = newNode where
   newNode = confirm_ acceptEvt cancelEvt def dialogBody
 
 -- | Creates a confirm dialog with the provided content. Accepts config.
 confirm_
-  :: (WidgetModel s, WidgetEvent e)
+  :: (CompositeModel s, WidgetEvent e)
   => e                                  -- ^ The accept button event.
   -> e                                  -- ^ The cancel button event.
   -> [ConfirmCfg]                       -- ^ The config options for the dialog.
-  -> WidgetNode () (InnerConfirmEvt e)  -- ^ Content to display in the dialog.
+  -> WidgetNode s (InnerConfirmEvt e)   -- ^ Content to display in the dialog.
   -> WidgetNode s e                     -- ^ The created dialog.
 confirm_ acceptEvt cancelEvt configs dialogBody = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) acceptEvt cancelEvt config
   compCfg = [compositeMergeReqs mergeReqs]
-  newNode = compositeD_ "confirm" (WidgetValue ()) createUI handleEvent compCfg
+  newNode = compositeD_ "confirm" (WidgetLens id) createUI handleEvent compCfg
 
 -- | Creates a confirm dialog with a text message as content.
 confirmMsg
-  :: (WidgetModel s, WidgetEvent e)
+  :: (CompositeModel s, WidgetEvent e)
   => Text            -- ^ The message to display in the dialog.
   -> e               -- ^ The accept button event.
   -> e               -- ^ The cancel button event.
@@ -157,7 +157,7 @@ confirmMsg msg acceptEvt cancelEvt = confirmMsg_ msg acceptEvt cancelEvt def
 
 -- | Creates a confirm dialog with a text message as content. Accepts config.
 confirmMsg_
-  :: (WidgetModel s, WidgetEvent e)
+  :: (CompositeModel s, WidgetEvent e)
   => Text            -- ^ The message to display in the dialog.
   -> e               -- ^ The accept button event.
   -> e               -- ^ The cancel button event.
@@ -169,7 +169,7 @@ confirmMsg_ message acceptEvt cancelEvt configs = newNode where
     & L.info . L.style .~ collectTheme wenv L.dialogMsgBodyStyle
   createUI = buildUI dialogBody acceptEvt cancelEvt config
   compCfg = [compositeMergeReqs mergeReqs]
-  newNode = compositeD_ "confirm" (WidgetValue ()) createUI handleEvent compCfg
+  newNode = compositeD_ "confirm" (WidgetLens id) createUI handleEvent compCfg
 
 mergeReqs :: MergeReqsHandler s e sp
 mergeReqs wenv newNode oldNode parentModel oldModel model = reqs where
@@ -180,7 +180,7 @@ mergeReqs wenv newNode oldNode parentModel oldModel model = reqs where
     | otherwise = []
 
 buildUI
-  :: (WidgetModel s, WidgetEvent ep)
+  :: (CompositeModel s, WidgetEvent ep)
   => (WidgetEnv s (InnerConfirmEvt ep) -> WidgetNode s (InnerConfirmEvt ep))
   -> ep
   -> ep
