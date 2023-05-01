@@ -430,9 +430,7 @@ makeBox config state = widget where
 
     ButtonAction point btn BtnReleased clicks
       | clicks > 1 && not (null reqs) && inChildVp point -> result where
-        reqsA = _boxOnClickReq config
-        reqsB = _boxOnBtnReleasedReq config <*> pure btn <*> pure clicks
-        reqs = reqsA <> reqsB
+        reqs = _boxOnBtnReleasedReq config <*> pure btn <*> pure clicks
         result = Just (resultReqs node reqs)
 
     ButtonAction point btn BtnReleased clicks
