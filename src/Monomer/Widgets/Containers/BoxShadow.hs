@@ -59,9 +59,9 @@ instance Default BoxShadowCfg where
 
 instance Semigroup BoxShadowCfg where
   (<>) c1 c2 = BoxShadowCfg {
-    _bscRadius = _bscRadius c1 <|> _bscRadius c2,
-    _bscAlignH = _bscAlignH c1 <|> _bscAlignH c2,
-    _bscAlignV = _bscAlignV c1 <|> _bscAlignV c2
+    _bscRadius = _bscRadius c2 <|> _bscRadius c1,
+    _bscAlignH = _bscAlignH c2 <|> _bscAlignH c1,
+    _bscAlignV = _bscAlignV c2 <|> _bscAlignV c1
   }
 
 instance Monoid BoxShadowCfg where
