@@ -30,6 +30,8 @@ module Monomer.Widgets.Containers.Draggable (
   DraggableCfg,
   draggableMaxDim,
   draggableStyle,
+  draggableHideOrigin,
+  draggableHideOrigin_,
   draggableRender,
   -- * Constructors
   draggable,
@@ -63,6 +65,7 @@ Configuration options for draggable:
 - 'draggableMaxDim': the maximum size of the largest axis when dragging. Keeps
   proportions.
 - 'draggableStyle': the style to use when the item is being dragged.
+- 'draggableHideOrigin': whether to hide the original widget when dragging.
 - 'draggableRender': rendering function for the dragged state. Allows
   customizing this step without implementing a custom widget all the lifecycle
   steps.
@@ -76,6 +79,7 @@ data DraggableCfg s e = DraggableCfg {
   _dgcTransparency :: Maybe Double,
   _dgcMaxDim :: Maybe Double,
   _dgcDragStyle :: Maybe StyleState,
+  _dgcHideOrigin :: Maybe Bool,
   _dgcCustomRender :: Maybe (DraggableRender s e)
 }
 
@@ -84,6 +88,7 @@ instance Default (DraggableCfg s e) where
     _dgcTransparency = Nothing,
     _dgcMaxDim = Nothing,
     _dgcDragStyle = Nothing,
+    _dgcHideOrigin = Nothing,
     _dgcCustomRender = Nothing
   }
 
@@ -92,6 +97,7 @@ instance Semigroup (DraggableCfg s e) where
     _dgcTransparency = _dgcTransparency t2 <|> _dgcTransparency t1,
     _dgcMaxDim = _dgcMaxDim t2 <|> _dgcMaxDim t1,
     _dgcDragStyle = _dgcDragStyle t2 <|> _dgcDragStyle t1,
+    _dgcHideOrigin = _dgcHideOrigin t2 <|> _dgcHideOrigin t1,
     _dgcCustomRender = _dgcCustomRender t2 <|> _dgcCustomRender t1
   }
 
@@ -116,6 +122,16 @@ draggableMaxDim dim = def {
 draggableStyle :: [StyleState] -> DraggableCfg s e
 draggableStyle styles = def {
   _dgcDragStyle = Just (mconcat styles)
+}
+
+-- | Hides the original widget when dragging.
+draggableHideOrigin :: DraggableCfg s e
+draggableHideOrigin = draggableHideOrigin_ True
+
+-- | Whether to hide the original widget when dragging.
+draggableHideOrigin_ :: Bool -> DraggableCfg s e
+draggableHideOrigin_ hide = def {
+  _dgcHideOrigin = Just hide
 }
 
 -- | Rendering function for the dragged state.
@@ -154,7 +170,8 @@ makeDraggable msg config = widget where
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
     containerResize = resize,
-    containerRender = render
+    containerRender = render,
+    containerRenderAfter = renderPost
   }
 
   handleEvent wenv node target evt = case evt of
@@ -209,9 +226,15 @@ makeDraggable msg config = widget where
       scOffset = wenv ^. L.offset
 
   render wenv node renderer = do
-    when dragged $
+    when dragged $ do
       createOverlay renderer $ do
         renderAction config wenv node renderer
+      saveContext renderer
+      when hideOrigin $ setGlobalAlpha renderer 0
     where
       dragged = isNodeDragged wenv node
       renderAction = fromMaybe defaultRender (_dgcCustomRender config)
+      hideOrigin = fromMaybe False (_dgcHideOrigin config)
+
+  renderPost wenv node renderer = do
+    restoreContext renderer
