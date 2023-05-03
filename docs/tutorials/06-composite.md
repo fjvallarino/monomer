@@ -90,9 +90,10 @@ how can you get the WidgetId of a widget node?
 ### Key, Path and WidgetId
 
 The are three types of identifiers for a widget. One, as we've seen, is the
-`nodeKey`. This is a user defined identifier, and provides a human friendly way
-of identifying widgets. Besides nodeKey, there are two identifiers which are
-mostly internal, unless you are writing custom widgets or making WidgetRequests:
+`WidgetKey`. This is a user defined identifier, and provides a human friendly
+way of identifying widgets. Besides `WidgetKey`, there are two identifiers which
+are mostly internal, unless you are writing custom widgets or making
+WidgetRequests:
 
 - `Path`: This is a sequence of numbers starting from the root node, adding one
   number per level, until reaching the node of interest. Each number is an index
@@ -110,8 +111,11 @@ mostly internal, unless you are writing custom widgets or making WidgetRequests:
 
 There are a couple of functions you can use to get the WidgetId of a node:
 
-- If you have a key you can call `widgetIdFromKey`, which returns a WidgetId if
-  the Path is valid. There is also a `pathFromKey` to get the Path instead.
+- You can tag any WidgetNode with a user defined WidgetKey via `nodeKey`. This
+  name will be stable between tree merges on the UI.
+- If you have a WidgetKey you can call `widgetIdFromKey`, which returns a
+  WidgetId if the Path is valid. There is also a `pathFromKey` to get the Path
+  instead.
 - If you have a Path you can call `widgetIdFromPath`, which returns a WidgetId
   if the Path is valid.
 - Alternatively, you can call `nodeInfoFromKey` or `nodeInfoFromPath` to get all
