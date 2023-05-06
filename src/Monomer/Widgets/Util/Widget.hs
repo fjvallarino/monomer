@@ -119,7 +119,7 @@ widgetDataGet model (WidgetLens lens) = model ^# lens
 
 {-|
 Generates a model update request with the provided value when the WidgetData is
-WidgetLens. For WidgetValue and onChange event should be used.
+WidgetLens. For WidgetValue an onChange event should be used.
 -}
 widgetDataSet :: WidgetData s a -> a -> [WidgetRequest s e]
 widgetDataSet WidgetValue{} _ = []
