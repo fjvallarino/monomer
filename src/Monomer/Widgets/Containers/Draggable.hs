@@ -30,8 +30,8 @@ module Monomer.Widgets.Containers.Draggable (
   DraggableCfg,
   draggableMaxDim,
   draggableStyle,
-  draggableHideOrigin,
-  draggableHideOrigin_,
+  draggableRenderSource,
+  draggableRenderSource_,
   draggableRender,
   -- * Constructors
   draggable,
@@ -65,7 +65,7 @@ Configuration options for draggable:
 - 'draggableMaxDim': the maximum size of the largest axis when dragging. Keeps
   proportions.
 - 'draggableStyle': the style to use when the item is being dragged.
-- 'draggableHideOrigin': whether to hide the original widget when dragging.
+- 'draggableRenderSource': whether to render the source widget when dragging.
 - 'draggableRender': rendering function for the dragged state. Allows
   customizing this step without implementing a custom widget all the lifecycle
   steps.
@@ -79,7 +79,7 @@ data DraggableCfg s e = DraggableCfg {
   _dgcTransparency :: Maybe Double,
   _dgcMaxDim :: Maybe Double,
   _dgcDragStyle :: Maybe StyleState,
-  _dgcHideOrigin :: Maybe Bool,
+  _dgcRenderSource :: Maybe Bool,
   _dgcCustomRender :: Maybe (DraggableRender s e)
 }
 
@@ -88,7 +88,7 @@ instance Default (DraggableCfg s e) where
     _dgcTransparency = Nothing,
     _dgcMaxDim = Nothing,
     _dgcDragStyle = Nothing,
-    _dgcHideOrigin = Nothing,
+    _dgcRenderSource = Nothing,
     _dgcCustomRender = Nothing
   }
 
@@ -97,7 +97,7 @@ instance Semigroup (DraggableCfg s e) where
     _dgcTransparency = _dgcTransparency t2 <|> _dgcTransparency t1,
     _dgcMaxDim = _dgcMaxDim t2 <|> _dgcMaxDim t1,
     _dgcDragStyle = _dgcDragStyle t2 <|> _dgcDragStyle t1,
-    _dgcHideOrigin = _dgcHideOrigin t2 <|> _dgcHideOrigin t1,
+    _dgcRenderSource = _dgcRenderSource t2 <|> _dgcRenderSource t1,
     _dgcCustomRender = _dgcCustomRender t2 <|> _dgcCustomRender t1
   }
 
@@ -124,14 +124,14 @@ draggableStyle styles = def {
   _dgcDragStyle = Just (mconcat styles)
 }
 
--- | Hides the original widget when dragging.
-draggableHideOrigin :: DraggableCfg s e
-draggableHideOrigin = draggableHideOrigin_ True
+-- | Renders the source widget when dragging.
+draggableRenderSource :: DraggableCfg s e
+draggableRenderSource = draggableRenderSource_ True
 
--- | Whether to hide the original widget when dragging.
-draggableHideOrigin_ :: Bool -> DraggableCfg s e
-draggableHideOrigin_ hide = def {
-  _dgcHideOrigin = Just hide
+-- | Whether to render the source widget when dragging.
+draggableRenderSource_ :: Bool -> DraggableCfg s e
+draggableRenderSource_ hide = def {
+  _dgcRenderSource = Just hide
 }
 
 -- | Rendering function for the dragged state.
@@ -227,7 +227,7 @@ makeDraggable msg config = widget where
       scOffset = wenv ^. L.offset
 
   render wenv node renderer = do
-    when (not dragged || not hideOrigin) $
+    when (not dragged || renderSource) $
       forM_ (node ^. L.children) $ \child ->
         widgetRender (child ^. L.widget) wenv child renderer
     when dragged $
@@ -236,4 +236,4 @@ makeDraggable msg config = widget where
     where
       dragged = isNodeDragged wenv node
       renderAction = fromMaybe defaultRender (_dgcCustomRender config)
-      hideOrigin = fromMaybe False (_dgcHideOrigin config)
+      renderSource = fromMaybe False (_dgcRenderSource config)
