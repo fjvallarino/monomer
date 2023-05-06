@@ -40,7 +40,7 @@ module Monomer.Widgets.Containers.Draggable (
 
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (^?!), (.~), _Just, _1, _2, at, ix)
-import Control.Monad (when)
+import Control.Monad (forM_, when)
 import Data.Default
 import Data.Maybe
 
@@ -166,12 +166,13 @@ makeNode widget managedWidget = defaultWidgetNode "draggable" widget
 
 makeDraggable :: DragMsg a => a -> DraggableCfg s e -> Widget s e
 makeDraggable msg config = widget where
-  widget = createContainer () def {
+  baseWidget = createContainer () def {
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
-    containerResize = resize,
-    containerRender = render,
-    containerRenderAfter = renderPost
+    containerResize = resize
+  }
+  widget = baseWidget {
+    widgetRender = render
   }
 
   handleEvent wenv node target evt = case evt of
@@ -226,15 +227,13 @@ makeDraggable msg config = widget where
       scOffset = wenv ^. L.offset
 
   render wenv node renderer = do
-    when dragged $ do
+    when (not dragged || not hideOrigin) $
+      forM_ (node ^. L.children) $ \child ->
+        widgetRender (child ^. L.widget) wenv child renderer
+    when dragged $
       createOverlay renderer $ do
         renderAction config wenv node renderer
-      saveContext renderer
-      when hideOrigin $ setGlobalAlpha renderer 0
     where
       dragged = isNodeDragged wenv node
       renderAction = fromMaybe defaultRender (_dgcCustomRender config)
       hideOrigin = fromMaybe False (_dgcHideOrigin config)
-
-  renderPost wenv node renderer = do
-    restoreContext renderer
