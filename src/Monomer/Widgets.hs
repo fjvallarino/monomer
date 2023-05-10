@@ -12,9 +12,7 @@ module Monomer.Widgets (
   -- * Composite widget
   module Monomer.Widgets.Composite,
   -- * Animation
-  module Monomer.Widgets.Animation.Fade,
-  module Monomer.Widgets.Animation.Slide,
-  module Monomer.Widgets.Animation.Types,
+  module Monomer.Widgets.Animation,
   -- * Containers
   module Monomer.Widgets.Containers.Alert,
   module Monomer.Widgets.Containers.Box,
@@ -61,9 +59,7 @@ module Monomer.Widgets (
 
 import Monomer.Widgets.Composite
 
-import Monomer.Widgets.Animation.Fade
-import Monomer.Widgets.Animation.Slide
-import Monomer.Widgets.Animation.Types
+import Monomer.Widgets.Animation
 
 import Monomer.Widgets.Containers.Alert
 import Monomer.Widgets.Containers.Box
