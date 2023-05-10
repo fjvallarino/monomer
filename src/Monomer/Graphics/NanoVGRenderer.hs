@@ -23,7 +23,7 @@ import Data.Functor ((<&>))
 import Data.IORef
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
-import Data.Set (Set(..))
+import Data.Set (Set)
 import Data.Text (Text)
 import Foreign.C.Types (CFloat)
 

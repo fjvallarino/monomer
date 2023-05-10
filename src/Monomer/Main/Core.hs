@@ -14,9 +14,9 @@ Core glue for running an application.
 {-# LANGUAGE Strict #-}
 
 module Monomer.Main.Core (
-  AppEventResponse(..),
-  AppEventHandler(..),
-  AppUIBuilder(..),
+  AppEventResponse,
+  AppEventHandler,
+  AppUIBuilder,
   startApp
 ) where
 
