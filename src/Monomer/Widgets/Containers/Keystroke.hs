@@ -79,10 +79,10 @@ module Monomer.Widgets.Containers.Keystroke (
 import Debug.Trace (traceShow)
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (^..), (.~), (%~), _1, at, folded)
+import Control.Lens ((&), (^.), (^..), (.~), (%~), _1, folded)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Bifunctor (first)
-import Data.Char (chr, isAscii, isPrint, ord)
+import Data.Char (isAscii, isPrint, ord)
 import Data.Default
 import Data.List (foldl')
 import Data.Set (Set)

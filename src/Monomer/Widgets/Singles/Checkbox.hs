@@ -43,8 +43,6 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 
-import qualified Data.Sequence as Seq
-
 import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L

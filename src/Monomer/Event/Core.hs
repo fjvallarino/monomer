@@ -16,14 +16,12 @@ module Monomer.Event.Core (
 ) where
 
 import Control.Applicative ((<|>))
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 
-import qualified Data.Map.Strict as M
 import qualified SDL
 
 import Monomer.Common
-import Monomer.Event.Keyboard
 import Monomer.Event.Types
 
 {-|

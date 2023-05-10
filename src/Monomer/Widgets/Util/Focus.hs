@@ -26,10 +26,7 @@ module Monomer.Widgets.Util.Focus (
   handleFocusChange
 ) where
 
-import Control.Lens ((&), (^.), (.~), (%~))
-import Data.Maybe
-import Data.Sequence (Seq(..), (|>))
-import Data.Typeable (Typeable)
+import Control.Lens ((^.))
 
 import qualified Data.Sequence as Seq
 

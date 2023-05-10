@@ -40,10 +40,8 @@ module Monomer.Widgets.Containers.ThemeSwitch (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Monad (when)
-import Control.Lens ((&), (^.), (.~), (%~), at)
+import Control.Lens ((&), (^.), (.~))
 import Data.Default
-import Data.Maybe
 
 import qualified Data.Sequence as Seq
 

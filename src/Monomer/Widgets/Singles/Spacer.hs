@@ -45,7 +45,6 @@ import Control.Applicative ((<|>))
 import Control.Lens ((^.))
 import Data.Default
 import Data.Maybe
-import Data.Tuple
 
 import Monomer.Widgets.Single
 

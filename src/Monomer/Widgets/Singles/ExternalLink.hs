@@ -27,10 +27,8 @@ module Monomer.Widgets.Singles.ExternalLink (
   externalLink_
 ) where
 
-import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~))
 import Data.Default
-import Data.Maybe
 import Data.Text (Text)
 import System.Process (callCommand)
 

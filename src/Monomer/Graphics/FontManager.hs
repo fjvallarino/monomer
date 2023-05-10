@@ -19,7 +19,6 @@ import Control.Monad (foldM, when)
 import Control.Lens ((^.))
 
 import Data.Default
-import Data.Sequence (Seq)
 import Data.Text (Text)
 import System.IO.Unsafe
 

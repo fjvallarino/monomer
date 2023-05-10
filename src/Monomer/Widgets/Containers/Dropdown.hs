@@ -51,14 +51,13 @@ module Monomer.Widgets.Containers.Dropdown (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (<>~), _Just, ix, non)
+import Control.Lens (ALens', (&), (^.), (^?!), (.~), (%~), (<>~), ix, non)
 import Control.Monad
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq(..), (<|), (|>))
-import Data.Text (Text)
-import Data.Typeable (Typeable, Proxy, cast, typeRep)
+import Data.Sequence (Seq(..), (|>))
+import Data.Typeable (Proxy, cast, typeRep)
 import GHC.Generics
 import TextShow
 
@@ -67,7 +66,6 @@ import qualified Data.Sequence as Seq
 import Monomer.Helper
 import Monomer.Widgets.Container
 import Monomer.Widgets.Containers.SelectList
-import Monomer.Widgets.Singles.Label
 
 import qualified Monomer.Lens as L
 

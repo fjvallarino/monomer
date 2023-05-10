@@ -46,25 +46,20 @@ module Monomer.Widgets.Containers.SelectList (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), at, ix, non, _Just)
-import Control.Monad (when)
+import Control.Lens (ALens', (&), (^.), (.~), (%~), at, ix)
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq(..), (<|), (|>))
-import Data.Text (Text)
+import Data.Sequence (Seq(..), (|>))
 import Data.Typeable (Typeable, Proxy, cast, typeRep)
 import TextShow
 
-import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
 import Monomer.Widgets.Containers.Box
 import Monomer.Widgets.Containers.Scroll
 import Monomer.Widgets.Containers.Stack
-import Monomer.Widgets.Singles.Label
-import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 

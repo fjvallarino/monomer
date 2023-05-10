@@ -30,11 +30,10 @@ module Monomer.Widgets.Animation.Fade (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~), at)
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad (when)
 import Data.Default
 import Data.Maybe
-import Data.Text (Text)
 import Data.Typeable (cast)
 import GHC.Generics
 

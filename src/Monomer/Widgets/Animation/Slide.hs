@@ -33,7 +33,7 @@ module Monomer.Widgets.Animation.Slide (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~), at)
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad (when)
 import Data.Default
 import Data.Maybe

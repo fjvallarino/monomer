@@ -24,7 +24,6 @@ import Control.Concurrent
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
 import Control.Exception
 import Control.Lens ((&), (^.), (.=), (.~), _2, use)
-import Control.Monad (unless, void, when)
 import Control.Monad.Extra
 import Control.Monad.State
 import Control.Monad.STM (atomically)
@@ -32,7 +31,6 @@ import Data.Default
 import Data.Either (isLeft)
 import Data.Maybe (fromMaybe, fromJust, isJust)
 import Data.Map (Map)
-import Data.List (foldl')
 import Data.Text (Text)
 import Data.Time
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)

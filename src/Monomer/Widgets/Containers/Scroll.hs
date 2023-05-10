@@ -52,7 +52,7 @@ module Monomer.Widgets.Containers.Scroll (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (.~), (^?), (^?!), (<>~), (%~), _Just, cloneLens, ix)
+import Control.Lens (ALens', (&), (^.), (.~), (^?), (^?!), (<>~), _Just, cloneLens, ix)
 import Control.Monad
 import Data.Default
 import Data.Maybe

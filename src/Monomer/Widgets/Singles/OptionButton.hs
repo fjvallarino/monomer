@@ -59,8 +59,7 @@ module Monomer.Widgets.Singles.OptionButton (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', Lens', (&), (^.), (^?), (.~), (?~), _Just)
-import Control.Monad
+import Control.Lens (ALens', Lens', (&), (^.), (.~), _Just)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)

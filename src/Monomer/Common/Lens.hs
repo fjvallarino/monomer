@@ -14,7 +14,7 @@ Lenses for the Common types.
 
 module Monomer.Common.Lens where
 
-import Control.Lens.TH (abbreviatedFields, makeLensesWith, makePrisms)
+import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
 import Monomer.Common.BasicTypes
 

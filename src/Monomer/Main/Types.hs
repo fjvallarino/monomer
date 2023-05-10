@@ -30,7 +30,6 @@ import Data.Typeable (Typeable)
 import Data.Sequence (Seq)
 import GHC.Generics
 
-import qualified Data.Map as M
 import qualified SDL
 import qualified SDL.Raw.Types as SDLR
 

@@ -49,11 +49,10 @@ module Monomer.Widgets.Container (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Exception (AssertionFailed(..), throw)
-import Control.Lens ((&), (^.), (^?), (.~), (%~), (<>~), _Just)
+import Control.Lens ((&), (^.), (.~), (%~), (<>~))
 import Control.Monad
 import Data.Default
-import Data.Foldable (fold, foldl')
+import Data.Foldable (foldl')
 import Data.Maybe
 import Data.Map.Strict (Map)
 import Data.Typeable (Typeable)

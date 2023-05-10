@@ -27,18 +27,18 @@ module Monomer.Main.Handlers (
 
 import Control.Concurrent.Async (async)
 import Control.Lens
-  ((&), (^.), (^?), (.~), (?~), (%~), (.=), (?=), (%=), (%%~), _Just, _1, _2, ix, at, use)
+  ((&), (^.), (.~), (?~), (%~), (.=), (?=), (%=), (%%~), _Just, _1, at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Default
-import Data.Foldable (fold, toList)
+import Data.Foldable (toList)
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
-import Data.Typeable (Typeable, typeOf)
+import Data.Typeable (Typeable)
 import SDL (($=))
 
 import qualified Data.Map as Map

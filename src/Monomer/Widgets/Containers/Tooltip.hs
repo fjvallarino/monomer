@@ -34,7 +34,7 @@ module Monomer.Widgets.Containers.Tooltip (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~), at)
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad (forM_, when)
 import Data.Default
 import Data.Maybe

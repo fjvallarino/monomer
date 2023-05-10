@@ -14,9 +14,8 @@ Helper functions for loading theme values.
 
 module Monomer.Widgets.Util.Theme where
 
-import Control.Lens (Lens', (&), (^.), (^?), (.~), (?~), (<>~), at, non)
+import Control.Lens (Lens', (&), (^.), (.~), (<>~), at, non)
 import Data.Default
-import Data.Maybe
 
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes

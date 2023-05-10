@@ -39,12 +39,10 @@ module Monomer.Widgets.Singles.ColorPicker (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), ALens', abbreviatedFields, makeLensesWith)
-import Data.ByteString (ByteString)
+import Control.Lens (ALens')
 import Data.ByteString.Builder (Builder, toLazyByteString)
 import Data.Default
 import Data.Maybe
-import Data.Text (Text)
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Builder as B

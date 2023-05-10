@@ -43,7 +43,6 @@ import Data.Maybe
 import Monomer.Common
 import Monomer.Core.StyleTypes
 import Monomer.Core.StyleUtil
-import Monomer.Core.Util
 import Monomer.Helper
 
 import qualified Monomer.Core.Lens as L

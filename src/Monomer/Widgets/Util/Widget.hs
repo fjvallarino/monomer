@@ -39,15 +39,11 @@ module Monomer.Widgets.Util.Widget (
 ) where
 
 import Control.Concurrent (threadDelay)
-import Control.Lens ((&), (^#), (#~), (^.), (^?), (.~), (%~), _Just)
+import Control.Lens ((&), (^#), (#~), (^.), (.~), (%~))
 import Data.Default
-import Data.Maybe
-import Data.Map.Strict (Map)
-import Data.Sequence (Seq(..), (<|))
-import Data.Text (Text)
+import Data.Sequence ((<|))
 import Data.Typeable (Typeable, cast)
 
-import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Common

@@ -35,20 +35,15 @@ module Monomer.Widgets.Singles.LabeledCheckbox (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (.~))
-import Control.Monad
+import Control.Lens (ALens')
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
-
-import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Containers.Base.LabeledItem
 import Monomer.Widgets.Single
 import Monomer.Widgets.Singles.Checkbox
 import Monomer.Widgets.Singles.Label
-
-import qualified Monomer.Lens as L
 
 {-|
 Configuration options for labeledCheckbox:

@@ -29,12 +29,6 @@ module Monomer.Event.Util (
   checkKeyboard
 ) where
 
-import Data.Maybe (fromMaybe)
-
-import qualified Data.Map as M
-
-import Monomer.Event.Core
-import Monomer.Event.Keyboard
 import Monomer.Event.Types
 
 -- | Checks if Windows/Cmd key is pressed.

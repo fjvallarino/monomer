@@ -38,12 +38,12 @@ module Monomer.Widgets.Containers.ZStack (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (^?), (.~), (%~), (?~), at, ix)
-import Control.Monad (forM_, void, when)
+import Control.Lens ((&), (^.), (^?), (.~), (%~), at, ix)
+import Control.Monad (void, when)
 import Data.Default
 import Data.Maybe
-import Data.List (foldl', any)
-import Data.Sequence (Seq(..), (<|), (|>))
+import Data.List (foldl')
+import Data.Sequence (Seq(..), (|>))
 import GHC.Generics
 
 import qualified Data.Map.Strict as M

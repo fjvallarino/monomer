@@ -66,14 +66,13 @@ module Monomer.Widgets.Composite (
 import Debug.Trace
 
 import Control.Applicative ((<|>))
-import Control.Exception (AssertionFailed(..), throw)
-import Control.Lens (ALens', (&), (^.), (^?), (.~), (%~), (<>~), at, ix, non)
+import Control.Lens (ALens', (&), (^.), (.~), (%~), (<>~))
 import Control.Monad (when)
 import Data.Default
 import Data.List (foldl')
 import Data.Map.Strict (Map)
 import Data.Maybe
-import Data.Sequence (Seq(..), (|>), (<|), fromList)
+import Data.Sequence (Seq(..), (|>), (<|))
 import Data.Typeable (Typeable, cast, typeOf)
 
 import qualified Data.Map.Strict as M

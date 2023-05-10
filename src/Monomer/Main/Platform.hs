@@ -23,12 +23,10 @@ module Monomer.Main.Platform (
 ) where
 
 import Control.Exception (finally)
-import Control.Monad (void)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.State
 import Data.Maybe
 import Data.Text (Text)
-import Data.Word
 import Foreign (alloca, peek)
 import Foreign.C (peekCString, withCString)
 import Foreign.C.Types

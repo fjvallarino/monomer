@@ -18,9 +18,8 @@ module Monomer.Widgets.Util.Text (
   getTextGlyphs
 ) where
 
-import Control.Lens ((&), (^.), (+~))
-import Data.Default
-import Data.Sequence (Seq(..), (<|), (|>))
+import Control.Lens ((^.))
+import Data.Sequence (Seq(..))
 import Data.Text (Text)
 
 import Monomer.Core

@@ -34,12 +34,9 @@ module Monomer.Widgets.Singles.ToggleButton (
   toggleButtonD_
 ) where
 
-import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (^?), (.~), (?~), _Just)
+import Control.Lens (ALens', (&), (.~))
 import Data.Default
 import Data.Text (Text)
-
-import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Single
 import Monomer.Widgets.Singles.OptionButton
