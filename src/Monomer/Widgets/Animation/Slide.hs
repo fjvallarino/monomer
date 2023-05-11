@@ -12,11 +12,7 @@ Messages:
 
 - Accepts a 'AnimationMsg', used to control the state of the animation.
 -}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Animation.Slide (
   -- * Configuration
@@ -33,18 +29,13 @@ module Monomer.Widgets.Animation.Slide (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~))
-import Control.Monad (when)
+import Control.Lens ((&), (.~))
 import Data.Default
 import Data.Maybe
-import Data.Typeable (cast)
-import GHC.Generics
-
-import qualified Data.Sequence as Seq
 
 import Monomer.Helper
 import Monomer.Widgets.Container
-import Monomer.Widgets.Animation.Types
+import Monomer.Widgets.Animation.Transform
 
 import qualified Monomer.Lens as L
 
@@ -65,25 +56,19 @@ Configuration options for slide:
 -}
 data SlideCfg e = SlideCfg {
   _slcDirection :: Maybe SlideDirection,
-  _slcAutoStart :: Maybe Bool,
-  _slcDuration :: Maybe Millisecond,
-  _slcOnFinished :: [e]
+  _slcTransformCfg :: TransformCfg e
 } deriving (Eq, Show)
 
 instance Default (SlideCfg e) where
   def = SlideCfg {
     _slcDirection = Nothing,
-    _slcAutoStart = Nothing,
-    _slcDuration = Nothing,
-    _slcOnFinished = []
+    _slcTransformCfg = def
   }
 
 instance Semigroup (SlideCfg e) where
   (<>) fc1 fc2 = SlideCfg {
     _slcDirection = _slcDirection fc2 <|> _slcDirection fc1,
-    _slcAutoStart = _slcAutoStart fc2 <|> _slcAutoStart fc1,
-    _slcDuration = _slcDuration fc2 <|> _slcDuration fc1,
-    _slcOnFinished = _slcOnFinished fc1 <> _slcOnFinished fc2
+    _slcTransformCfg = _slcTransformCfg fc1 <> _slcTransformCfg fc2
   }
 
 instance Monoid (SlideCfg e) where
@@ -91,17 +76,17 @@ instance Monoid (SlideCfg e) where
 
 instance CmbAutoStart (SlideCfg e) where
   autoStart_ start = def {
-    _slcAutoStart = Just start
+    _slcTransformCfg = autoStart_ start
   }
 
 instance CmbDuration (SlideCfg e) Millisecond where
   duration dur = def {
-    _slcDuration = Just dur
+    _slcTransformCfg = duration dur
   }
 
 instance CmbOnFinished (SlideCfg e) e where
   onFinished fn = def {
-    _slcOnFinished = [fn]
+    _slcTransformCfg = onFinished fn
   }
 
 -- | Slide from/to left.
@@ -120,17 +105,6 @@ slideTop = def { _slcDirection = Just SlideUp }
 slideBottom :: SlideCfg e
 slideBottom = def { _slcDirection = Just SlideDown }
 
-data SlideState = SlideState {
-  _slsRunning :: Bool,
-  _slsStartTs :: Millisecond
-} deriving (Eq, Show, Generic)
-
-instance Default SlideState where
-  def = SlideState {
-    _slsRunning = False,
-    _slsStartTs = 0
-  }
-
 -- | Animates a widget from the left to fully visible.
 animSlideIn
   :: WidgetEvent e
@@ -145,9 +119,8 @@ animSlideIn_
   => [SlideCfg e]    -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
-animSlideIn_ configs managed = makeNode "animSlideIn" widget managed where
-  config = mconcat configs
-  widget = makeSlide True config def
+animSlideIn_ configs managed = makeNode configs managed True
+  & L.info . L.widgetType .~ "animSlideIn"
 
 -- | Animates a widget to the left from visible to not visible.
 animSlideOut
@@ -163,93 +136,31 @@ animSlideOut_
   => [SlideCfg e]    -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
-animSlideOut_ configs managed = makeNode "animSlideOut" widget managed where
-  config = mconcat configs
-  widget = makeSlide False config def
+animSlideOut_ configs managed = makeNode configs managed False
+  & L.info . L.widgetType .~ "animSlideOut"
 
 makeNode
-  :: WidgetEvent e => WidgetType -> Widget s e -> WidgetNode s e -> WidgetNode s e
-makeNode wType widget managedWidget = defaultWidgetNode wType widget
-  & L.info . L.focusable .~ False
-  & L.children .~ Seq.singleton managedWidget
-
-makeSlide :: WidgetEvent e => Bool -> SlideCfg e -> SlideState -> Widget s e
-makeSlide isSlideIn config state = widget where
-  widget = createContainer state def {
-    containerUseScissor = True,
-    containerInit = init,
-    containerMerge = merge,
-    containerHandleMessage = handleMessage,
-    containerRender = render,
-    containerRenderAfter = renderPost
-  }
-
-  SlideState running start = state
-  autoStart = fromMaybe False (_slcAutoStart config)
-  duration = fromMaybe 500 (_slcDuration config)
-  period = 20
-  steps = fromIntegral $ duration `div` period
-
-  finishedReq node ts = delayedMessage node (AnimationFinished ts) duration
-  renderReq wenv node = req where
-    widgetId = node ^. L.info . L.widgetId
-    req = RenderEvery widgetId period (Just steps)
-
-  init wenv node = result where
-    ts = wenv ^. L.timestamp
-    newNode = node
-      & L.widget .~ makeSlide isSlideIn config (SlideState True ts)
-    result
-      | autoStart = resultReqs newNode [finishedReq node ts, renderReq wenv node]
-      | otherwise = resultNode node
-
-  merge wenv node oldNode oldState = resultNode newNode where
-    newNode = node
-      & L.widget .~ makeSlide isSlideIn config oldState
-
-  handleMessage wenv node target message = result where
-    result = cast message >>= Just . handleAnimateMsg wenv node
-
-  handleAnimateMsg wenv node msg = result where
-    widgetId = node ^. L.info . L.widgetId
-    ts = wenv ^. L.timestamp
-    startState = SlideState True ts
-    startReqs = [finishedReq node ts, renderReq wenv node]
-
-    newNode newState = node
-      & L.widget .~ makeSlide isSlideIn config newState
-    result = case msg of
-      AnimationStart -> resultReqs (newNode startState) startReqs
-      AnimationStop -> resultReqs (newNode def) [RenderStop widgetId]
-      AnimationFinished ts'
-        | isRelevant -> resultEvts node (_slcOnFinished config)
-        | otherwise -> resultNode node
-        where isRelevant = _slsRunning state && ts' == _slsStartTs state
-
-  render wenv node renderer = do
-    saveContext renderer
-    when running $
-      setTranslation renderer (Point offsetX offsetY)
-    where
-      viewport = node ^. L.info . L.viewport
-      ts = wenv ^. L.timestamp
-      dir = fromMaybe SlideLeft (_slcDirection config)
-
-      bwdStep = clamp 0 1 $ fromIntegral (ts - start) / fromIntegral duration
-      fwdStep = 1 - bwdStep
-
-      offsetX
-        | dir == SlideLeft && isSlideIn = -1 * fwdStep * viewport ^. L.w
-        | dir == SlideLeft = -1 * bwdStep * viewport ^. L.w
-        | dir == SlideRight && isSlideIn = fwdStep * viewport ^. L.w
-        | dir == SlideRight = bwdStep * viewport ^. L.w
-        | otherwise = 0
-      offsetY
-        | dir == SlideUp && isSlideIn = -1 * fwdStep * viewport ^. L.h
-        | dir == SlideUp = -1 * bwdStep * viewport ^. L.h
-        | dir == SlideDown && isSlideIn = fwdStep * viewport ^. L.h
-        | dir == SlideDown = bwdStep * viewport ^. L.h
-        | otherwise = 0
-
-  renderPost wenv node renderer = do
-    restoreContext renderer
+  :: WidgetEvent e
+  => [SlideCfg e]
+  -> WidgetNode s e
+  -> Bool
+  -> WidgetNode s e
+makeNode configs managed isSlideIn = node where
+  node = animTransform_ [_slcTransformCfg] f managed
+  f t vp = [animTranslation $ Point (fx t vp) (fy t vp)]
+  fx t (Rect _ _ w _) = case dir of
+    SlideLeft -> -1*(step t)*w
+    SlideRight -> (step t)*w
+    _ -> 0
+  fy t (Rect _ _ _ h) = case dir of
+    SlideUp -> -1*(step t)*h
+    SlideDown -> (step t)*h
+    _ -> 0
+  step t = if isSlideIn
+    then 1-(fwdStep t)
+    else fwdStep t
+  fwdStep t = clamp 0 1 $ t/(fromIntegral dur)
+  dir = fromMaybe SlideLeft _slcDirection
+  dur = fromMaybe 500 _tfcDuration
+  TransformCfg{..} = _slcTransformCfg
+  SlideCfg{..} = mconcat configs
