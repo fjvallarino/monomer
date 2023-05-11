@@ -41,7 +41,7 @@ import Data.Default
 import Data.Maybe
 
 import Monomer.Common
-import Monomer.Core.StyleTypes
+import Monomer.Core.Style
 import Monomer.Core.StyleUtil
 import Monomer.Helper
 
