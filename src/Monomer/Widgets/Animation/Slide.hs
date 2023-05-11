@@ -156,7 +156,7 @@ animSlideOut
   -> WidgetNode s e  -- ^ The created animation container.
 animSlideOut managed = animSlideOut_ def managed
 
--- | Animates a widget to the the provided direction from visible to not
+-- | Animates a widget to the provided direction from visible to not
 --   visible (defaults to left). Accepts config.
 animSlideOut_
   :: WidgetEvent e

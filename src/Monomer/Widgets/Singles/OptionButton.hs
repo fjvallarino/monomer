@@ -18,7 +18,7 @@ Its behavior is equivalent to "Monomer.Widgets.Singles.Radio" and
 
 This widget, and the associated "Monomer.Widgets.Singles.ToggleButton", uses two
 separate styles for the On and Off states which can be modified individually for
-the theme. If you use any of the the standard style functions (styleBasic,
+the theme. If you use any of the standard style functions (styleBasic,
 styleHover, etc) in an optionButton/toggleButton these changes will apply to
 both On and Off states, except for the color related styles. The reason is that,
 in general, the font and padding will be the same for both states, but the
