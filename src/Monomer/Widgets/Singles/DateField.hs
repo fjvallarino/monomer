@@ -86,7 +86,7 @@ defaultDateDelim :: Char
 defaultDateDelim = '/'
 
 {-|
-Converter to and form the Day type of the time library. To use types other than
+Converter to and from the Day type of the time library. To use types other than
 Day of said library, this typeclass needs to be implemented.
 --}
 class (Eq a, Ord a, Show a, Typeable a) => DayConverter a where

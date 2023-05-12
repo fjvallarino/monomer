@@ -82,7 +82,7 @@ defaultTimeDelim :: Char
 defaultTimeDelim = ':'
 
 {-|
-Converter to and form the 'TimeOfDay' type of the time library. To use types
+Converter to and from the 'TimeOfDay' type of the time library. To use types
 other than 'TimeOfDay' of said library, this typeclass needs to be implemented.
 --}
 class (Eq a, Ord a, Show a, Typeable a) => TimeOfDayConverter a where
