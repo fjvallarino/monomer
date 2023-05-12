@@ -66,7 +66,7 @@ for unit testing purposes.
 type HandlerStep s e = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s e))
 
 {-|
-Processes a list of SystemEvents dispatching each of the to the corresponding
+Processes a list of SystemEvents dispatching each to the corresponding
 widget based on the current root. At each step the root may change, new events
 may be generated (which will be processed interleaved with the list of events)
 and this is handled before returning the latest "HandlerStep".
@@ -76,7 +76,7 @@ handleSystemEvents
   => WidgetEnv s e       -- ^ The initial widget environment.
   -> WidgetNode s e      -- ^ The initial widget root.
   -> [SystemEvent]       -- ^ The starting list of events.
-  -> m (HandlerStep s e) -- ^ The resulting "HandlerStep."
+  -> m (HandlerStep s e) -- ^ The resulting "HandlerStep".
 handleSystemEvents wenv widgetRoot baseEvents = nextStep where
   mainBtn = wenv ^. L.mainButton
   reduceEvt curStep evt = do

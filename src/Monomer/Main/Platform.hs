@@ -50,7 +50,7 @@ import Monomer.Main.Types
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 foreign import ccall unsafe "initDpiAwareness" initDpiAwareness :: IO CInt
 
--- | Default window size if not is specified.
+-- | Default window size if not specified.
 defaultWindowSize :: (Int, Int)
 defaultWindowSize = (800, 600)
 
