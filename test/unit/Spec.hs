@@ -20,6 +20,7 @@ import qualified Monomer.Widgets.ContainerSpec as ContainerSpec
 import qualified Monomer.Widgets.Animation.FadeSpec as AnimationFadeSpec
 import qualified Monomer.Widgets.Animation.SlideSpec as AnimationSlideSpec
 import qualified Monomer.Widgets.Animation.TransformSpec as AnimationTransformSpec
+import qualified Monomer.Widgets.Animation.WipeSpec as AnimationWipeSpec
 import qualified Monomer.Widgets.Animation.ZoomSpec as AnimationZoomSpec
 
 import qualified Monomer.Widgets.Containers.AlertSpec as AlertSpec
@@ -114,6 +115,7 @@ animation = describe "Animation" $ do
   AnimationFadeSpec.spec
   AnimationSlideSpec.spec
   AnimationTransformSpec.spec
+  AnimationWipeSpec.spec
   AnimationZoomSpec.spec
 
 containers :: Spec
