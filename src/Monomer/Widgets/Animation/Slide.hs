@@ -12,6 +12,8 @@ Messages:
 
 - Accepts a 'AnimationMsg', used to control the state of the animation.
 -}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Animation.Slide (
