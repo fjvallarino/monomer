@@ -199,12 +199,13 @@ makeTransform
   -> TransformState
   -> Widget s e
 makeTransform f config state = widget where
-  widget = createContainer state def {
+  baseWidget = createContainer state def {
     containerInit = init,
     containerMerge = merge,
-    containerHandleMessage = handleMessage,
-    containerRender = render,
-    containerRenderAfter = renderPost
+    containerHandleMessage = handleMessage
+  }
+  widget = baseWidget {
+    widgetRender = render
   }
 
   TransformCfg{..} = config
@@ -251,15 +252,20 @@ makeTransform f config state = widget where
         where isRelevant = _tfsRunning && ts' == _tfsStartTs
 
   render wenv node renderer = do
-    saveContext renderer
-    when _tfsRunning $ do
-      intersectScissor renderer scissorViewport
-      setTranslation renderer $ Point (x+w/2) (y+h/2)
-      setRotation renderer rotation
-      setTranslation renderer $ Point (-x-w/2) (-y-h/2)
-      setTranslation renderer $ Point (tx+x*(1-sx)) (ty+y*(1-sy))
-      setScale renderer scale
-      setGlobalAlpha renderer alpha
+    if _tfsRunning
+      then createOverlay renderer $ do
+        saveContext renderer
+        setTranslation renderer $ wenv ^. L.offset
+        intersectScissor renderer scissorViewport
+        setTranslation renderer $ Point (x+w/2) (y+h/2)
+        setRotation renderer rotation
+        setTranslation renderer $ Point (-x-w/2) (-y-h/2)
+        setTranslation renderer $ Point (tx+x*(1-sx)) (ty+y*(1-sy))
+        setScale renderer scale
+        setGlobalAlpha renderer alpha
+        widgetRender (cnode ^. L.widget) wenv cnode renderer
+        restoreContext renderer
+      else widgetRender (cnode ^. L.widget) wenv cnode renderer
     where
       vp@(Rect x y w h) = node ^. L.info . L.viewport
       t = clamp 0 duration $ (wenv ^. L.timestamp) - _tfsStartTs
@@ -269,6 +275,4 @@ makeTransform f config state = widget where
       rotation = fromMaybe 0 _rtRotation
       alpha = fromMaybe 1 _rtGlobalAlpha
       scissorViewport = fromMaybe vp _rtScissor
-
-  renderPost wenv node renderer = do
-    restoreContext renderer
+      cnode = Seq.index (node ^. L.children) 0
