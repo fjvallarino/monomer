@@ -54,18 +54,19 @@ Configuration options for shake:
 - 'autoStart': whether the first time the widget is added, animation should run.
 - 'duration': how long the animation lasts in ms.
 - 'onFinished': event to raise when animation is complete.
+- 'onFinishedReq': 'WidgetRequest' to generate when animation is complete.
 - 'shakeAmplitude': amplitude of the animation. Defaults to 0.1.
 - 'shakeFrequency': frequency of the animation. Defaults to 2.
 - Individual combinators for direction.
 -}
-data ShakeCfg e = ShakeCfg {
+data ShakeCfg s e = ShakeCfg {
   _shcDirection :: Maybe ShakeDirection,
   _shcAmplitude :: Maybe Double,
   _shcFrequency :: Maybe Int,
-  _shcTransformCfg :: TransformCfg e
+  _shcTransformCfg :: TransformCfg s e
 } deriving (Eq, Show)
 
-instance Default (ShakeCfg e) where
+instance Default (ShakeCfg s e) where
   def = ShakeCfg {
     _shcDirection = Nothing,
     _shcAmplitude = Nothing,
@@ -73,7 +74,7 @@ instance Default (ShakeCfg e) where
     _shcTransformCfg = def
   }
 
-instance Semigroup (ShakeCfg e) where
+instance Semigroup (ShakeCfg s e) where
   (<>) sc1 sc2 = ShakeCfg {
     _shcDirection = _shcDirection sc2 <|> _shcDirection sc1,
     _shcAmplitude = _shcAmplitude sc2 <|> _shcAmplitude sc1,
@@ -81,46 +82,51 @@ instance Semigroup (ShakeCfg e) where
     _shcTransformCfg = _shcTransformCfg sc1 <> _shcTransformCfg sc2
   }
 
-instance Monoid (ShakeCfg e) where
+instance Monoid (ShakeCfg s e) where
   mempty = def
 
-instance CmbAutoStart (ShakeCfg e) where
+instance CmbAutoStart (ShakeCfg s e) where
   autoStart_ start = def {
     _shcTransformCfg = autoStart_ start
   }
 
-instance CmbDuration (ShakeCfg e) Millisecond where
+instance CmbDuration (ShakeCfg s e) Millisecond where
   duration dur = def {
     _shcTransformCfg = duration dur
   }
 
-instance CmbOnFinished (ShakeCfg e) e where
-  onFinished fn = def {
-    _shcTransformCfg = onFinished fn
+instance WidgetEvent e => CmbOnFinished (ShakeCfg s e) e where
+  onFinished handler = def {
+    _shcTransformCfg = onFinished handler
+  }
+
+instance CmbOnFinishedReq (ShakeCfg s e) s e where
+  onFinishedReq req = def {
+    _shcTransformCfg = onFinishedReq req
   }
 
 -- | Shake horizontally.
-shakeH :: ShakeCfg e
+shakeH :: ShakeCfg s e
 shakeH = def { _shcDirection = Just ShakeH }
 
 -- | Shake vertically.
-shakeV :: ShakeCfg e
+shakeV :: ShakeCfg s e
 shakeV = def { _shcDirection = Just ShakeV }
 
 -- | Shake by rotating.
-shakeR :: ShakeCfg e
+shakeR :: ShakeCfg s e
 shakeR = def { _shcDirection = Just ShakeR }
 
 -- | Shake by scaling.
-shakeS :: ShakeCfg e
+shakeS :: ShakeCfg s e
 shakeS = def { _shcDirection = Just ShakeS }
 
 -- | Amplitude of the animation. Defaults to 1.
-shakeAmplitude :: Double -> ShakeCfg e
+shakeAmplitude :: Double -> ShakeCfg s e
 shakeAmplitude amp = def { _shcAmplitude = Just amp }
 
 -- | Frequency of the animation. Defaults to 2.
-shakeFrequency :: Int -> ShakeCfg e
+shakeFrequency :: Int -> ShakeCfg s e
 shakeFrequency freq = def { _shcFrequency = Just freq }
 
 -- | Shakes a widget.
@@ -133,7 +139,7 @@ animShake managed = animShake_ def managed
 -- | Shakes a widget. Accepts config.
 animShake_
   :: WidgetEvent e
-  => [ShakeCfg e]    -- ^ The config options.
+  => [ShakeCfg s e]    -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animShake_ configs managed = node where

@@ -60,69 +60,75 @@ Configuration options for wipe:
 - 'autoStart': whether the first time the widget is added, animation should run.
 - 'duration': how long the animation lasts in ms.
 - 'onFinished': event to raise when animation is complete.
+- 'onFinishedReq': 'WidgetRequest' to generate when animation is complete.
 - Individual combinators for direction.
 -}
-data WipeCfg e = WipeCfg {
+data WipeCfg s e = WipeCfg {
   _wpcDirection :: Maybe WipeDirection,
-  _wpcTransformCfg :: TransformCfg e
+  _wpcTransformCfg :: TransformCfg s e
 } deriving (Eq, Show)
 
-instance Default (WipeCfg e) where
+instance Default (WipeCfg s e) where
   def = WipeCfg {
     _wpcDirection = Nothing,
     _wpcTransformCfg = def
   }
 
-instance Semigroup (WipeCfg e) where
+instance Semigroup (WipeCfg s e) where
   (<>) wc1 wc2 = WipeCfg {
     _wpcDirection = _wpcDirection wc2 <|> _wpcDirection wc1,
     _wpcTransformCfg = _wpcTransformCfg wc1 <> _wpcTransformCfg wc2
   }
 
-instance Monoid (WipeCfg e) where
+instance Monoid (WipeCfg s e) where
   mempty = def
 
-instance CmbAutoStart (WipeCfg e) where
+instance CmbAutoStart (WipeCfg s e) where
   autoStart_ start = def {
     _wpcTransformCfg = autoStart_ start
   }
 
-instance CmbDuration (WipeCfg e) Millisecond where
+instance CmbDuration (WipeCfg s e) Millisecond where
   duration dur = def {
     _wpcTransformCfg = duration dur
   }
 
-instance CmbOnFinished (WipeCfg e) e where
-  onFinished fn = def {
-    _wpcTransformCfg = onFinished fn
+instance WidgetEvent e => CmbOnFinished (WipeCfg s e) e where
+  onFinished handler = def {
+    _wpcTransformCfg = onFinished handler
+  }
+
+instance CmbOnFinishedReq (WipeCfg s e) s e where
+  onFinishedReq req = def {
+    _wpcTransformCfg = onFinishedReq req
   }
 
 -- | Wipe from/to left.
-wipeLeft :: WipeCfg e
+wipeLeft :: WipeCfg s e
 wipeLeft = def { _wpcDirection = Just WipeLeft }
 
 -- | Wipe from/to right.
-wipeRight :: WipeCfg e
+wipeRight :: WipeCfg s e
 wipeRight = def { _wpcDirection = Just WipeRight }
 
 -- | Wipe from/to top.
-wipeTop :: WipeCfg e
+wipeTop :: WipeCfg s e
 wipeTop = def { _wpcDirection = Just WipeTop }
 
 -- | Wipe from/to bottom.
-wipeBottom :: WipeCfg e
+wipeBottom :: WipeCfg s e
 wipeBottom = def { _wpcDirection = Just WipeBottom }
 
 -- | Wipe horizontally in a door shape.
-wipeDoorH :: WipeCfg e
+wipeDoorH :: WipeCfg s e
 wipeDoorH = def { _wpcDirection = Just WipeDoorH }
 
 -- | Wipe vertically in a door shape.
-wipeDoorV :: WipeCfg e
+wipeDoorV :: WipeCfg s e
 wipeDoorV = def { _wpcDirection = Just WipeDoorV }
 
 -- | Wipe in a rectangle shape.
-wipeRect :: WipeCfg e
+wipeRect :: WipeCfg s e
 wipeRect = def { _wpcDirection = Just WipeRect }
 
 -- | Animates a widget from the left to fully visible.
@@ -136,7 +142,7 @@ animWipeIn managed = animWipeIn_ def managed
 --   to left). Accepts config.
 animWipeIn_
   :: WidgetEvent e
-  => [WipeCfg e]     -- ^ The config options.
+  => [WipeCfg s e]     -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animWipeIn_ configs managed = makeNode configs managed True
@@ -153,7 +159,7 @@ animWipeOut managed = animWipeOut_ def managed
 --   visible (defaults to left). Accepts config.
 animWipeOut_
   :: WidgetEvent e
-  => [WipeCfg e]     -- ^ The config options.
+  => [WipeCfg s e]     -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animWipeOut_ configs managed = makeNode configs managed False
@@ -161,7 +167,7 @@ animWipeOut_ configs managed = makeNode configs managed False
 
 makeNode
   :: WidgetEvent e
-  => [WipeCfg e]
+  => [WipeCfg s e]
   -> WidgetNode s e
   -> Bool
   -> WidgetNode s e

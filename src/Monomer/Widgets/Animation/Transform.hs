@@ -57,43 +57,49 @@ Configuration options for transform:
 - 'autoStart': whether the first time the widget is added, animation should run.
 - 'duration': how long the animation lasts in ms.
 - 'onFinished': event to raise when animation is complete.
+- 'onFinishedReq': 'WidgetRequest' to generate when animation is complete.
 -}
-data TransformCfg e = TransformCfg {
+data TransformCfg s e = TransformCfg {
   _tfcAutoStart :: Maybe Bool,
   _tfcDuration :: Maybe Millisecond,
-  _tfcOnFinished :: [e]
+  _tfcOnFinishedReq :: [WidgetRequest s e]
 } deriving (Eq, Show)
 
-instance Default (TransformCfg e) where
+instance Default (TransformCfg s e) where
   def = TransformCfg {
     _tfcAutoStart = Nothing,
     _tfcDuration = Nothing,
-    _tfcOnFinished = []
+    _tfcOnFinishedReq = []
   }
 
-instance Semigroup (TransformCfg e) where
+instance Semigroup (TransformCfg s e) where
   (<>) tc1 tc2 = TransformCfg {
     _tfcAutoStart = _tfcAutoStart tc2 <|> _tfcAutoStart tc1,
     _tfcDuration = _tfcDuration tc2 <|> _tfcDuration tc1,
-    _tfcOnFinished = _tfcOnFinished tc1 <> _tfcOnFinished tc2
+    _tfcOnFinishedReq = _tfcOnFinishedReq tc1 <> _tfcOnFinishedReq tc2
   }
 
-instance Monoid (TransformCfg e) where
+instance Monoid (TransformCfg s e) where
   mempty = def
 
-instance CmbAutoStart (TransformCfg e) where
+instance CmbAutoStart (TransformCfg s e) where
   autoStart_ start = def {
     _tfcAutoStart = Just start
   }
 
-instance CmbDuration (TransformCfg e) Millisecond where
+instance CmbDuration (TransformCfg s e) Millisecond where
   duration dur = def {
     _tfcDuration = Just dur
   }
 
-instance CmbOnFinished (TransformCfg e) e where
-  onFinished fn = def {
-    _tfcOnFinished = [fn]
+instance WidgetEvent e => CmbOnFinished (TransformCfg s e) e where
+  onFinished handler = def {
+    _tfcOnFinishedReq = [RaiseEvent handler]
+  }
+
+instance CmbOnFinishedReq (TransformCfg s e) s e where
+  onFinishedReq req = def {
+    _tfcOnFinishedReq = [req]
   }
 
 data TransformState = TransformState {
@@ -180,7 +186,7 @@ animTransform f managed = animTransform_ def f managed
 --   transparency and scissor. Accepts config.
 animTransform_
   :: WidgetEvent e
-  => [TransformCfg e]  -- ^ The config options.
+  => [TransformCfg s e]  -- ^ The config options.
   -> Transformer       -- ^ Transformations from time (in ms) and viewport.
   -> WidgetNode s e    -- ^ The child node.
   -> WidgetNode s e    -- ^ The created animation container.
@@ -195,7 +201,7 @@ animTransform_ configs f managed = node where
 makeTransform
   :: WidgetEvent e
   => Transformer
-  -> TransformCfg e
+  -> TransformCfg s e
   -> TransformState
   -> Widget s e
 makeTransform f config state = widget where
@@ -247,7 +253,7 @@ makeTransform f config state = widget where
       AnimationStart -> resultReqs (newNode startState) startReqs
       AnimationStop -> resultReqs (newNode def) [RenderStop widgetId]
       AnimationFinished ts'
-        | isRelevant -> resultEvts node _tfcOnFinished
+        | isRelevant -> resultReqs node _tfcOnFinishedReq
         | otherwise -> resultNode node
         where isRelevant = _tfsRunning && ts' == _tfsStartTs
 

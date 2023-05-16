@@ -42,37 +42,43 @@ Configuration options for zoom:
 - 'autoStart': whether the first time the widget is added, animation should run.
 - 'duration': how long the animation lasts in ms.
 - 'onFinished': event to raise when animation is complete.
+- 'onFinishedReq': 'WidgetRequest' to generate when animation is complete.
 -}
-data ZoomCfg e = ZoomCfg {
-  _zmcTransformCfg :: TransformCfg e
+data ZoomCfg s e = ZoomCfg {
+  _zmcTransformCfg :: TransformCfg s e
 } deriving (Eq, Show)
 
-instance Default (ZoomCfg e) where
+instance Default (ZoomCfg s e) where
   def = ZoomCfg {
     _zmcTransformCfg = def
   }
 
-instance Semigroup (ZoomCfg e) where
+instance Semigroup (ZoomCfg s e) where
   (<>) zc1 zc2 = ZoomCfg {
     _zmcTransformCfg = _zmcTransformCfg zc1 <> _zmcTransformCfg zc2
   }
 
-instance Monoid (ZoomCfg e) where
+instance Monoid (ZoomCfg s e) where
   mempty = def
 
-instance CmbAutoStart (ZoomCfg e) where
+instance CmbAutoStart (ZoomCfg s e) where
   autoStart_ start = def {
     _zmcTransformCfg = autoStart_ start
   }
 
-instance CmbDuration (ZoomCfg e) Millisecond where
+instance CmbDuration (ZoomCfg s e) Millisecond where
   duration dur = def {
     _zmcTransformCfg = duration dur
   }
 
-instance CmbOnFinished (ZoomCfg e) e where
-  onFinished fn = def {
-    _zmcTransformCfg = onFinished fn
+instance WidgetEvent e => CmbOnFinished (ZoomCfg s e) e where
+  onFinished handler = def {
+    _zmcTransformCfg = onFinished handler
+  }
+
+instance CmbOnFinishedReq (ZoomCfg s e) s e where
+  onFinishedReq req = def {
+    _zmcTransformCfg = onFinishedReq req
   }
 
 -- | Animates a widget to fully visible by increasing scale.
@@ -85,7 +91,7 @@ animZoomIn managed = animZoomIn_ def managed
 -- | Animates a widget to fully visible by increasing scale. Accepts config.
 animZoomIn_
   :: WidgetEvent e
-  => [ZoomCfg e]     -- ^ The config options.
+  => [ZoomCfg s e]     -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animZoomIn_ configs managed = makeNode configs managed True
@@ -101,7 +107,7 @@ animZoomOut managed = animZoomOut_ def managed
 -- | Animates a widget to not visible by decreasing scale. Accepts config.
 animZoomOut_
   :: WidgetEvent e
-  => [ZoomCfg e]     -- ^ The config options.
+  => [ZoomCfg s e]     -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animZoomOut_ configs managed = makeNode configs managed False
@@ -109,7 +115,7 @@ animZoomOut_ configs managed = makeNode configs managed False
 
 makeNode
   :: WidgetEvent e
-  => [ZoomCfg e]
+  => [ZoomCfg s e]
   -> WidgetNode s e
   -> Bool
   -> WidgetNode s e

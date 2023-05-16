@@ -54,57 +54,63 @@ Configuration options for slide:
 - 'autoStart': whether the first time the widget is added, animation should run.
 - 'duration': how long the animation lasts in ms.
 - 'onFinished': event to raise when animation is complete.
+- 'onFinishedReq': 'WidgetRequest' to generate when animation is complete.
 - Individual combinators for direction.
 -}
-data SlideCfg e = SlideCfg {
+data SlideCfg s e = SlideCfg {
   _slcDirection :: Maybe SlideDirection,
-  _slcTransformCfg :: TransformCfg e
+  _slcTransformCfg :: TransformCfg s e
 } deriving (Eq, Show)
 
-instance Default (SlideCfg e) where
+instance Default (SlideCfg s e) where
   def = SlideCfg {
     _slcDirection = Nothing,
     _slcTransformCfg = def
   }
 
-instance Semigroup (SlideCfg e) where
+instance Semigroup (SlideCfg s e) where
   (<>) fc1 fc2 = SlideCfg {
     _slcDirection = _slcDirection fc2 <|> _slcDirection fc1,
     _slcTransformCfg = _slcTransformCfg fc1 <> _slcTransformCfg fc2
   }
 
-instance Monoid (SlideCfg e) where
+instance Monoid (SlideCfg s e) where
   mempty = def
 
-instance CmbAutoStart (SlideCfg e) where
+instance CmbAutoStart (SlideCfg s e) where
   autoStart_ start = def {
     _slcTransformCfg = autoStart_ start
   }
 
-instance CmbDuration (SlideCfg e) Millisecond where
+instance CmbDuration (SlideCfg s e) Millisecond where
   duration dur = def {
     _slcTransformCfg = duration dur
   }
 
-instance CmbOnFinished (SlideCfg e) e where
-  onFinished fn = def {
-    _slcTransformCfg = onFinished fn
+instance WidgetEvent e => CmbOnFinished (SlideCfg s e) e where
+  onFinished handler = def {
+    _slcTransformCfg = onFinished handler
+  }
+
+instance CmbOnFinishedReq (SlideCfg s e) s e where
+  onFinishedReq req = def {
+    _slcTransformCfg = onFinishedReq req
   }
 
 -- | Slide from/to left.
-slideLeft :: SlideCfg e
+slideLeft :: SlideCfg s e
 slideLeft = def { _slcDirection = Just SlideLeft }
 
 -- | Slide from/to right.
-slideRight :: SlideCfg e
+slideRight :: SlideCfg s e
 slideRight = def { _slcDirection = Just SlideRight }
 
 -- | Slide from/to top.
-slideTop :: SlideCfg e
+slideTop :: SlideCfg s e
 slideTop = def { _slcDirection = Just SlideUp }
 
 -- | Slide from/to bottom.
-slideBottom :: SlideCfg e
+slideBottom :: SlideCfg s e
 slideBottom = def { _slcDirection = Just SlideDown }
 
 -- | Animates a widget from the left to fully visible.
@@ -118,7 +124,7 @@ animSlideIn managed = animSlideIn_ def managed
 --   to left). Accepts config.
 animSlideIn_
   :: WidgetEvent e
-  => [SlideCfg e]    -- ^ The config options.
+  => [SlideCfg s e]    -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animSlideIn_ configs managed = makeNode configs managed True
@@ -135,7 +141,7 @@ animSlideOut managed = animSlideOut_ def managed
 --   visible (defaults to left). Accepts config.
 animSlideOut_
   :: WidgetEvent e
-  => [SlideCfg e]    -- ^ The config options.
+  => [SlideCfg s e]    -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animSlideOut_ configs managed = makeNode configs managed False
@@ -143,7 +149,7 @@ animSlideOut_ configs managed = makeNode configs managed False
 
 makeNode
   :: WidgetEvent e
-  => [SlideCfg e]
+  => [SlideCfg s e]
   -> WidgetNode s e
   -> Bool
   -> WidgetNode s e
