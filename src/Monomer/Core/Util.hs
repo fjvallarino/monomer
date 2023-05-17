@@ -13,18 +13,15 @@ Helper functions for Core types.
 
 module Monomer.Core.Util where
 
-import Control.Lens ((&), (^.), (^?), (.~), (?~), _Just)
+import Control.Lens ((^.), (^?), _Just)
 import Data.Maybe
-import Data.Text (Text)
 import Data.Typeable (cast)
 import Data.Sequence (Seq(..))
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Sequence as Seq
-import qualified Data.Text as T
 
 import Monomer.Common
-import Monomer.Core.Style
 import Monomer.Core.WidgetTypes
 import Monomer.Helper
 

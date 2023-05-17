@@ -13,17 +13,14 @@ change and clipboard requests.
 
 module Monomer.Main.UserUtil where
 
-import Control.Applicative ((<|>))
 import Control.Lens
 import Data.Default
 import Data.Maybe
-import Data.Text (Text)
 
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Core.Lens as L
-import qualified Monomer.Main.Lens as L
 
 {-# DEPRECATED setFocusOnKey "Use SetFocusOnKey instead (wenv argument should be removed)." #-}
 {-|

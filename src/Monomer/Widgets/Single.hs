@@ -39,13 +39,12 @@ module Monomer.Widgets.Single (
   createSingle
 ) where
 
-import Control.Exception (AssertionFailed(..), throw)
-import Control.Lens ((&), (^.), (^?), (.~), (%~), _Just)
+import Control.Lens ((&), (^.), (.~), (%~))
 import Control.Monad (when)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
-import Data.Typeable (Typeable, cast)
+import Data.Typeable (Typeable)
 
 import qualified Data.Sequence as Seq
 

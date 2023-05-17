@@ -15,7 +15,7 @@ module Monomer.Core.Themes.SampleThemes (
   darkThemeColors
 ) where
 
-import Control.Lens ((&), (^.), (.~), (?~), non)
+import Control.Lens ((&), (.~))
 
 import Monomer.Core.ThemeTypes
 import Monomer.Core.Themes.BaseTheme

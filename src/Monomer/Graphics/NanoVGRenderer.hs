@@ -16,27 +16,22 @@ Renderer based on the nanovg library.
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
-import Control.Lens ((&), (^.), (.~))
-import Control.Monad (foldM, forM_, unless, when)
+import Control.Lens ((^.))
+import Control.Monad (foldM, forM_, when)
 import Data.Default
 import Data.Functor ((<&>))
 import Data.IORef
-import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq(..), (<|), (|>))
-import Data.Set (Set(..))
+import Data.Sequence (Seq(..), (|>))
+import Data.Set (Set)
 import Data.Text (Text)
-import Data.Text.Foreign (withCStringLen)
 import Foreign.C.Types (CFloat)
-import Foreign.Ptr
-import System.IO.Unsafe
 
 import qualified Data.ByteString as BS
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import qualified Data.Text as T
-import qualified Data.Vector as V
 import qualified NanoVG as VG
 import qualified NanoVG.Internal.Image as VGI
 

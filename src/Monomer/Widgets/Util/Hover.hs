@@ -30,7 +30,7 @@ module Monomer.Widgets.Util.Hover (
   isNodeInfoInOverlay
 ) where
 
-import Control.Lens ((&), (^.), (^?), _1, _Just)
+import Control.Lens ((^.), (^?), _1, _Just)
 import Data.Maybe
 
 import qualified Data.Sequence as Seq

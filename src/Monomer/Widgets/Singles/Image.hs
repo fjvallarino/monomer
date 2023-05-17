@@ -43,14 +43,12 @@ import Codec.Picture (DynamicImage, Image(..))
 import Control.Applicative ((<|>))
 import Control.Concurrent
 import Control.Exception (try)
-import Control.Lens ((&), (^.), (.~), (%~), (?~), at)
+import Control.Lens ((&), (^.), (.~), (?~), at)
 import Control.Monad (when)
 import Data.ByteString (ByteString)
-import Data.Char (toLower)
 import Data.Default
 import Data.Map.Strict (Map)
 import Data.Maybe
-import Data.List (isPrefixOf)
 import Data.Text (Text)
 import Data.Typeable (cast)
 import Data.Vector.Storable.ByteString (vectorToByteString)

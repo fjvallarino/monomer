@@ -51,12 +51,11 @@ module Monomer.Widgets.Containers.Stack (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~))
+import Control.Lens ((&), (.~), (%~))
 import Data.Default
-import Data.Foldable (toList)
 import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq(..), (<|), (|>))
+import Data.Sequence (Seq(..), (|>))
 
 import qualified Data.Sequence as Seq
 

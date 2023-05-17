@@ -38,7 +38,6 @@ import Control.Applicative ((<|>))
 import Control.Lens ((^.))
 import Data.Default
 import Data.Maybe
-import Data.Tuple
 
 import Monomer.Widgets.Single
 
@@ -48,7 +47,7 @@ import qualified Monomer.Core.Lens as L
 Configuration options for separatorLine:
 
 - 'width': the max width of the line.
-- 'resizeFactor': flexibility to have more or less spaced assigned.
+- 'resizeFactor': flexibility to have more or less space assigned.
 -}
 data SeparatorLineCfg = SeparatorLineCfg {
   _slcWidth :: Maybe Double,

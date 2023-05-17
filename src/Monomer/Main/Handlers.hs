@@ -27,18 +27,18 @@ module Monomer.Main.Handlers (
 
 import Control.Concurrent.Async (async)
 import Control.Lens
-  ((&), (^.), (^?), (.~), (?~), (%~), (.=), (?=), (%=), (%%~), _Just, _1, _2, ix, at, use)
+  ((&), (^.), (.~), (?~), (%~), (.=), (?=), (%=), (%%~), _Just, _1, at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Default
-import Data.Foldable (fold, toList)
+import Data.Foldable (toList)
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
-import Data.Typeable (Typeable, typeOf)
+import Data.Typeable (Typeable)
 import SDL (($=))
 
 import qualified Data.Map as Map
@@ -66,7 +66,7 @@ for unit testing purposes.
 type HandlerStep s e = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s e))
 
 {-|
-Processes a list of SystemEvents dispatching each of the to the corresponding
+Processes a list of SystemEvents dispatching each to the corresponding
 widget based on the current root. At each step the root may change, new events
 may be generated (which will be processed interleaved with the list of events)
 and this is handled before returning the latest "HandlerStep".
@@ -76,7 +76,7 @@ handleSystemEvents
   => WidgetEnv s e       -- ^ The initial widget environment.
   -> WidgetNode s e      -- ^ The initial widget root.
   -> [SystemEvent]       -- ^ The starting list of events.
-  -> m (HandlerStep s e) -- ^ The resulting "HandlerStep."
+  -> m (HandlerStep s e) -- ^ The resulting "HandlerStep".
 handleSystemEvents wenv widgetRoot baseEvents = nextStep where
   mainBtn = wenv ^. L.mainButton
   reduceEvt curStep evt = do

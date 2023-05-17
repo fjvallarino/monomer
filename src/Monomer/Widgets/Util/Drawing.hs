@@ -39,18 +39,16 @@ module Monomer.Widgets.Util.Drawing (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (^?), (^?!), (.~), non)
-import Control.Monad (forM_, void, when)
+import Control.Lens ((^.), (^?!), non)
+import Control.Monad (forM_, when)
 import Data.Default
 import Data.Maybe
-import Data.Text (Text)
 
 import Monomer.Core
 import Monomer.Graphics.Types
 
 import qualified Monomer.Common.Lens as L
 import qualified Monomer.Core.Lens as L
-import qualified Monomer.Graphics.Lens as L
 
 -- | Performs the provided drawing operations with an active scissor, and then
 -- | disables it.

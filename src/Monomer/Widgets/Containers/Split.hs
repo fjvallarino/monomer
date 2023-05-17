@@ -45,7 +45,6 @@ import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (.~), (<>~))
 import Data.Default
 import Data.Maybe
-import Data.Tuple (swap)
 import GHC.Generics
 
 import qualified Data.Sequence as Seq

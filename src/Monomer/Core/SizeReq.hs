@@ -11,7 +11,7 @@ Helper functions creating, validating and merging size requirements.
 {-# LANGUAGE Strict #-}
 
 module Monomer.Core.SizeReq (
-  SizeReqUpdater(..),
+  SizeReqUpdater,
   clearExtra,
   clearExtraW,
   clearExtraH,
@@ -41,9 +41,8 @@ import Data.Default
 import Data.Maybe
 
 import Monomer.Common
-import Monomer.Core.StyleTypes
+import Monomer.Core.Style
 import Monomer.Core.StyleUtil
-import Monomer.Core.Util
 import Monomer.Helper
 
 import qualified Monomer.Core.Lens as L

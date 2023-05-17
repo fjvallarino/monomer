@@ -29,7 +29,7 @@ import Control.Lens ((&), (^.), (^?), (+~), ix, non)
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq(..), (<|), (|>))
+import Data.Sequence (Seq(..), (<|))
 import Data.Text (Text)
 
 import qualified Data.Sequence as Seq

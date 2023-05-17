@@ -58,9 +58,9 @@ Configuration options for label.
 - 'multiline': if text may be split in multiple lines.
 - 'maxLines': maximum number of text lines to show.
 - 'ignoreTheme': whether to load default style from theme or start empty.
-- 'resizeFactor': flexibility to have more or less spaced assigned.
-- 'resizeFactorW': flexibility to have more or less horizontal spaced assigned.
-- 'resizeFactorH': flexibility to have more or less vertical spaced assigned.
+- 'resizeFactor': flexibility to have more or less space assigned.
+- 'resizeFactorW': flexibility to have more or less horizontal space assigned.
+- 'resizeFactorH': flexibility to have more or less vertical space assigned.
 -}
 data LabelCfg s e = LabelCfg {
   _lscIgnoreTheme :: Maybe Bool,

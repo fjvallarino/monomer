@@ -43,7 +43,6 @@ import Control.Lens (ALens', (&), (^.), (.~))
 import Control.Monad
 import Data.Default
 import Data.Maybe
-import Data.Text (Text)
 import Data.Typeable (Typeable, typeOf)
 import TextShow
 

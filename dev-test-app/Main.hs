@@ -4,12 +4,8 @@
 module Main where
 
 import Control.Lens
-import Data.Maybe
-import Data.Text (Text)
 import Monomer
 import TextShow
-
-import qualified Monomer.Lens as L
 
 newtype AppModel = AppModel {
   _clickCount :: Int

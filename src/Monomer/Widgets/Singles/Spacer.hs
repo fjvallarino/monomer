@@ -45,7 +45,6 @@ import Control.Applicative ((<|>))
 import Control.Lens ((^.))
 import Data.Default
 import Data.Maybe
-import Data.Tuple
 
 import Monomer.Widgets.Single
 
@@ -55,7 +54,7 @@ import qualified Monomer.Core.Lens as L
 Configuration options for spacer widget:
 
 - 'width': the max width for spacer, the reference for filler.
-- 'resizeFactor': flexibility to have more or less spaced assigned.
+- 'resizeFactor': flexibility to have more or less space assigned.
 -}
 data SpacerCfg = SpacerCfg {
   _spcWidth :: Maybe Double,

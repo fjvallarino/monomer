@@ -35,10 +35,8 @@ module Monomer.Widgets.Singles.ColorPopup (
   colorPopupV_
 ) where
 
-import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~), (?~), ALens', abbreviatedFields, makeLensesWith, non)
 import Data.Default
-import Data.Text (Text)
 
 import Monomer.Core.Combinators
 import Monomer.Graphics.Types
@@ -46,7 +44,6 @@ import Monomer.Graphics.Types
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Containers.BoxShadow
 import Monomer.Widgets.Containers.Popup
-import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.ColorPicker
 import Monomer.Widgets.Singles.ToggleButton
 

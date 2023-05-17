@@ -16,7 +16,7 @@ module Monomer.Core.Themes.BaseTheme (
   baseTheme
 ) where
 
-import Control.Lens ((&), (^.), (.~), (?~), non)
+import Control.Lens ((&), (.~), (?~), non)
 import Data.Default
 
 import Monomer.Core.Combinators

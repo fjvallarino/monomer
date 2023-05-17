@@ -17,7 +17,7 @@ module Monomer.Main.WidgetTask (handleWidgetTasks) where
 import Control.Concurrent.Async (poll)
 import Control.Concurrent.STM.TChan (tryReadTChan)
 import Control.Exception.Base
-import Control.Lens ((&), (^.), (.=), use)
+import Control.Lens ((^.), (.=), use)
 import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.STM (atomically)

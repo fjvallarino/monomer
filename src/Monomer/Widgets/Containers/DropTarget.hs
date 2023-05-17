@@ -36,7 +36,6 @@ module Monomer.Widgets.Containers.DropTarget (
 ) where
 
 import Control.Lens ((&), (^.), (.~))
-import Control.Monad (when)
 import Data.Default
 import Data.Maybe
 import Data.Typeable (cast)

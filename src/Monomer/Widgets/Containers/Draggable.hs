@@ -39,7 +39,7 @@ module Monomer.Widgets.Containers.Draggable (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (^?!), (.~), _Just, _1, _2, at, ix)
+import Control.Lens ((&), (^.), (^?!), (.~), _Just, _2)
 import Control.Monad (forM_, when)
 import Data.Default
 import Data.Maybe

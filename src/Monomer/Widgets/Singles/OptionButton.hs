@@ -18,7 +18,7 @@ Its behavior is equivalent to "Monomer.Widgets.Singles.Radio" and
 
 This widget, and the associated "Monomer.Widgets.Singles.ToggleButton", uses two
 separate styles for the On and Off states which can be modified individually for
-the theme. If you use any of the the standard style functions (styleBasic,
+the theme. If you use any of the standard style functions (styleBasic,
 styleHover, etc) in an optionButton/toggleButton these changes will apply to
 both On and Off states, except for the color related styles. The reason is that,
 in general, the font and padding will be the same for both states, but the
@@ -59,8 +59,7 @@ module Monomer.Widgets.Singles.OptionButton (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', Lens', (&), (^.), (^?), (.~), (?~), _Just)
-import Control.Monad
+import Control.Lens (ALens', Lens', (&), (^.), (.~), _Just)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -86,9 +85,9 @@ Configuration options for optionButton:
 - 'ellipsis': if ellipsis should be used for overflown text.
 - 'multiline': if text may be split in multiple lines.
 - 'maxLines': maximum number of text lines to show.
-- 'resizeFactor': flexibility to have more or less spaced assigned.
-- 'resizeFactorW': flexibility to have more or less horizontal spaced assigned.
-- 'resizeFactorH': flexibility to have more or less vertical spaced assigned.
+- 'resizeFactor': flexibility to have more or less space assigned.
+- 'resizeFactorW': flexibility to have more or less horizontal space assigned.
+- 'resizeFactorH': flexibility to have more or less vertical space assigned.
 - 'onFocus': event to raise when focus is received.
 - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
 - 'onBlur': event to raise when focus is lost.

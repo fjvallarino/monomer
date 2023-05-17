@@ -40,18 +40,15 @@ module Monomer.Widgets.Containers.Alert (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (.~), (%~))
+import Control.Lens ((&), (.~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
-
-import qualified Data.Sequence as Seq
 
 import Monomer.Core
 import Monomer.Core.Combinators
 
 import Monomer.Widgets.Composite
-import Monomer.Widgets.Container
 import Monomer.Widgets.Containers.Box
 import Monomer.Widgets.Containers.BoxShadow
 import Monomer.Widgets.Containers.Keystroke

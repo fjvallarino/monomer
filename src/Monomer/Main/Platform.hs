@@ -23,12 +23,10 @@ module Monomer.Main.Platform (
 ) where
 
 import Control.Exception (finally)
-import Control.Monad (void)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.State
 import Data.Maybe
 import Data.Text (Text)
-import Data.Word
 import Foreign (alloca, peek)
 import Foreign.C (peekCString, withCString)
 import Foreign.C.Types
@@ -52,7 +50,7 @@ import Monomer.Main.Types
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 foreign import ccall unsafe "initDpiAwareness" initDpiAwareness :: IO CInt
 
--- | Default window size if not is specified.
+-- | Default window size if not specified.
 defaultWindowSize :: (Int, Int)
 defaultWindowSize = (800, 600)
 

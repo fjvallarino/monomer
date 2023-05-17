@@ -35,20 +35,15 @@ module Monomer.Widgets.Singles.LabeledCheckbox (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (.~))
-import Control.Monad
+import Control.Lens (ALens')
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
-
-import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Containers.Base.LabeledItem
 import Monomer.Widgets.Single
 import Monomer.Widgets.Singles.Checkbox
 import Monomer.Widgets.Singles.Label
-
-import qualified Monomer.Lens as L
 
 {-|
 Configuration options for labeledCheckbox:
@@ -67,9 +62,9 @@ Configuration options for labeledCheckbox:
     - 'ellipsis': if ellipsis should be used for overflown text.
     - 'multiline': if text may be split in multiple lines.
     - 'maxLines': maximum number of text lines to show.
-    - 'resizeFactor': flexibility to have more or less spaced assigned.
-    - 'resizeFactorW': flexibility for more or less horizontal spaced assigned.
-    - 'resizeFactorH': flexibility for more or less vertical spaced assigned.
+    - 'resizeFactor': flexibility to have more or less space assigned.
+    - 'resizeFactorW': flexibility for more or less horizontal space assigned.
+    - 'resizeFactorH': flexibility for more or less vertical space assigned.
 
 - Checkbox related
 

@@ -21,10 +21,8 @@ module Monomer.Widgets.Containers.Base.LabeledItem (
   labeledItem
 ) where
 
-import Control.Applicative ((<|>))
 import Data.Default
-import Control.Lens ((&), (^.), (^?), (^?!), (.~), (<>~), ix)
-import Data.Maybe
+import Control.Lens ((&), (^.), (^?!), (.~), (<>~), ix)
 import Data.Sequence ((|>))
 import Data.Text (Text)
 
@@ -36,7 +34,6 @@ import Monomer.Core.Combinators as Cmb
 import Monomer.Widgets.Container
 import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.Label
-import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 

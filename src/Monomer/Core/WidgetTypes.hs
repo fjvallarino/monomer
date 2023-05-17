@@ -12,7 +12,7 @@ Basic types and definitions for Widgets.
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# Language GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE Strict #-}
 
@@ -182,8 +182,7 @@ data WidgetRequest s e
   | StopTextInput
   -- | Sets a widget as the base target of future events. This is used by the
   --   dropdown component to handle list events; this list, acting as an
-  --   overlay, is displayed on top of all other widgets. Tooltip uses it too.
-  --   every other widget).
+  --   overlay, is displayed on top of all other widgets. Popup uses it too.
   | SetOverlay WidgetId Path
   -- | Removes the existing overlay.
   | ResetOverlay WidgetId

@@ -22,7 +22,6 @@ import qualified Data.Map.Strict as M
 import Monomer.Core.StyleTypes
 import Monomer.Graphics.ColorTable
 import Monomer.Graphics.Types
-import Monomer.Graphics.Util
 
 -- | Theme configuration for each state, plus clear/base color.
 data Theme = Theme {

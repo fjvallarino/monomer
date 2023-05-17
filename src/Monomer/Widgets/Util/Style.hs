@@ -28,13 +28,11 @@ module Monomer.Widgets.Util.Style (
   childOfFocusedStyle
 ) where
 
-import Control.Applicative ((<|>))
 import Control.Lens hiding ((<|), (|>))
 
-import Data.Bits (xor)
 import Data.Default
 import Data.Maybe
-import Data.Sequence (Seq(..), (<|), (|>))
+import Data.Sequence ((<|), (|>))
 
 import qualified Data.Sequence as Seq
 
