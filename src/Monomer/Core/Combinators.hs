@@ -74,7 +74,7 @@ class CmbSelectOnFocus t where
   selectOnFocus_ :: Bool -> t
 
 {-|
-Defines whether a widget prevents the user changing the value. Note that, in
+Defines whether a widget prevents the user from changing the value. Note that, in
 contrast to a disabled widget, a read-only widget can still be focused and
 still allows selecting and copying the value.
 -}

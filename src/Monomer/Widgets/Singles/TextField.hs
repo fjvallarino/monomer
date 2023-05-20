@@ -62,7 +62,7 @@ Configuration options for textField:
   warnings in the UI, or disable buttons if needed.
 - 'resizeOnChange': Whether input causes ResizeWidgets requests.
 - 'selectOnFocus': Whether all input should be selected when focus is received.
-- 'readOnly': Whether to prevent the user changing the input text.
+- 'readOnly': Whether to prevent the user from changing the input text.
 - 'maxLength': the maximum length of input text.
 - 'textFieldDisplayChar': the character that will be displayed as replacement of
   the real text. Useful for password fields.
