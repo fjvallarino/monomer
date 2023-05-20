@@ -74,7 +74,7 @@ Configuration options for textArea:
 - 'acceptTab': whether to handle tab and convert it to spaces (cancelling change
   of focus), or keep default behaviour and lose focus.
 - 'selectOnFocus': Whether all input should be selected when focus is received.
-- 'readOnly': Whether to prevent the user changing the input text.
+- 'readOnly': Whether to prevent the user from changing the input text.
 - 'onFocus': event to raise when focus is received.
 - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
 - 'onBlur': event to raise when focus is lost.

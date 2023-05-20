@@ -151,7 +151,7 @@ Configuration options for dateField:
   warnings in the UI, or disable buttons if needed.
 - 'resizeOnChange': Whether input causes 'ResizeWidgets' requests.
 - 'selectOnFocus': Whether all input should be selected when focus is received.
-- 'readOnly': Whether to prevent the user changing the input text.
+- 'readOnly': Whether to prevent the user from changing the input text.
 - 'minValue': Minimum valid date.
 - 'maxValue': Maximum valid date.
 - 'wheelRate': The rate at which wheel movement affects the date.

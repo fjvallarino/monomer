@@ -70,7 +70,7 @@ Configuration options for draggable:
   customizing this step without implementing a custom widget all the lifecycle
   steps.
 
-The regular styling of this component apply only when the item is not being
+The regular styling of this component applies only when the item is not being
 dragged. To style the dragged container, use draggableStyle.
 
 The transparency config only applies to the inner content.
