@@ -212,9 +212,9 @@ animTransform f managed = animTransform_ def f managed
 animTransform_
   :: WidgetEvent e
   => [TransformCfg s e]  -- ^ The config options.
-  -> Transformer       -- ^ Transformations from time (in ms) and viewport.
-  -> WidgetNode s e    -- ^ The child node.
-  -> WidgetNode s e    -- ^ The created animation container.
+  -> Transformer         -- ^ Transformations from time (in ms) and viewport.
+  -> WidgetNode s e      -- ^ The child node.
+  -> WidgetNode s e      -- ^ The created animation container.
 animTransform_ configs f managed = node where
   node = defaultWidgetNode widgetType widget
     & L.info . L.focusable .~ False

@@ -92,7 +92,7 @@ animZoomIn managed = animZoomIn_ def managed
 -- | Animates a widget to fully visible by increasing scale. Accepts config.
 animZoomIn_
   :: WidgetEvent e
-  => [ZoomCfg s e]     -- ^ The config options.
+  => [ZoomCfg s e]   -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animZoomIn_ configs managed = makeNode configs managed True
@@ -108,7 +108,7 @@ animZoomOut managed = animZoomOut_ def managed
 -- | Animates a widget to not visible by decreasing scale. Accepts config.
 animZoomOut_
   :: WidgetEvent e
-  => [ZoomCfg s e]     -- ^ The config options.
+  => [ZoomCfg s e]   -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animZoomOut_ configs managed = makeNode configs managed False

@@ -91,7 +91,7 @@ animFadeIn managed = animFadeIn_ def managed
 -- | Animates a widget from not visible state to fully visible. Accepts config.
 animFadeIn_
   :: WidgetEvent e
-  => [FadeCfg s e]     -- ^ The config options.
+  => [FadeCfg s e]   -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animFadeIn_ configs managed = makeNode configs managed True
@@ -107,7 +107,7 @@ animFadeOut managed = animFadeOut_ def managed
 -- | Animates a widget from visible state to not visible. Accepts config.
 animFadeOut_
   :: WidgetEvent e
-  => [FadeCfg s e]     -- ^ The config options.
+  => [FadeCfg s e]   -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animFadeOut_ configs managed = makeNode configs managed False

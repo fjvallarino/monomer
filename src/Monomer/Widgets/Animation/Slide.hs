@@ -125,7 +125,7 @@ animSlideIn managed = animSlideIn_ def managed
 --   to left). Accepts config.
 animSlideIn_
   :: WidgetEvent e
-  => [SlideCfg s e]    -- ^ The config options.
+  => [SlideCfg s e]  -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animSlideIn_ configs managed = makeNode configs managed True
@@ -142,7 +142,7 @@ animSlideOut managed = animSlideOut_ def managed
 --   visible (defaults to left). Accepts config.
 animSlideOut_
   :: WidgetEvent e
-  => [SlideCfg s e]    -- ^ The config options.
+  => [SlideCfg s e]  -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animSlideOut_ configs managed = makeNode configs managed False
