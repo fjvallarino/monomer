@@ -12,11 +12,9 @@ Messages:
 
 - Accepts an 'AnimationMsg', used to control the state of the animation.
 -}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Animation.Fade (
@@ -29,18 +27,12 @@ module Monomer.Widgets.Animation.Fade (
   animFadeOut_
 ) where
 
-import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~))
-import Control.Monad (when)
+import Control.Lens ((&), (.~))
 import Data.Default
 import Data.Maybe
-import Data.Typeable (cast)
-import GHC.Generics
-
-import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
-import Monomer.Widgets.Animation.Types
+import Monomer.Widgets.Animation.Transform
 
 import qualified Monomer.Lens as L
 
@@ -50,54 +42,43 @@ Configuration options for fade:
 - 'autoStart': whether the first time the widget is added, animation should run.
 - 'duration': how long the animation lasts in ms.
 - 'onFinished': event to raise when animation is complete.
+- 'onFinishedReq': 'WidgetRequest' to generate when animation is complete.
 -}
-data FadeCfg e = FadeCfg {
-  _fdcAutoStart :: Maybe Bool,
-  _fdcDuration :: Maybe Millisecond,
-  _fdcOnFinished :: [e]
+newtype FadeCfg s e = FadeCfg {
+  _fdcTransformCfg :: TransformCfg s e
 } deriving (Eq, Show)
 
-instance Default (FadeCfg e) where
+instance Default (FadeCfg s e) where
   def = FadeCfg {
-    _fdcAutoStart = Nothing,
-    _fdcDuration = Nothing,
-    _fdcOnFinished = []
+    _fdcTransformCfg = def
   }
 
-instance Semigroup (FadeCfg e) where
+instance Semigroup (FadeCfg s e) where
   (<>) fc1 fc2 = FadeCfg {
-    _fdcAutoStart = _fdcAutoStart fc2 <|> _fdcAutoStart fc1,
-    _fdcDuration = _fdcDuration fc2 <|> _fdcDuration fc1,
-    _fdcOnFinished = _fdcOnFinished fc1 <> _fdcOnFinished fc2
+    _fdcTransformCfg = _fdcTransformCfg fc1 <> _fdcTransformCfg fc2
   }
 
-instance Monoid (FadeCfg e) where
+instance Monoid (FadeCfg s e) where
   mempty = def
 
-instance CmbAutoStart (FadeCfg e) where
+instance CmbAutoStart (FadeCfg s e) where
   autoStart_ start = def {
-    _fdcAutoStart = Just start
+    _fdcTransformCfg = autoStart_ start
   }
 
-instance CmbDuration (FadeCfg e) Millisecond where
+instance CmbDuration (FadeCfg s e) Millisecond where
   duration dur = def {
-    _fdcDuration = Just dur
+    _fdcTransformCfg = duration dur
   }
 
-instance CmbOnFinished (FadeCfg e) e where
-  onFinished fn = def {
-    _fdcOnFinished = [fn]
+instance WidgetEvent e => CmbOnFinished (FadeCfg s e) e where
+  onFinished handler = def {
+    _fdcTransformCfg = onFinished handler
   }
 
-data FadeState = FadeState {
-  _fdsRunning :: Bool,
-  _fdsStartTs :: Millisecond
-} deriving (Eq, Show, Generic)
-
-instance Default FadeState where
-  def = FadeState {
-    _fdsRunning = False,
-    _fdsStartTs = 0
+instance CmbOnFinishedReq (FadeCfg s e) s e where
+  onFinishedReq req = def {
+    _fdcTransformCfg = onFinishedReq req
   }
 
 -- | Animates a widget from not visible state to fully visible.
@@ -110,12 +91,11 @@ animFadeIn managed = animFadeIn_ def managed
 -- | Animates a widget from not visible state to fully visible. Accepts config.
 animFadeIn_
   :: WidgetEvent e
-  => [FadeCfg e]     -- ^ The config options.
+  => [FadeCfg s e]     -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
-animFadeIn_ configs managed = makeNode "animFadeIn" widget managed where
-  config = mconcat configs
-  widget = makeFade True config def
+animFadeIn_ configs managed = makeNode configs managed True
+  & L.info . L.widgetType .~ "animFadeIn"
 
 -- | Animates a widget from visible state to not visible.
 animFadeOut
@@ -127,81 +107,25 @@ animFadeOut managed = animFadeOut_ def managed
 -- | Animates a widget from visible state to not visible. Accepts config.
 animFadeOut_
   :: WidgetEvent e
-  => [FadeCfg e]     -- ^ The config options.
+  => [FadeCfg s e]     -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
-animFadeOut_ configs managed = makeNode "animFadeOut" widget managed where
-  config = mconcat configs
-  widget = makeFade False config def
+animFadeOut_ configs managed = makeNode configs managed False
+  & L.info . L.widgetType .~ "animFadeOut"
 
 makeNode
-  :: WidgetEvent e => WidgetType -> Widget s e -> WidgetNode s e -> WidgetNode s e
-makeNode wType widget managedWidget = defaultWidgetNode wType widget
-  & L.info . L.focusable .~ False
-  & L.children .~ Seq.singleton managedWidget
-
-makeFade :: WidgetEvent e => Bool -> FadeCfg e -> FadeState -> Widget s e
-makeFade isFadeIn config state = widget where
-  widget = createContainer state def {
-    containerInit = init,
-    containerMerge = merge,
-    containerHandleMessage = handleMessage,
-    containerRender = render,
-    containerRenderAfter = renderPost
-  }
-
-  FadeState running start = state
-  autoStart = fromMaybe False (_fdcAutoStart config)
-  duration = fromMaybe 500 (_fdcDuration config)
-  period = 20
-  steps = fromIntegral $ duration `div` period
-
-  finishedReq node ts = delayedMessage node (AnimationFinished ts) duration
-  renderReq wenv node = req where
-    widgetId = node ^. L.info . L.widgetId
-    req = RenderEvery widgetId period (Just steps)
-
-  init wenv node = result where
-    ts = wenv ^. L.timestamp
-    newNode = node
-      & L.widget .~ makeFade isFadeIn config (FadeState True ts)
-    result
-      | autoStart = resultReqs newNode [finishedReq node ts, renderReq wenv node]
-      | otherwise = resultNode node
-
-  merge wenv node oldNode oldState = resultNode newNode where
-    newNode = node
-      & L.widget .~ makeFade isFadeIn config oldState
-
-  handleMessage wenv node target message = result where
-    result = cast message >>= Just . handleAnimateMsg wenv node
-
-  handleAnimateMsg wenv node msg = result where
-    widgetId = node ^. L.info . L.widgetId
-    ts = wenv ^. L.timestamp
-    startState = FadeState True ts
-    startReqs = [finishedReq node ts, renderReq wenv node]
-
-    newNode newState = node
-      & L.widget .~ makeFade isFadeIn config newState
-    result = case msg of
-      AnimationStart -> resultReqs (newNode startState) startReqs
-      AnimationStop -> resultReqs (newNode def) [RenderStop widgetId]
-      AnimationFinished ts'
-        | isRelevant -> resultEvts node (_fdcOnFinished config)
-        | otherwise -> resultNode node
-        where isRelevant = _fdsRunning state && ts' == _fdsStartTs state
-
-  render wenv node renderer = do
-    saveContext renderer
-    when running $
-      setGlobalAlpha renderer alpha
-    where
-      ts = wenv ^. L.timestamp
-      currStep = clampAlpha $ fromIntegral (ts - start) / fromIntegral duration
-      alpha
-        | isFadeIn = currStep
-        | otherwise = 1 - currStep
-
-  renderPost wenv node renderer = do
-    restoreContext renderer
+  :: WidgetEvent e
+  => [FadeCfg s e]
+  -> WidgetNode s e
+  -> Bool
+  -> WidgetNode s e
+makeNode configs managed isFadeIn = node where
+  node = animTransform_ [_fdcTransformCfg] f managed
+  f t _ = [animGlobalAlpha $ alpha t]
+  alpha t = if isFadeIn
+    then (currStep t)
+    else 1-(currStep t)
+  currStep t = clampAlpha $ t/(fromIntegral dur)
+  dur = fromMaybe 500 _tfcDuration
+  TransformCfg{..} = _fdcTransformCfg
+  FadeCfg{..} = mconcat configs

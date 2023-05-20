@@ -521,6 +521,10 @@ class CmbOnLoadError t e a | t -> e a where
 class CmbOnFinished t e | t -> e where
   onFinished :: e -> t
 
+-- | On finished WidgetRequest.
+class CmbOnFinishedReq t s e | t -> s e where
+  onFinishedReq :: WidgetRequest s e -> t
+
 -- | Width combinator.
 class CmbWidth t where
   width :: Double -> t

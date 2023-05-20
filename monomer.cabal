@@ -84,8 +84,12 @@ library
       Monomer.Widgets
       Monomer.Widgets.Animation
       Monomer.Widgets.Animation.Fade
+      Monomer.Widgets.Animation.Shake
       Monomer.Widgets.Animation.Slide
+      Monomer.Widgets.Animation.Transform
       Monomer.Widgets.Animation.Types
+      Monomer.Widgets.Animation.Wipe
+      Monomer.Widgets.Animation.Zoom
       Monomer.Widgets.Composite
       Monomer.Widgets.Container
       Monomer.Widgets.Containers.Alert
@@ -529,7 +533,11 @@ test-suite monomer-test
       Monomer.TestEventUtil
       Monomer.TestUtil
       Monomer.Widgets.Animation.FadeSpec
+      Monomer.Widgets.Animation.ShakeSpec
       Monomer.Widgets.Animation.SlideSpec
+      Monomer.Widgets.Animation.TransformSpec
+      Monomer.Widgets.Animation.WipeSpec
+      Monomer.Widgets.Animation.ZoomSpec
       Monomer.Widgets.CompositeSpec
       Monomer.Widgets.Containers.AlertSpec
       Monomer.Widgets.Containers.BoxShadowSpec
