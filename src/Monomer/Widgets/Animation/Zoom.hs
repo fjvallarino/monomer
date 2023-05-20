@@ -45,7 +45,7 @@ Configuration options for zoom:
 - 'onFinished': event to raise when animation is complete.
 - 'onFinishedReq': 'WidgetRequest' to generate when animation is complete.
 -}
-data ZoomCfg s e = ZoomCfg {
+newtype ZoomCfg s e = ZoomCfg {
   _zmcTransformCfg :: TransformCfg s e
 } deriving (Eq, Show)
 

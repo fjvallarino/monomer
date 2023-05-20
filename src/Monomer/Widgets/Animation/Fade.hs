@@ -44,7 +44,7 @@ Configuration options for fade:
 - 'onFinished': event to raise when animation is complete.
 - 'onFinishedReq': 'WidgetRequest' to generate when animation is complete.
 -}
-data FadeCfg s e = FadeCfg {
+newtype FadeCfg s e = FadeCfg {
   _fdcTransformCfg :: TransformCfg s e
 } deriving (Eq, Show)
 
