@@ -77,7 +77,7 @@ Configuration options for selectList:
 - 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
 - 'onChange': event to raise when selected item changes.
 - 'onChangeReq': 'WidgetRequest' to generate when selected item changes.
-- 'onChangeIdx': event to raise when selected item changes. Includes index,
+- 'onChangeIdx': event to raise when selected item changes. Includes index.
 - 'onChangeIdxReq': 'WidgetRequest' to generate when selected item changes.
   Includes index.
 - 'selectOnBlur': whether to select the currently highlighted item when
