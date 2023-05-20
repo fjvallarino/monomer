@@ -70,7 +70,7 @@ import qualified Monomer.Lens as L
 {-|
 Configuration options for confirm:
 
-- 'titleCaption': the title of the alert dialog.
+- 'titleCaption': the title of the confirm dialog.
 - 'acceptCaption': the caption of the accept button.
 - 'cancelCaption': the caption of the cancel button.
 -}
