@@ -12,6 +12,31 @@ Acts as a base for most animation widgets.
 Messages:
 
 - Accepts an 'AnimationMsg', used to control the state of the animation.
+
+@
+transform t (Rect x y w h) =
+  [ animTranslation $ Point tx ty
+  , animScale $ Point sx sy
+  ]
+
+animTransform transform managed
+@
+
+With configuration options:
+
+@
+transform t (Rect x y w h) =
+  [ animTranslation $ Point tx ty
+  , animScale $ Point sx sy
+  ]
+
+animTransform_ [duration 2000, autoStart] transform managed
+@
+
+For usage examples, see:
+
+- "Monomer.Widgets.Animation.Shake"
+- "Monomer.Widgets.Animation.Zoom"
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
