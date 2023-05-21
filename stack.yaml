@@ -19,7 +19,7 @@
 #resolver: lts-14.27
 #resolver: lts-17.15
 #resolver: lts-18.27
-resolver: lts-20.1
+resolver: lts-20.21
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -45,7 +45,7 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
-  - nanovg-0.8.1.0@sha256:9131db15822c6593aa73946b56593eb0a14a0d044395bcdfd4fe2d3e6edb6759,4742
+  - nanovg-0.8.1.0@sha256:bfcbe0dc0020aaa80db895966c9cf1b8aa4f13ac5253e713d728165fea7e9fc1,4914
 
 # Override default flag values for local packages and extra-deps
 flags:
