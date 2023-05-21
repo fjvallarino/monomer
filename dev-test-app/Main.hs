@@ -51,7 +51,7 @@ main = do
       appWindowTitle "Dev test app",
       appWindowIcon "./assets/images/icon.png",
       appTheme darkTheme,
-      appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
+--      appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent AppInit,
       appModelFingerprint show
       ]

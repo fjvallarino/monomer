@@ -42,6 +42,8 @@ import Monomer.Helper (putStrLnErr)
 import qualified Monomer.Common.Lens as L
 import qualified Monomer.Graphics.Lens as L
 
+import Monomer.DefaultAssets.RobotoRegular (defaultFontDef)
+
 type ImagesMap = M.Map Text Image
 
 data ImageAction
@@ -92,7 +94,11 @@ makeRenderer
 makeRenderer fonts dpr = do
   c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes])
 
-  validFonts <- foldM (loadFont c) Set.empty fonts
+  let affixedFonts = if null fonts    -- Hack to allow font display
+          then pure defaultFontDef    -- without any font configured
+          else fonts
+
+  validFonts <- foldM (loadFont c) Set.empty affixedFonts
 
   when (null validFonts) $
     putStrLnErr "Could not find any valid fonts. Text will fail to be displayed."

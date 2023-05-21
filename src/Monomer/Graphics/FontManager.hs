@@ -31,6 +31,8 @@ import Monomer.Graphics.Types
 import Monomer.Helper (putStrLnErr)
 import Monomer.Graphics.Lens (fontName, fontPath, fontBytes)
 
+import Monomer.DefaultAssets.RobotoRegular (defaultFontDef)
+
 -- | Creates a font manager instance.
 makeFontManager
   :: [FontDef]       -- ^ The font definitions.
@@ -39,7 +41,11 @@ makeFontManager
 makeFontManager fonts dpr = do
   ctx <- fmInit dpr
 
-  validFonts <- foldM (loadFont ctx) [] fonts
+  let affixedFonts = if null fonts    -- Hack to allow font display
+          then pure defaultFontDef    -- without any font configured
+          else fonts
+
+  validFonts <- foldM (loadFont ctx) [] affixedFonts
 
   when (null validFonts) $
     putStrLnErr "Could not find any valid fonts. Text size calculations will fail."
