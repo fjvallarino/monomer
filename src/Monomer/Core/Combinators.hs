@@ -730,6 +730,14 @@ class CmbCursorIcon t where
   cursorDiagTL = cursorIcon CursorDiagTL
   cursorDiagTR :: t
   cursorDiagTR = cursorIcon CursorDiagTR
+  cursorSize :: t
+  cursorSize = cursorIcon CursorSize
+  cursorWait :: t
+  cursorWait = cursorIcon CursorWait
+  cursorWaitArrow :: t
+  cursorWaitArrow = cursorIcon CursorWaitArrow
+  cursorCrosshair :: t
+  cursorCrosshair = cursorIcon CursorCrosshair
   cursorIcon :: CursorIcon -> t
 
 -- | Basic style for each item of a list.
