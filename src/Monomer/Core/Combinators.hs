@@ -730,8 +730,8 @@ class CmbCursorIcon t where
   cursorDiagTL = cursorIcon CursorDiagTL
   cursorDiagTR :: t
   cursorDiagTR = cursorIcon CursorDiagTR
-  cursorSize :: t
-  cursorSize = cursorIcon CursorSize
+  cursorSizeAll :: t
+  cursorSizeAll = cursorIcon CursorSizeAll
   cursorWait :: t
   cursorWait = cursorIcon CursorWait
   cursorWaitArrow :: t

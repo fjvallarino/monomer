@@ -61,7 +61,7 @@ data CursorIcon
   | CursorSizeV
   | CursorDiagTL
   | CursorDiagTR
-  | CursorSize
+  | CursorSizeAll
   | CursorWait
   | CursorWaitArrow
   | CursorCrosshair
