@@ -163,9 +163,9 @@ Configuration options for dateField:
 - 'onChange': event to raise when the value changes.
 - 'onChangeReq': 'WidgetRequest' to generate when the value changes.
 - 'dateFormatDelimiter': which text delimiter to separate year, month and day.
-- 'dateFormatDDMMYYYY': using the current delimiter, accept DD/MM/YYYY.
-- 'dateFormatMMDDYYYY': using the current delimiter, accept MM/DD/YYYY.
-- 'dateFormatYYYYMMDD': using the current delimiter, accept YYYY/MM/DD.
+- 'dateFormatDDMMYYYY': using the current delimiter, accept DD\/MM\/YYYY.
+- 'dateFormatMMDDYYYY': using the current delimiter, accept MM\/DD\/YYYY.
+- 'dateFormatYYYYMMDD': using the current delimiter, accept YYYY\/MM\/DD.
 -}
 data DateFieldCfg s e a = DateFieldCfg {
   _dfcCaretWidth :: Maybe Double,
@@ -320,19 +320,19 @@ dateFormatDelimiter delim = def {
   _dfcDateDelim = Just delim
 }
 
--- | Date format DD/MM/YYYY, using the appropriate delimiter.
+-- | Date format DD\/MM\/YYYY, using the appropriate delimiter.
 dateFormatDDMMYYYY :: DateFieldCfg s e a
 dateFormatDDMMYYYY = def {
   _dfcDateFormat = Just FormatDDMMYYYY
 }
 
--- | Date format MM/DD/YYYY, using the appropriate delimiter.
+-- | Date format MM\/DD\/YYYY, using the appropriate delimiter.
 dateFormatMMDDYYYY :: DateFieldCfg s e a
 dateFormatMMDDYYYY = def {
   _dfcDateFormat = Just FormatMMDDYYYY
 }
 
--- | Date format YYYY/MM/DD, using the appropriate delimiter.
+-- | Date format YYYY\/MM\/DD, using the appropriate delimiter.
 dateFormatYYYYMMDD :: DateFieldCfg s e a
 dateFormatYYYYMMDD = def {
   _dfcDateFormat = Just FormatYYYYMMDD

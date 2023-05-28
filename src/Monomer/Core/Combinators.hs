@@ -32,7 +32,7 @@ import Monomer.Graphics.Types
 Given two values, usually model, checks if merge is required for a given widget.
 
 The first parameter usually corresponds to the current 'WidgetEnv', the second
-to the old value/model, and the third to the new/model.
+to the old value\/model, and the third to the new value\/model.
 
 This is used, for example, by _composite_ and _box_.
 -}
