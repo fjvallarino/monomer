@@ -23,7 +23,7 @@ import Monomer.Core.WidgetTypes
 
 import qualified Monomer.Core.Lens as L
 
--- | Updates a the field of style with the field value from the active theme.
+-- | Updates the field of style with the field value from the active theme.
 collectThemeField_
   :: WidgetEnv s e               -- ^ The widget environment (to get the theme).
   -> Lens' StyleState (Maybe t)  -- ^ The target field of the style.
@@ -47,9 +47,9 @@ collectThemeField_ wenv fieldStyle fieldTheme target = style where
 
 -- | Collects all the style states from a given field in the active theme.
 collectTheme
-  :: WidgetEnv s e               -- ^ The widget environment (to get the theme).
-  -> Lens' ThemeState StyleState -- ^ The field into the theme
-  -> Style                       -- ^ The collected style.
+  :: WidgetEnv s e                -- ^ The widget environment (to get the theme).
+  -> Lens' ThemeState StyleState  -- ^ The field into the theme.
+  -> Style                        -- ^ The collected style.
 collectTheme wenv fieldT = style where
   basic = Just $ wenv ^. L.theme . L.basic . fieldT
   hover = Just $ wenv ^. L.theme . L.hover . fieldT
