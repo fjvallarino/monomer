@@ -330,9 +330,11 @@ makeTextArea !wdata !config !state = widget where
 
   handleKeyPress wenv mod code
     | isDelBackWordNoSel && editable = Just removeWordL
-    | isDelBackWord && editable = Just (replaceText state selStart "")
+    | isDelForwardWordNoSel && editable = Just removeWordR
+    | isDelWord && editable = Just (replaceText state selStart "")
     | isBackspace && emptySel && editable = Just removeCharL
-    | isBackspace && editable = Just (replaceText state selStart "")
+    | isDelete && emptySel && editable = Just removeCharR
+    | (isBackspace || isDelete) && editable = Just (replaceText state selStart "")
     | isMoveLeft = Just $ moveCursor txt (tpX - 1, tpY) Nothing
     | isMoveRight = Just $ moveCursor txt (tpX + 1, tpY) Nothing
     | isMoveUp = Just $ moveCursor txt (tpX, tpY - 1) Nothing
@@ -416,8 +418,12 @@ makeTextArea !wdata !config !state = widget where
         | otherwise = _kmLeftCtrl mod
 
       isBackspace = isKeyBackspace code
+      isDelete = isKeyDelete code
       isDelBackWord = isBackspace && isWordMod
+      isDelForwardWord = isDelete && isWordMod
       isDelBackWordNoSel = isDelBackWord && emptySel
+      isDelForwardWordNoSel = isDelForwardWord && emptySel
+      isDelWord = isDelBackWord || isDelForwardWord
 
       isMove = not isShift && not isWordMod && not isLineMod
       isMoveWord = not isShift && isWordMod && not isLineMod
@@ -463,7 +469,12 @@ makeTextArea !wdata !config !state = widget where
       removeCharL
         | tpX > 0 = replaceFix (tpX - 1, tpY) ""
         | otherwise = replaceFix (lineLen (tpY - 1), tpY - 1) ""
+      removeCharR
+        | tpX < lineLen tpY = replaceFix (tpX + 1, tpY) ""
+        | tpY >= length textLines - 1 = replaceFix (tpX, tpY) ""
+        | otherwise = replaceFix (0, tpY + 1) ""
       removeWordL = replaceFix prevWordPos ""
+      removeWordR = replaceFix nextWordPos ""
       moveCursor txt newPos newSel
         | isJust selStart && isNothing newSel = (txt, fixedPos, Nothing)
         | isJust selStart && Just fixedPos == selStart = (txt, fixedPos, Nothing)
