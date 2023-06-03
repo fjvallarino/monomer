@@ -55,8 +55,6 @@ Configuration options for externalLink:
 - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
 - 'onBlur': event to raise when focus is lost.
 - 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
-- 'onClick': event to raise when button is clicked.
-- 'onClickReq': 'WidgetRequest' to generate when button is clicked.
 -}
 data ExternalLinkCfg s e = ExternalLinkCfg {
   _elcLabelCfg :: LabelCfg s e,
