@@ -64,6 +64,10 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtT "ababa", moveCharL, moveCharL, evtK keyBackspace, evtT "c"]
     model steps ^. textValue `shouldBe` "abcba"
 
+  it "should input 'ababa' and remove the middle 'a'" $ do
+    let steps = [evtT "ababa", moveCharL, moveCharL, moveCharL, evtK keyDelete]
+    model steps ^. textValue `shouldBe` "abba"
+
   it "should input 'ababa', select last two and input 'c'" $ do
     let steps = [evtT "ababa", selCharL, selCharL, selCharL, evtT "c"]
     model steps ^. textValue `shouldBe` "abc"
@@ -291,6 +295,14 @@ handleEventHistory = describe "handleEventHistory" $ do
     model steps2 ^. textValue `shouldBe` "This is text"
     lastEvt steps2 `shouldBe` TextChanged "This is text"
 
+  it "should input 'This is text', have the middle word removed and then undo" $ do
+    let str = "This is text"
+    let steps1 = [evtT str] ++ (replicate 8 moveCharL) ++ [evtKA keyDelete]
+    let steps2 = steps1 ++ [evtKG keyZ]
+    model steps1 ^. textValue `shouldBe` "This text"
+    model steps2 ^. textValue `shouldBe` "This is text"
+    lastEvt steps2 `shouldBe` TextChanged "This is text"
+
   it "should input 'This is text', have the last two words removed, undo and redo" $ do
     let str = "This is text"
     let steps1 = [evtT str, evtKA keyBackspace, evtKA keyBackspace]
@@ -299,7 +311,7 @@ handleEventHistory = describe "handleEventHistory" $ do
     model steps2 ^. textValue `shouldBe` "This is "
     lastEvt steps2 `shouldBe` TextChanged "This is "
 
-  it "should input 'This is just a string', play around with history and come end up with 'This is just text" $ do
+  it "should input 'This is just a string', play around with history and end up with 'This is just text'" $ do
     let str = "This is just a string"
     let steps1 = [evtT str, evtKA keyBackspace, evtKA keyBackspace, evtKA keyBackspace, evtKA keyBackspace, evtKA keyBackspace]
     let steps2 = steps1 ++ [evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKGS keyZ, evtKGS keyZ, evtT "text"]
