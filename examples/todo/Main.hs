@@ -10,6 +10,7 @@ Main module for the 'Todo' example.
 -}
 {-# LANGUAGE BinaryLiterals #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
@@ -121,6 +122,7 @@ buildUI wenv model = widgetTree where
   sectionBg = wenv ^. L.theme . L.sectionColor
   isEditing
     | TodoEditing _ <- model ^. action = True
+    | TodoAdding <- model ^. action = True
     | otherwise = False
 
   countLabel = label caption `styleBasic` styles where
@@ -168,7 +170,7 @@ handleEvent
   -> TodoNode
   -> TodoModel
   -> TodoEvt
-  -> [EventResponse TodoModel TodoEvt TodoModel TodoEvt]
+  -> [AppEventResponse TodoModel TodoEvt]
 handleEvent wenv node model evt = case evt of
   TodoInit -> [SetFocusOnKey "todoNew"]
 
@@ -206,7 +208,7 @@ handleEvent wenv node model evt = case evt of
 
   TodoCancelDelete -> [
     Model (model & action .~ TodoNone)]
-  
+
   TodoDelete idx todo -> [
     Model $ model & todos .~ remove idx (model ^. todos),
     SetFocusOnKey "todoNew"]
