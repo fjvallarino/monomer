@@ -37,6 +37,7 @@ import Monomer.Main.Types
 import Monomer.Main.Util
 
 import qualified Monomer.Lens as L
+import Control.Monad (foldM)
 
 data InitWidget
   = WInit
