@@ -17,6 +17,8 @@ import Data.Default
 import Data.Text (Text)
 import Data.Typeable (Typeable, cast, typeOf)
 import Data.Map.Strict (Map)
+--import System.OsPath (OsPath)
+import System.FilePath (FilePath)
 
 import qualified Data.Map.Strict as M
 
@@ -117,6 +119,9 @@ data SystemEvent
   -- | A drag action was active and the main button was released inside the
   --   current viewport.
   | Drop Point Path WidgetDragMsg
+  -- | File dragged and dropped into window.
+  -- | FileDrop OsPath -- OsPath should be used but is currently not part of the newest LTS snapshot yet. for now, use old FilePath instead:
+  | FileDrop FilePath
   deriving (Eq, Show)
 
 -- | Status of input devices.

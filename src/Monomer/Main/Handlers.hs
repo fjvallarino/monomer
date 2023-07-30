@@ -910,6 +910,8 @@ getTargetPath wenv root pressed overlay target event = case event of
     TextInput _                       -> pathEvent target
     -- Clipboard
     Clipboard _                       -> pathEvent target
+    -- FileDrop
+    FileDrop _                        -> pathEvent target
     -- Mouse/touch
     ButtonAction point _ BtnPressed _ -> pointEvent point
     ButtonAction _ _ BtnReleased _    -> pathEvent target
