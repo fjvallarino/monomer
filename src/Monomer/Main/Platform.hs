@@ -8,7 +8,7 @@ Portability : non-portable
 
 Helper functions for SDL platform related operations.
 -}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE ForeignFunctionInterface, Strict #-}
 
 module Monomer.Main.Platform (
   defaultWindowSize,
@@ -23,7 +23,8 @@ module Monomer.Main.Platform (
 ) where
 
 import Control.Exception (finally)
-import Control.Monad.Extra (whenJust)
+import Control.Monad (void)
+import Control.Monad.Extra (forM_, when, whenJust)
 import Control.Monad.State
 import Data.Maybe
 import Data.Text (Text)
