@@ -15,6 +15,7 @@ module Monomer.TestUtil where
 import Control.Concurrent (newMVar)
 import Control.Concurrent.STM.TChan (newTChanIO)
 import Control.Lens ((&), (^.), (.~), (.=), (+~))
+import Control.Monad (foldM)
 import Control.Monad.State
 import Data.Default
 import Data.Maybe
