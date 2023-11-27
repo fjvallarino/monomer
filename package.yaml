@@ -40,7 +40,7 @@ dependencies:
   - http-client >= 0.6 && < 0.9
   - JuicyPixels >= 3.2.9 && < 3.5
   - lens >= 4.16 && < 6
-  - mtl >= 2.1 && < 2.3
+  - mtl >= 2.1 && < 2.4
   - nanovg >= 0.8.1 && < 1.0
   - OpenGLRaw >= 3.3 && < 3.4
   - process >= 1.6 && < 1.7
