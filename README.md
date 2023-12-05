@@ -86,6 +86,12 @@ In case you wonder why some choices were made, you can read
 - Stability and performance.
 - Mobile support.
 
+## Project status
+
+Although there has not been a lot of activity in the past year, the project is still active.
+
+I may take some time to respond to issues while I work on features I want to add to Monomer.
+
 ## Useful extensions
 
 - [Hagrid](https://github.com/Dretch/monomer-hagrid), a flexible datagrid widget.
