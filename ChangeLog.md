@@ -1,3 +1,30 @@
+## 1.6.0.0
+
+### Added
+
+- Add renderBezierTo to Renderer for rendering cubic bezier curves ([PR #259](https://github.com/fjvallarino/monomer/pull/259)). Thanks @DarinM223!
+- Improve development time application reload ([PR #239](https://github.com/fjvallarino/monomer/pull/239)).
+- Draggable widget: allow to hide the original widget when dragging ([PR #259](https://github.com/fjvallarino/monomer/pull/259)). Thanks @Deltaspace0!
+- Add more animation widgets ([PR #281](https://github.com/fjvallarino/monomer/pull/281)). Thanks @Deltaspace0!
+
+### Fixed
+
+- Avoid weird macOS 'command encoder is already encoding to this command buffer' error when resizing window ([PR #234](https://github.com/fjvallarino/monomer/pull/234)).
+- Fix type error in examples ([PR #263](https://github.com/fjvallarino/monomer/pull/263)).
+- Fix flake.nix definition to work with more recent nixpkgs snapshots ([PR #266](https://github.com/fjvallarino/monomer/pull/266)). Thanks @RubenAstudillo!
+- Fix Semigroup instance for BoxShadowCfg ([PR #272](https://github.com/fjvallarino/monomer/pull/272)). Thanks @Deltaspace0!
+- Fix typo in widgetDataSet description ([PR #273](https://github.com/fjvallarino/monomer/pull/273)). Thanks @Deltaspace0!
+- Do not generate extra click events in box widget ([PR #267](https://github.com/fjvallarino/monomer/pull/267)).
+- Remove redundant imports and fix typos ([PR #275](https://github.com/fjvallarino/monomer/pull/275)). Thanks @Deltaspace0!
+- Fix typos in documentation ([PR #284](https://github.com/fjvallarino/monomer/pull/284)). Thanks @Deltaspace0!
+- Fix build issues with GHC 9.6 ([PR #308](https://github.com/fjvallarino/monomer/pull/308)).
+
+### Changed
+
+- Better explain how the nodeKey function is related to WidgetKey ([PR #270](https://github.com/fjvallarino/monomer/pull/270)). Thanks @RubenAstudillo!
+- Use parent model for Alert and Confirm modals ([PR #268](https://github.com/fjvallarino/monomer/pull/268)).
+- Use latest nanovg-hs commit hash to apply relaxed text and vector upper bounds ([PR #285](https://github.com/fjvallarino/monomer/pull/285)).
+
 ## 1.5.1.0
 
 ### Added
