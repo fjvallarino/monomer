@@ -179,6 +179,7 @@ library
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , filepath ==1.4.*
     , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
@@ -225,6 +226,7 @@ executable books
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , filepath ==1.4.*
     , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
@@ -268,6 +270,7 @@ executable dev-test-app
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , filepath ==1.4.*
     , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
@@ -310,6 +313,7 @@ executable generative
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , filepath ==1.4.*
     , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
@@ -355,6 +359,7 @@ executable opengl
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , filepath ==1.4.*
     , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
@@ -402,6 +407,7 @@ executable ticker
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , filepath ==1.4.*
     , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
@@ -448,6 +454,7 @@ executable todo
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , filepath ==1.4.*
     , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
@@ -499,6 +506,7 @@ executable tutorial
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , filepath ==1.4.*
     , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
@@ -597,6 +605,7 @@ test-suite monomer-test
     , data-default >=0.5 && <0.8
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
+    , filepath ==1.4.*
     , foreign-store >=0.2 && <1.0
     , formatting >=6.0 && <8.0
     , hspec >=2.4 && <3.0

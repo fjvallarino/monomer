@@ -332,7 +332,7 @@ mainLoop window fontManager config loopArgs = do
   let invertX = fromMaybe False (_apcInvertWheelX config)
   let invertY = fromMaybe False (_apcInvertWheelY config)
   let convertCfg = ConvertEventsCfg _mlOS dpr epr invertX invertY
-  let baseSystemEvents = convertEvents convertCfg mousePos eventsPayload
+  baseSystemEvents <- liftIO $ convertEvents convertCfg mousePos eventsPayload
 
 --  when newSecond $
 --    liftIO . putStrLnErr $ "Frames: " ++ show _mlFrameCount

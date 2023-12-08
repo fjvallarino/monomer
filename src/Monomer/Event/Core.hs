@@ -15,11 +15,19 @@ module Monomer.Event.Core (
   translateEvent
 ) where
 
-import Control.Applicative ((<|>))
+--import Control.Applicative ((<|>))
+import Control.Monad (forM)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 
 import qualified SDL
+
+-- 'OsPath' is not part of current LTS snapshot, yet.
+--import System.IO (utf8, utf16le, EncodingException(..))
+--import System.OsPath
+--import System.OsString.Internal (encodeWith)
+import System.FilePath
+import Foreign.C.String
 
 import Monomer.Common
 import Monomer.Event.Types
@@ -36,6 +44,7 @@ isActionEvent SDL.MouseWheelEvent{} = True
 isActionEvent SDL.KeyboardEvent{} = True
 isActionEvent SDL.TextEditingEvent{} = True
 isActionEvent SDL.TextInputEvent{} = True
+isActionEvent SDL.DropEvent{} = True
 isActionEvent _ = False
 
 -- | Configuration options for converting from an SDL event to a 'SystemEvent'.
@@ -47,22 +56,30 @@ data ConvertEventsCfg = ConvertEventsCfg {
   _cecInvertWheelY :: Bool  -- ^ Whether wheel/trackpad y direction should be inverted.
 } deriving (Eq, Show)
 
--- | Converts SDL events to Monomer's SystemEvent
+-- | Converts SDL events to Monomer's SystemEvent. 
+--   IO necessary for marshalling (i.e. peekCString)
 convertEvents
   :: ConvertEventsCfg    -- ^ Settings for event conversion.
   -> Point               -- ^ Mouse position.
   -> [SDL.EventPayload]  -- ^ List of SDL events.
-  -> [SystemEvent]       -- ^ List of Monomer events.
-convertEvents cfg mousePos events = catMaybes convertedEvents where
-  ConvertEventsCfg os dpr epr invertX invertY = cfg
-  convertedEvents = fmap convertEvent events
-  convertEvent evt =
-    mouseMoveEvent mousePos evt
-    <|> mouseClick mousePos evt
-    <|> mouseWheelEvent cfg mousePos evt
-    <|> mouseMoveLeave mousePos evt
-    <|> keyboardEvent evt
-    <|> textEvent evt
+  -> IO [SystemEvent]    -- ^ List of Monomer events.
+convertEvents cfg mousePos events = 
+  fmap catMaybes $ forM events $ eventHandler [ mouseMove, mouseClk, mouseWheel, mouseLeave, keyboard, text, fileDrop ] 
+  where
+    ConvertEventsCfg os dpr epr invertX invertY = cfg
+    mouseMove  = \e -> return $ mouseMoveEvent mousePos e
+    mouseClk   = \e -> return $ mouseClick mousePos e
+    mouseWheel = \e -> return $ mouseWheelEvent cfg mousePos e
+    mouseLeave = \e -> return $ mouseMoveLeave mousePos e
+    keyboard   = \e -> return $ keyboardEvent e
+    text       = \e -> return $ textEvent e
+    fileDrop   = \e -> fileDropEvent mousePos e
+
+    eventHandler (f:fs) = \e -> f e >>= \maybeSE -> case maybeSE of
+      Just se  -> return $ Just se
+      Nothing  -> eventHandler fs e
+    eventHandler [] = \e -> return Nothing
+
 
 -- | Adds a given offset to mouse related SystemEvents.
 translateEvent
@@ -140,6 +157,19 @@ textEvent :: SDL.EventPayload -> Maybe SystemEvent
 textEvent (SDL.TextInputEvent input) = Just textInput where
   textInput = TextInput (SDL.textInputEventText input)
 textEvent _ = Nothing
+
+-- TODO: 'OsPath' instead of 'FilePath' should be used, but is currently not part of the newest LTS snapshot
+--fileDropEvent :: Point -> SDL.EventPayload -> IO (Maybe SystemEvent)
+--fileDropEvent _ (SDL.DropEvent (SDL.DropEventData cstr)) = 
+--        peekCString cstr >>= \str -> case encodeWith utf8 utf16le str of
+--            Right osstr -> return $ Just (FileDrop osstr)
+--            _           -> return Nothing
+fileDropEvent :: Point -> SDL.EventPayload -> IO (Maybe SystemEvent)
+fileDropEvent _ (SDL.DropEvent (SDL.DropEventData cstr)) = do
+    str <- peekCString cstr -- the filepath 'cstr' must be an utf8 string when we compare to the SDL example https://wiki.libsdl.org/SDL2/SDL_DropEvent
+    putStrLn $ "FileDrop: " ++ str
+    return $ Just (FileDrop str)
+fileDropEvent _ _ = return Nothing
 
 convertKeyModifier :: SDL.KeyModifier -> KeyMod
 convertKeyModifier keyMod = KeyMod {
