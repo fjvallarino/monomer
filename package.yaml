@@ -1,5 +1,5 @@
 name: monomer
-version: 1.6.0.0
+version: 1.6.0.1
 github: fjvallarino/monomer
 license: BSD3
 author: Francisco Vallarino
@@ -26,15 +26,15 @@ default-extensions:
   - OverloadedStrings
 
 dependencies:
-  - async >= 2.1 && < 2.3
-  - attoparsec >= 0.12 && < 0.15
+  - async >= 2.1 && < 2.4
+  - attoparsec >= 0.12 && < 0.16
   - base >= 4.11 && < 5
-  - bytestring >= 0.10 && < 0.12
+  - bytestring >= 0.10 && < 0.20
   - bytestring-to-vector >= 0.3 && < 0.4
-  - containers >= 0.5.11 && < 0.7
-  - data-default >= 0.5 && < 0.8
-  - exceptions >= 0.10 && < 0.11
-  - extra >= 1.6 && < 1.9
+  - containers >= 0.5.11 && < 0.8
+  - data-default >= 0.5 && < 0.9
+  - exceptions >= 0.10 && < 0.13
+  - extra >= 1.6 && < 1.10
   - foreign-store >= 0.2 && < 1.0
   - formatting >= 6.0 && < 8.0
   - http-client >= 0.6 && < 0.9
@@ -42,16 +42,16 @@ dependencies:
   - lens >= 4.16 && < 6
   - mtl >= 2.1 && < 2.4
   - nanovg >= 0.8.1 && < 1.0
-  - OpenGLRaw >= 3.3 && < 3.4
-  - process >= 1.6 && < 1.7
-  - sdl2 >= 2.5.0 && < 2.6
-  - stm >= 2.5 && < 2.6
-  - text >= 1.2 && < 2.1
-  - text-show >= 3.7 && < 3.12
-  - time >= 1.8 && < 1.16
-  - transformers >= 0.5 && < 0.7
-  - vector >= 0.12 && < 0.14
-  - wreq >= 0.5.2 && < 0.6
+  - OpenGLRaw >= 3.3 && < 3.5
+  - process >= 1.6 && < 1.8
+  - sdl2 >= 2.5.0 && < 2.7
+  - stm >= 2.5 && < 2.7
+  - text >= 1.2 && < 3
+  - text-show >= 3.7 && < 3.14
+  - time >= 1.8 && < 1.20
+  - transformers >= 0.5 && < 0.8
+  - vector >= 0.12 && < 0.20
+  - wreq >= 0.5.2 && < 0.7
 
 flags:
   examples:

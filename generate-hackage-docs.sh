@@ -10,6 +10,7 @@ dir=hackage-docs
 # assumes cabal 2.4 or later
 stack exec --no-ghc-package-path -- cabal v2-haddock --builddir="$dir" --haddock-for-hackage --enable-doc
 
+# this unpacks to .tar, which is the file format expected by Hackage
 cd $dir
 gunzip monomer*-docs.tar.gz
 cd ..
