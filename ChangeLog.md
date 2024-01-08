@@ -1,3 +1,9 @@
+## 1.6.0.1
+
+### Changed
+
+- Relaxed upper bounds for several packages ([PR #314](https://github.com/fjvallarino/monomer/pull/314)).
+
 ## 1.6.0.0
 
 ### Added
