@@ -8,6 +8,7 @@ Portability : non-portable
 
 Types for the 'Todo' example.
 -}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
