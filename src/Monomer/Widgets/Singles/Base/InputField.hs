@@ -638,8 +638,8 @@ makeInputField !config !state = widget where
           _ifsHistIdx = histIdx + 1
         }
       | otherwise = tempState {
-          _ifsHistory = Seq.take (histIdx - 1) history |> newStep,
-          _ifsHistIdx = histIdx
+          _ifsHistory = Seq.take histIdx history |> newStep,
+          _ifsHistIdx = histIdx + 1
         }
     !newNode = node
       & L.widget .~ makeInputField config newState
@@ -834,11 +834,11 @@ moveHistory wenv node state config steps = result where
   currHistIdx = _ifsHistIdx state
   lenHistory = length currHistory
   reqHistIdx
-    | steps == -1 && currHistIdx == lenHistory = currHistIdx - 2
+    | steps == -1 && currHistIdx == lenHistory = currHistIdx - 1
     | otherwise = currHistIdx + steps
-  histStep = Seq.lookup reqHistIdx currHistory
+  histStep = Seq.lookup (reqHistIdx - 1) currHistory
   result
-    | null currHistory || reqHistIdx < 0 = Just (createResult historyStep)
+    | null currHistory || reqHistIdx <= 0 = Just (createResult historyStep)
     | otherwise = fmap createResult histStep
   createResult histStep = resultReqsEvts newNode reqs evts where
     (reqs, evts) = genReqsEvents node config state (_ihsText histStep) []
