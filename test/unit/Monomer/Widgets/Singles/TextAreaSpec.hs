@@ -18,7 +18,7 @@ module Monomer.Widgets.Singles.TextAreaSpec (spec) where
 import Control.Lens ((&), (^.), (.~))
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
-import Data.Text (Text)
+import Data.Text (Text, pack)
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
@@ -326,6 +326,21 @@ handleEventHistory = describe "handleEventHistory" $ do
     model steps1 ^. textValue `shouldBe` "This "
     model steps2 ^. textValue `shouldBe` "This is not"
     lastEvt steps2 `shouldBe` TextChanged "This is not"
+
+  it "should input 'This is text', undo to the beginning, input 'text', do one undo and end up with 'tex'" $ do
+    let str = "This is text"
+    let steps1 = (evtT . pack . pure <$> str) ++ (replicate 12 $ evtKG keyZ)
+    let steps2 = steps1 ++ [evtT "t", evtT "e", evtT "x", evtT "t", evtKG keyZ]
+    model steps1 ^. textValue `shouldBe` ""
+    model steps2 ^. textValue `shouldBe` "tex"
+    lastEvt steps2 `shouldBe` TextChanged "tex"
+
+  it "should input 'qwe', undo, input 'e', undo and end up with 'qw'" $ do
+    let steps1 = [evtT "q", evtT "w", evtT "e", evtKG keyZ]
+    let steps2 = steps1 ++ [evtT "e", evtKG keyZ]
+    model steps1 ^. textValue `shouldBe` "qw"
+    model steps2 ^. textValue `shouldBe` "qw"
+    lastEvt steps2 `shouldBe` TextChanged "qw"
 
   where
     wenv = mockWenv (TestModel "")
