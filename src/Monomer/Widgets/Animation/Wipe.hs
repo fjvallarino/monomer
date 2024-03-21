@@ -143,7 +143,7 @@ animWipeIn managed = animWipeIn_ def managed
 --   to left). Accepts config.
 animWipeIn_
   :: WidgetEvent e
-  => [WipeCfg s e]     -- ^ The config options.
+  => [WipeCfg s e]   -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animWipeIn_ configs managed = makeNode configs managed True
@@ -160,7 +160,7 @@ animWipeOut managed = animWipeOut_ def managed
 --   visible (defaults to left). Accepts config.
 animWipeOut_
   :: WidgetEvent e
-  => [WipeCfg s e]     -- ^ The config options.
+  => [WipeCfg s e]   -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animWipeOut_ configs managed = makeNode configs managed False

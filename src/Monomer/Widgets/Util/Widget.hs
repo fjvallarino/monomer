@@ -184,7 +184,7 @@ nodeMatches oldNode newNode = infoMatches oldInfo newInfo where
   newInfo = newNode ^. L.info
 
 {-|
-Checks if the path the node in the provided result changed compared to the old
+Checks if the path of the node in the provided result changed from the old
 node. In case it did, it appends a SetWidgetPath request to keep track of the
 new location.
 -}

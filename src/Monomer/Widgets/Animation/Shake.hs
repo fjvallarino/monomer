@@ -140,7 +140,7 @@ animShake managed = animShake_ def managed
 -- | Shakes a widget. Accepts config.
 animShake_
   :: WidgetEvent e
-  => [ShakeCfg s e]    -- ^ The config options.
+  => [ShakeCfg s e]  -- ^ The config options.
   -> WidgetNode s e  -- ^ The child node.
   -> WidgetNode s e  -- ^ The created animation container.
 animShake_ configs managed = node where
