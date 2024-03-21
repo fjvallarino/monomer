@@ -61,6 +61,10 @@ data CursorIcon
   | CursorSizeV
   | CursorDiagTL
   | CursorDiagTR
+  | CursorSizeAll
+  | CursorWait
+  | CursorWaitArrow
+  | CursorCrosshair
   deriving (Eq, Ord, Enum, Show, Generic)
 
 instance Default CursorIcon where
