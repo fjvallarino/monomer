@@ -85,6 +85,11 @@ data ImageLoadError
 {-|
 Configuration options for image:
 
+- 'noDispose': whether an image should dispose resources. It performs disposal by
+default, and this config allows to override this behavior. For example, image
+removes image data from the memory when the last image widget with a given
+path gets removed from the tree. However, if the image with a given path gets
+removed and immediately added frequently, the disposal can lead to huge space leaks.
 - 'transparency': the alpha to apply when rendering the image.
 - 'onLoadError': an event to report a load error.
 - 'imageNearest': apply nearest filtering when stretching an image.
@@ -107,6 +112,7 @@ data ImageCfg e = ImageCfg {
   _imcLoadError :: [ImageLoadError -> e],
   _imcFlags :: [ImageFlag],
   _imcFit :: Maybe ImageFit,
+  _imcNoDispose :: Maybe Bool,
   _imcTransparency :: Maybe Double,
   _imcAlignH :: Maybe AlignH,
   _imcAlignV :: Maybe AlignV,
@@ -119,6 +125,7 @@ instance Default (ImageCfg e) where
     _imcLoadError = [],
     _imcFlags = [],
     _imcFit = Nothing,
+    _imcNoDispose = Nothing,
     _imcTransparency = Nothing,
     _imcAlignH = Nothing,
     _imcAlignV = Nothing,
@@ -131,6 +138,7 @@ instance Semigroup (ImageCfg e) where
     _imcLoadError = _imcLoadError i1 ++ _imcLoadError i2,
     _imcFlags = _imcFlags i1 ++ _imcFlags i2,
     _imcFit = _imcFit i2 <|> _imcFit i1,
+    _imcNoDispose = _imcNoDispose i2 <|> _imcNoDispose i1,
     _imcTransparency = _imcTransparency i2 <|> _imcTransparency i1,
     _imcAlignH = _imcAlignH i2 <|> _imcAlignH i1,
     _imcAlignV = _imcAlignV i2 <|> _imcAlignV i1,
@@ -184,6 +192,11 @@ instance CmbFitHeight (ImageCfg e) where
 instance CmbFitEither (ImageCfg e) where
   fitEither  = def {
     _imcFit = Just FitEither
+  }
+
+instance CmbNoDispose (ImageCfg e) where
+  noDispose_ v = def {
+    _imcNoDispose = Just v
   }
 
 instance CmbTransparency (ImageCfg e) where
@@ -343,13 +356,12 @@ makeImage !imgSource !config !state = widget where
       & L.widget .~ makeImage imgSource config oldState
 
     disposeOld = [ RunTask wid path (handleImageDispose wenv oldPath) | not isOldMem ]
+    disposeRemoveReqs = if _imcNoDispose config == Just True
+      then []
+      else disposeOld ++ [RemoveRendererImage oldPath]
 
-    newMemReqs = disposeOld ++ [
-        RemoveRendererImage oldPath,
-        ResizeWidgets wid
-      ]
-    newImgReqs = disposeOld ++ [
-        RemoveRendererImage oldPath,
+    newMemReqs = disposeRemoveReqs ++ [ResizeWidgets wid]
+    newImgReqs = disposeRemoveReqs ++ [
         RunTask wid path (handleImageLoad config wenv newPath)
       ]
     result
@@ -361,7 +373,9 @@ makeImage !imgSource !config !state = widget where
     wid = node ^. L.info . L.widgetId
     path = node ^. L.info . L.path
     imgPath = imgName imgSource
-    reqs = [
+    reqs = if _imcNoDispose config == Just True
+      then []
+      else [
         RemoveRendererImage imgPath,
         RunTask wid path (handleImageDispose wenv imgPath)
       ]

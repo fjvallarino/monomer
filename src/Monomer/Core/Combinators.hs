@@ -67,6 +67,18 @@ Check 'CmbValidInput' for details.
 class CmbValidInputV t e | t -> e where
   validInputV :: (Bool -> e) -> t
 
+{-|
+Defines whether a widget should dispose resources. Widgets perform disposal by
+default, and this config allows to override this behavior. For example, image
+widgets remove image data from the memory when the last image widget with a given
+path gets removed from the tree. However, if the image with a given path gets
+removed and immediately added frequently, the disposal can lead to huge space leaks.
+-}
+class CmbNoDispose t where
+  noDispose :: t
+  noDispose = noDispose_ True
+  noDispose_ :: Bool -> t
+
 -- | Defines whether a widget selects all its content when receiving focus.
 class CmbSelectOnFocus t where
   selectOnFocus :: t
