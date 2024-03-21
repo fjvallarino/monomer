@@ -321,9 +321,11 @@ makeInputField !config !state = widget where
 
   handleKeyPress wenv mod code
     | isDelBackWordNoSel && editable = Just $ moveCursor removeWord prevWordStartIdx Nothing
-    | isDelBackWord && editable = Just $ moveCursor removeText minTpSel Nothing
+    | isDelForwardWordNoSel && editable = Just $ moveCursor removeWordF tp Nothing
+    | isDelWord && editable = Just $ moveCursor removeText minTpSel Nothing
     | isBackspace && emptySel && editable = Just $ moveCursor removeText (tp - 1) Nothing
-    | isBackspace && editable = Just $ moveCursor removeText minTpSel Nothing
+    | isDelete && emptySel && editable = Just $ moveCursor removeTextF tp Nothing
+    | (isBackspace || isDelete) && editable = Just $ moveCursor removeText minTpSel Nothing
     | isMoveLeft = Just $ moveCursor txt (tp - 1) Nothing
     | isMoveRight = Just $ moveCursor txt (tp + 1) Nothing
     | isMoveWordL = Just $ moveCursor txt prevWordStartIdx Nothing
@@ -369,8 +371,12 @@ makeInputField !config !state = widget where
         | isMacOS wenv = _kmLeftGUI mod
         | otherwise = _kmLeftCtrl mod
       isBackspace = isKeyBackspace code && (tp > 0 || isJust currSel)
+      isDelete = isKeyDelete code && (tp < T.length currText || isJust currSel)
       isDelBackWord = isBackspace && isWordMod
+      isDelForwardWord = isDelete && isWordMod
       isDelBackWordNoSel = isDelBackWord && emptySel
+      isDelForwardWordNoSel = isDelForwardWord && emptySel
+      isDelWord = isDelBackWord || isDelForwardWord
       isMove = not isShift && not isWordMod && not isLineMod
       isMoveWord = not isShift && isWordMod && not isLineMod
       isMoveLine = not isShift && isLineMod && not isWordMod
@@ -395,9 +401,15 @@ makeInputField !config !state = widget where
       removeText
         | isJust currSel = replaceText txt ""
         | otherwise = T.init part1 <> part2
+      removeTextF
+        | isJust currSel = replaceText txt ""
+        | otherwise = part1 <> T.tail part2
       removeWord
         | isJust currSel = replaceText txt ""
         | otherwise = prevWordStart <> part2
+      removeWordF
+        | isJust currSel = replaceText txt ""
+        | otherwise = part1 <> nextWordEnd
       moveCursor txt newPos newSel
         | isJust currSel && isNothing newSel = (txt, fixedPos, Nothing)
         | isJust currSel && Just fixedPos == currSel = (txt, fixedPos, Nothing)
@@ -626,8 +638,8 @@ makeInputField !config !state = widget where
           _ifsHistIdx = histIdx + 1
         }
       | otherwise = tempState {
-          _ifsHistory = Seq.take (histIdx - 1) history |> newStep,
-          _ifsHistIdx = histIdx
+          _ifsHistory = Seq.take histIdx history |> newStep,
+          _ifsHistIdx = histIdx + 1
         }
     !newNode = node
       & L.widget .~ makeInputField config newState
@@ -822,11 +834,11 @@ moveHistory wenv node state config steps = result where
   currHistIdx = _ifsHistIdx state
   lenHistory = length currHistory
   reqHistIdx
-    | steps == -1 && currHistIdx == lenHistory = currHistIdx - 2
+    | steps == -1 && currHistIdx == lenHistory = currHistIdx - 1
     | otherwise = currHistIdx + steps
-  histStep = Seq.lookup reqHistIdx currHistory
+  histStep = Seq.lookup (reqHistIdx - 1) currHistory
   result
-    | null currHistory || reqHistIdx < 0 = Just (createResult historyStep)
+    | null currHistory || reqHistIdx <= 0 = Just (createResult historyStep)
     | otherwise = fmap createResult histStep
   createResult histStep = resultReqsEvts newNode reqs evts where
     (reqs, evts) = genReqsEvents node config state (_ihsText histStep) []

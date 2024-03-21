@@ -18,7 +18,7 @@ module Monomer.Widgets.Singles.TextAreaSpec (spec) where
 import Control.Lens ((&), (^.), (.~))
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
-import Data.Text (Text)
+import Data.Text (Text, pack)
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
@@ -63,6 +63,10 @@ handleEvent = describe "handleEvent" $ do
   it "should input 'ababa', remove the middle 'a' and input 'c'" $ do
     let steps = [evtT "ababa", moveCharL, moveCharL, evtK keyBackspace, evtT "c"]
     model steps ^. textValue `shouldBe` "abcba"
+
+  it "should input 'ababa' and remove the middle 'a'" $ do
+    let steps = [evtT "ababa", moveCharL, moveCharL, moveCharL, evtK keyDelete]
+    model steps ^. textValue `shouldBe` "abba"
 
   it "should input 'ababa', select last two and input 'c'" $ do
     let steps = [evtT "ababa", selCharL, selCharL, selCharL, evtT "c"]
@@ -291,6 +295,14 @@ handleEventHistory = describe "handleEventHistory" $ do
     model steps2 ^. textValue `shouldBe` "This is text"
     lastEvt steps2 `shouldBe` TextChanged "This is text"
 
+  it "should input 'This is text', have the middle word removed and then undo" $ do
+    let str = "This is text"
+    let steps1 = [evtT str] ++ (replicate 8 moveCharL) ++ [evtKA keyDelete]
+    let steps2 = steps1 ++ [evtKG keyZ]
+    model steps1 ^. textValue `shouldBe` "This text"
+    model steps2 ^. textValue `shouldBe` "This is text"
+    lastEvt steps2 `shouldBe` TextChanged "This is text"
+
   it "should input 'This is text', have the last two words removed, undo and redo" $ do
     let str = "This is text"
     let steps1 = [evtT str, evtKA keyBackspace, evtKA keyBackspace]
@@ -299,7 +311,7 @@ handleEventHistory = describe "handleEventHistory" $ do
     model steps2 ^. textValue `shouldBe` "This is "
     lastEvt steps2 `shouldBe` TextChanged "This is "
 
-  it "should input 'This is just a string', play around with history and come end up with 'This is just text" $ do
+  it "should input 'This is just a string', play around with history and end up with 'This is just text'" $ do
     let str = "This is just a string"
     let steps1 = [evtT str, evtKA keyBackspace, evtKA keyBackspace, evtKA keyBackspace, evtKA keyBackspace, evtKA keyBackspace]
     let steps2 = steps1 ++ [evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKGS keyZ, evtKGS keyZ, evtT "text"]
@@ -314,6 +326,21 @@ handleEventHistory = describe "handleEventHistory" $ do
     model steps1 ^. textValue `shouldBe` "This "
     model steps2 ^. textValue `shouldBe` "This is not"
     lastEvt steps2 `shouldBe` TextChanged "This is not"
+
+  it "should input 'This is text', undo to the beginning, input 'text', do one undo and end up with 'tex'" $ do
+    let str = "This is text"
+    let steps1 = (evtT . pack . pure <$> str) ++ (replicate 12 $ evtKG keyZ)
+    let steps2 = steps1 ++ [evtT "t", evtT "e", evtT "x", evtT "t", evtKG keyZ]
+    model steps1 ^. textValue `shouldBe` ""
+    model steps2 ^. textValue `shouldBe` "tex"
+    lastEvt steps2 `shouldBe` TextChanged "tex"
+
+  it "should input 'qwe', undo, input 'e', undo and end up with 'qw'" $ do
+    let steps1 = [evtT "q", evtT "w", evtT "e", evtKG keyZ]
+    let steps2 = steps1 ++ [evtT "e", evtKG keyZ]
+    model steps1 ^. textValue `shouldBe` "qw"
+    model steps2 ^. textValue `shouldBe` "qw"
+    lastEvt steps2 `shouldBe` TextChanged "qw"
 
   where
     wenv = mockWenv (TestModel "")
