@@ -95,6 +95,7 @@ I may take some time to respond to issues while I work on features I want to add
 ## Useful extensions
 
 - [Hagrid](https://github.com/Dretch/monomer-hagrid), a flexible datagrid widget.
+- [Monomer Flatpak Example](https://github.com/Dretch/monomer-flatpak-example), an example of how to package Monomer applications on Linux, using Flatpak.
 
 ## Contributing
 
