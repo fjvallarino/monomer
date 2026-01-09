@@ -15,11 +15,11 @@ in the corresponding widget.
 
 Existing icons can be browsed in https://remixicon.com.
 
-The name has to be updated by adding a _remix_ prefix, applying capital case and
-removing dashes. For example, _"delete-bin"_ should be transformed to
-_"remixDeleteBin"_. Also note that most icons have line and fill versions, so
-you will also need to include that (for example, _"remixDeleteBinLine"_ or
-_"remixDeleteBinFill"_).
+The name has to be updated by adding a __remix__ prefix, applying capital case and
+removing dashes. For example, __"delete-bin"__ should be transformed to
+__"remixDeleteBin"__. Also note that most icons have line and fill versions, so
+you will also need to include that (for example, __"remixDeleteBinLine"__ or
+__"remixDeleteBinFill"__).
 -}
 {-# LANGUAGE BinaryLiterals #-}
 
@@ -29,8 +29,12 @@ import Data.Text (Text)
 
 import qualified Data.Text as T
 
+-- * Helper Function
+
 toGlyph :: Int -> Text
 toGlyph = T.singleton . toEnum
+
+-- * Pre-Version 3.0.0
 
 remix24HoursFill = toGlyph 0XEA01
 remix24HoursLine = toGlyph 0XEA02
@@ -247,7 +251,11 @@ remixBook3Fill = toGlyph 0XEAD4
 remixBook3Line = toGlyph 0XEAD5
 remixBookFill = toGlyph 0XEAD6
 remixBookLine = toGlyph 0XEAD7
+remixBookMarkedFill = toGlyph 0XEAD8
+remixBookMarkedLine = toGlyph 0XEAD9
+-- | Kept as a backwards-compatible synonym.
 remixBookMarkFill = toGlyph 0XEAD8
+-- | Kept as a backwards-compatible synonym.
 remixBookMarkLine = toGlyph 0XEAD9
 remixBookOpenFill = toGlyph 0XEADA
 remixBookOpenLine = toGlyph 0XEADB
@@ -787,7 +795,11 @@ remixFileListFill = toGlyph 0XECF0
 remixFileListLine = toGlyph 0XECF1
 remixFileLockFill = toGlyph 0XECF2
 remixFileLockLine = toGlyph 0XECF3
+remixFileMarkedFill = toGlyph 0XECF4
+remixFileMarkedLine = toGlyph 0XECF5
+-- | Kept as a backwards-compatible synonym.
 remixFileMarkFill = toGlyph 0XECF4
+-- | Kept as a backwards-compatible synonym.
 remixFileMarkLine = toGlyph 0XECF5
 remixFileMusicFill = toGlyph 0XECF6
 remixFileMusicLine = toGlyph 0XECF7
@@ -2303,3 +2315,1062 @@ remixZoomOutFill = toGlyph 0XF2DC
 remixZoomOutLine = toGlyph 0XF2DD
 remixZzzFill = toGlyph 0XF2DE
 remixZzzLine = toGlyph 0XF2DF
+
+-- * Version 3.0.0
+
+remixArrowDownDoubleFill = toGlyph 0XF2E0
+remixArrowDownDoubleLine = toGlyph 0XF2E1
+remixArrowLeftDoubleFill = toGlyph 0XF2E2
+remixArrowLeftDoubleLine = toGlyph 0XF2E3
+remixArrowRightDoubleFill = toGlyph 0XF2E4
+remixArrowRightDoubleLine = toGlyph 0XF2E5
+remixArrowTurnBackFill = toGlyph 0XF2E6
+remixArrowTurnBackLine = toGlyph 0XF2E7
+remixArrowTurnForwardFill = toGlyph 0XF2E8
+remixArrowTurnForwardLine = toGlyph 0XF2E9
+remixArrowUpDoubleFill = toGlyph 0XF2EA
+remixArrowUpDoubleLine = toGlyph 0XF2EB
+remixBardFill = toGlyph 0XF2EC
+remixBardLine = toGlyph 0XF2ED
+remixBootstrapFill = toGlyph 0XF2EE
+remixBootstrapLine = toGlyph 0XF2EF
+remixBox1Fill = toGlyph 0XF2F0
+remixBox1Line = toGlyph 0XF2F1
+remixBox2Fill = toGlyph 0XF2F2
+remixBox2Line = toGlyph 0XF2F3
+remixBox3Fill = toGlyph 0XF2F4
+remixBox3Line = toGlyph 0XF2F5
+remixBrainFill = toGlyph 0XF2F6
+remixBrainLine = toGlyph 0XF2F7
+remixCandleFill = toGlyph 0XF2F8
+remixCandleLine = toGlyph 0XF2F9
+remixCashFill = toGlyph 0XF2FA
+remixCashLine = toGlyph 0XF2FB
+remixContractLeftFill = toGlyph 0XF2FC
+remixContractLeftLine = toGlyph 0XF2FD
+remixContractLeftRightFill = toGlyph 0XF2FE
+remixContractLeftRightLine = toGlyph 0XF2FF
+remixContractRightFill = toGlyph 0XF300
+remixContractRightLine = toGlyph 0XF301
+remixContractUpDownFill = toGlyph 0XF302
+remixContractUpDownLine = toGlyph 0XF303
+remixCopilotFill = toGlyph 0XF304
+remixCopilotLine = toGlyph 0XF305
+remixCornerDownLeftFill = toGlyph 0XF306
+remixCornerDownLeftLine = toGlyph 0XF307
+remixCornerDownRightFill = toGlyph 0XF308
+remixCornerDownRightLine = toGlyph 0XF309
+remixCornerLeftDownFill = toGlyph 0XF30A
+remixCornerLeftDownLine = toGlyph 0XF30B
+remixCornerLeftUpFill = toGlyph 0XF30C
+remixCornerLeftUpLine = toGlyph 0XF30D
+remixCornerRightDownFill = toGlyph 0XF30E
+remixCornerRightDownLine = toGlyph 0XF30F
+remixCornerRightUpFill = toGlyph 0XF310
+remixCornerRightUpLine = toGlyph 0XF311
+remixCornerUpLeftDoubleFill = toGlyph 0XF312
+remixCornerUpLeftDoubleLine = toGlyph 0XF313
+remixCornerUpLeftFill = toGlyph 0XF314
+remixCornerUpLeftLine = toGlyph 0XF315
+remixCornerUpRightDoubleFill = toGlyph 0XF316
+remixCornerUpRightDoubleLine = toGlyph 0XF317
+remixCornerUpRightFill = toGlyph 0XF318
+remixCornerUpRightLine = toGlyph 0XF319
+remixCrossFill = toGlyph 0XF31A
+remixCrossLine = toGlyph 0XF31B
+remixEdgeNewFill = toGlyph 0XF31C
+remixEdgeNewLine = toGlyph 0XF31D
+remixEqualFill = toGlyph 0XF31E
+remixEqualLine = toGlyph 0XF31F
+remixExpandLeftFill = toGlyph 0XF320
+remixExpandLeftLine = toGlyph 0XF321
+remixExpandLeftRightFill = toGlyph 0XF322
+remixExpandLeftRightLine = toGlyph 0XF323
+remixExpandRightFill = toGlyph 0XF324
+remixExpandRightLine = toGlyph 0XF325
+remixExpandUpDownFill = toGlyph 0XF326
+remixExpandUpDownLine = toGlyph 0XF327
+remixFlickrFill = toGlyph 0XF328
+remixFlickrLine = toGlyph 0XF329
+remixForward10Fill = toGlyph 0XF32A
+remixForward10Line = toGlyph 0XF32B
+remixForward15Fill = toGlyph 0XF32C
+remixForward15Line = toGlyph 0XF32D
+remixForward30Fill = toGlyph 0XF32E
+remixForward30Line = toGlyph 0XF32F
+remixForward5Fill = toGlyph 0XF330
+remixForward5Line = toGlyph 0XF331
+remixGraduationCapFill = toGlyph 0XF332
+remixGraduationCapLine = toGlyph 0XF333
+remixHomeOfficeFill = toGlyph 0XF334
+remixHomeOfficeLine = toGlyph 0XF335
+remixHourglass2Fill = toGlyph 0XF336
+remixHourglass2Line = toGlyph 0XF337
+remixHourglassFill = toGlyph 0XF338
+remixHourglassLine = toGlyph 0XF339
+remixJavascriptFill = toGlyph 0XF33A
+remixJavascriptLine = toGlyph 0XF33B
+remixLoopLeftFill = toGlyph 0XF33C
+remixLoopLeftLine = toGlyph 0XF33D
+remixLoopRightFill = toGlyph 0XF33E
+remixLoopRightLine = toGlyph 0XF33F
+remixMemoriesFill = toGlyph 0XF340
+remixMemoriesLine = toGlyph 0XF341
+remixMetaFill = toGlyph 0XF342
+remixMetaLine = toGlyph 0XF343
+remixMicrosoftLoopFill = toGlyph 0XF344
+remixMicrosoftLoopLine = toGlyph 0XF345
+remixNftFill = toGlyph 0XF346
+remixNftLine = toGlyph 0XF347
+remixNotionFill = toGlyph 0XF348
+remixNotionLine = toGlyph 0XF349
+remixOpenaiFill = toGlyph 0XF34A
+remixOpenaiLine = toGlyph 0XF34B
+remixOverline = toGlyph 0XF34C
+remixP2pFill = toGlyph 0XF34D
+remixP2pLine = toGlyph 0XF34E
+remixPresentationFill = toGlyph 0XF34F
+remixPresentationLine = toGlyph 0XF350
+remixReplay10Fill = toGlyph 0XF351
+remixReplay10Line = toGlyph 0XF352
+remixReplay15Fill = toGlyph 0XF353
+remixReplay15Line = toGlyph 0XF354
+remixReplay30Fill = toGlyph 0XF355
+remixReplay30Line = toGlyph 0XF356
+remixReplay5Fill = toGlyph 0XF357
+remixReplay5Line = toGlyph 0XF358
+remixSchoolFill = toGlyph 0XF359
+remixSchoolLine = toGlyph 0XF35A
+remixShining2Fill = toGlyph 0XF35B
+remixShining2Line = toGlyph 0XF35C
+remixShiningFill = toGlyph 0XF35D
+remixShiningLine = toGlyph 0XF35E
+remixSketching = toGlyph 0XF35F
+remixSkipDownFill = toGlyph 0XF360
+remixSkipDownLine = toGlyph 0XF361
+remixSkipLeftFill = toGlyph 0XF362
+remixSkipLeftLine = toGlyph 0XF363
+remixSkipRightFill = toGlyph 0XF364
+remixSkipRightLine = toGlyph 0XF365
+remixSkipUpFill = toGlyph 0XF366
+remixSkipUpLine = toGlyph 0XF367
+remixSlowDownFill = toGlyph 0XF368
+remixSlowDownLine = toGlyph 0XF369
+remixSparkling2Fill = toGlyph 0XF36A
+remixSparkling2Line = toGlyph 0XF36B
+remixSparklingFill = toGlyph 0XF36C
+remixSparklingLine = toGlyph 0XF36D
+remixSpeakFill = toGlyph 0XF36E
+remixSpeakLine = toGlyph 0XF36F
+remixSpeedUpFill = toGlyph 0XF370
+remixSpeedUpLine = toGlyph 0XF371
+remixTiktokFill = toGlyph 0XF372
+remixTiktokLine = toGlyph 0XF373
+remixTokenSwapFill = toGlyph 0XF374
+remixTokenSwapLine = toGlyph 0XF375
+remixUnpinFill = toGlyph 0XF376
+remixUnpinLine = toGlyph 0XF377
+remixWechatChannelsFill = toGlyph 0XF378
+remixWechatChannelsLine = toGlyph 0XF379
+remixWordpressFill = toGlyph 0XF37A
+remixWordpressLine = toGlyph 0XF37B
+
+-- * Version 3.1.0
+
+remixBlenderFill = toGlyph 0XF37C
+remixBlenderLine = toGlyph 0XF37D
+remixEmojiStickerFill = toGlyph 0XF37E
+remixEmojiStickerLine = toGlyph 0XF37F
+remixGitClosePullRequestFill = toGlyph 0XF380
+remixGitClosePullRequestLine = toGlyph 0XF381
+remixInstanceFill = toGlyph 0XF382
+remixInstanceLine = toGlyph 0XF383
+remixMegaphoneFill = toGlyph 0XF384
+remixMegaphoneLine = toGlyph 0XF385
+remixPassExpiredFill = toGlyph 0XF386
+remixPassExpiredLine = toGlyph 0XF387
+remixPassPendingFill = toGlyph 0XF388
+remixPassPendingLine = toGlyph 0XF389
+remixPassValidFill = toGlyph 0XF38A
+remixPassValidLine = toGlyph 0XF38B
+
+-- * Version 3.2.0
+
+remixAiGenerate = toGlyph 0XF38C
+remixCalendarCloseFill = toGlyph 0XF38D
+remixCalendarCloseLine = toGlyph 0XF38E
+remixDraggable = toGlyph 0XF38F
+remixFontFamily = toGlyph 0XF390
+remixFontMono = toGlyph 0XF391
+remixFontSansSerif = toGlyph 0XF392
+remixHardDrive3Fill = toGlyph 0XF393
+remixHardDrive3Line = toGlyph 0XF394
+remixKickFill = toGlyph 0XF395
+remixKickLine = toGlyph 0XF396
+remixListCheck3 = toGlyph 0XF397
+remixListIndefinite = toGlyph 0XF398
+remixListOrdered2 = toGlyph 0XF399
+remixListRadio = toGlyph 0XF39A
+remixOpenbaseFill = toGlyph 0XF39B
+remixOpenbaseLine = toGlyph 0XF39C
+remixPlanetFill = toGlyph 0XF39D
+remixPlanetLine = toGlyph 0XF39E
+remixProhibitedFill = toGlyph 0XF39F
+remixProhibitedLine = toGlyph 0XF3A0
+remixQuoteText = toGlyph 0XF3A1
+remixSeoFill = toGlyph 0XF3A2
+remixSeoLine = toGlyph 0XF3A3
+remixSlashCommands = toGlyph 0XF3A4
+
+-- * Version 3.3.0
+
+remixArchive2Fill = toGlyph 0XF3A5
+remixArchive2Line = toGlyph 0XF3A6
+remixInbox2Fill = toGlyph 0XF3A7
+remixInbox2Line = toGlyph 0XF3A8
+remixShakeHandsFill = toGlyph 0XF3A9
+remixShakeHandsLine = toGlyph 0XF3AA
+remixSupabaseFill = toGlyph 0XF3AB
+remixSupabaseLine = toGlyph 0XF3AC
+remixWaterPercentFill = toGlyph 0XF3AD
+remixWaterPercentLine = toGlyph 0XF3AE
+remixYuqueFill = toGlyph 0XF3AF
+remixYuqueLine = toGlyph 0XF3B0
+
+-- * Version 3.4.0
+
+remixCrosshair2Fill = toGlyph 0XF3B1
+remixCrosshair2Line = toGlyph 0XF3B2
+remixCrosshairFill = toGlyph 0XF3B3
+remixCrosshairLine = toGlyph 0XF3B4
+remixFileCloseFill = toGlyph 0XF3B5
+remixFileCloseLine = toGlyph 0XF3B6
+remixInfinityFill = toGlyph 0XF3B7
+remixInfinityLine = toGlyph 0XF3B8
+remixRfidFill = toGlyph 0XF3B9
+remixRfidLine = toGlyph 0XF3BA
+remixSlashCommands2 = toGlyph 0XF3BB
+remixUserForbidFill = toGlyph 0XF3BC
+remixUserForbidLine = toGlyph 0XF3BD
+
+-- * Version 3.5.0
+
+remixBeerFill = toGlyph 0XF3BE
+remixBeerLine = toGlyph 0XF3BF
+remixCircleFill = toGlyph 0XF3C0
+remixCircleLine = toGlyph 0XF3C1
+remixDropdownList = toGlyph 0XF3C2
+remixFileImageFill = toGlyph 0XF3C3
+remixFileImageLine = toGlyph 0XF3C4
+remixFilePdf2Fill = toGlyph 0XF3C5
+remixFilePdf2Line = toGlyph 0XF3C6
+remixFileVideoFill = toGlyph 0XF3C7
+remixFileVideoLine = toGlyph 0XF3C8
+remixFolderImageFill = toGlyph 0XF3C9
+remixFolderImageLine = toGlyph 0XF3CA
+remixFolderVideoFill = toGlyph 0XF3CB
+remixFolderVideoLine = toGlyph 0XF3CC
+remixHexagonFill = toGlyph 0XF3CD
+remixHexagonLine = toGlyph 0XF3CE
+remixMenuSearchFill = toGlyph 0XF3CF
+remixMenuSearchLine = toGlyph 0XF3D0
+remixOctagonFill = toGlyph 0XF3D1
+remixOctagonLine = toGlyph 0XF3D2
+remixPentagonFill = toGlyph 0XF3D3
+remixPentagonLine = toGlyph 0XF3D4
+remixRectangleFill = toGlyph 0XF3D5
+remixRectangleLine = toGlyph 0XF3D6
+remixRobot2Fill = toGlyph 0XF3D7
+remixRobot2Line = toGlyph 0XF3D8
+remixShapesFill = toGlyph 0XF3D9
+remixShapesLine = toGlyph 0XF3DA
+remixSquareFill = toGlyph 0XF3DB
+remixSquareLine = toGlyph 0XF3DC
+remixTentFill = toGlyph 0XF3DD
+remixTentLine = toGlyph 0XF3DE
+remixThreadsFill = toGlyph 0XF3DF
+remixThreadsLine = toGlyph 0XF3E0
+remixTreeFill = toGlyph 0XF3E1
+remixTreeLine = toGlyph 0XF3E2
+remixTriangleFill = toGlyph 0XF3E3
+remixTriangleLine = toGlyph 0XF3E4
+remixTwitterXFill = toGlyph 0XF3E5
+remixTwitterXLine = toGlyph 0XF3E6
+remixVerifiedBadgeFill = toGlyph 0XF3E7
+remixVerifiedBadgeLine = toGlyph 0XF3E8
+
+-- * Version 3.6.0
+
+remixArmchairFill = toGlyph 0XF3E9
+remixArmchairLine = toGlyph 0XF3EA
+remixBnbFill = toGlyph 0XF3EB
+remixBnbLine = toGlyph 0XF3EC
+remixBreadFill = toGlyph 0XF3ED
+remixBreadLine = toGlyph 0XF3EE
+remixBtcFill = toGlyph 0XF3EF
+remixBtcLine = toGlyph 0XF3F0
+remixCalendarScheduleFill = toGlyph 0XF3F1
+remixCalendarScheduleLine = toGlyph 0XF3F2
+remixDice1Fill = toGlyph 0XF3F3
+remixDice1Line = toGlyph 0XF3F4
+remixDice2Fill = toGlyph 0XF3F5
+remixDice2Line = toGlyph 0XF3F6
+remixDice3Fill = toGlyph 0XF3F7
+remixDice3Line = toGlyph 0XF3F8
+remixDice4Fill = toGlyph 0XF3F9
+remixDice4Line = toGlyph 0XF3FA
+remixDice5Fill = toGlyph 0XF3FB
+remixDice5Line = toGlyph 0XF3FC
+remixDice6Fill = toGlyph 0XF3FD
+remixDice6Line = toGlyph 0XF3FE
+remixDiceFill = toGlyph 0XF3FF
+remixDiceLine = toGlyph 0XF400
+remixDrinksFill = toGlyph 0XF401
+remixDrinksLine = toGlyph 0XF402
+remixEqualizer2Fill = toGlyph 0XF403
+remixEqualizer2Line = toGlyph 0XF404
+remixEqualizer3Fill = toGlyph 0XF405
+remixEqualizer3Line = toGlyph 0XF406
+remixEthFill = toGlyph 0XF407
+remixEthLine = toGlyph 0XF408
+remixFlowerFill = toGlyph 0XF409
+remixFlowerLine = toGlyph 0XF40A
+remixGlasses2Fill = toGlyph 0XF40B
+remixGlasses2Line = toGlyph 0XF40C
+remixGlassesFill = toGlyph 0XF40D
+remixGlassesLine = toGlyph 0XF40E
+remixGogglesFill = toGlyph 0XF40F
+remixGogglesLine = toGlyph 0XF410
+remixImageCircleFill = toGlyph 0XF411
+remixImageCircleLine = toGlyph 0XF412
+remixInfoI = toGlyph 0XF413
+remixMoneyRupeeCircleFill = toGlyph 0XF414
+remixMoneyRupeeCircleLine = toGlyph 0XF415
+remixNewsFill = toGlyph 0XF416
+remixNewsLine = toGlyph 0XF417
+remixRobot3Fill = toGlyph 0XF418
+remixRobot3Line = toGlyph 0XF419
+remixShare2Fill = toGlyph 0XF41A
+remixShare2Line = toGlyph 0XF41B
+remixSofaFill = toGlyph 0XF41C
+remixSofaLine = toGlyph 0XF41D
+remixSvelteFill = toGlyph 0XF41E
+remixSvelteLine = toGlyph 0XF41F
+remixVkFill = toGlyph 0XF420
+remixVkLine = toGlyph 0XF421
+remixXrpFill = toGlyph 0XF422
+remixXrpLine = toGlyph 0XF423
+remixXtzFill = toGlyph 0XF424
+remixXtzLine = toGlyph 0XF425
+
+-- * Version 3.7.0
+
+remixArchiveStackFill = toGlyph 0XF426
+remixArchiveStackLine = toGlyph 0XF427
+remixBowlFill = toGlyph 0XF428
+remixBowlLine = toGlyph 0XF429
+remixCalendarView = toGlyph 0XF42A
+remixCarouselView = toGlyph 0XF42B
+remixCodeBlock = toGlyph 0XF42C
+remixColorFilterFill = toGlyph 0XF42D
+remixColorFilterLine = toGlyph 0XF42E
+remixContactsBook3Fill = toGlyph 0XF42F
+remixContactsBook3Line = toGlyph 0XF430
+remixContractFill = toGlyph 0XF431
+remixContractLine = toGlyph 0XF432
+remixDrinks2Fill = toGlyph 0XF433
+remixDrinks2Line = toGlyph 0XF434
+remixExportFill = toGlyph 0XF435
+remixExportLine = toGlyph 0XF436
+remixFileCheckFill = toGlyph 0XF437
+remixFileCheckLine = toGlyph 0XF438
+remixFocusMode = toGlyph 0XF439
+remixFolder6Fill = toGlyph 0XF43A
+remixFolder6Line = toGlyph 0XF43B
+remixFolderCheckFill = toGlyph 0XF43C
+remixFolderCheckLine = toGlyph 0XF43D
+remixFolderCloseFill = toGlyph 0XF43E
+remixFolderCloseLine = toGlyph 0XF43F
+remixFolderCloudFill = toGlyph 0XF440
+remixFolderCloudLine = toGlyph 0XF441
+remixGalleryView2 = toGlyph 0XF442
+remixGalleryView = toGlyph 0XF443
+remixHand = toGlyph 0XF444
+remixImportFill = toGlyph 0XF445
+remixImportLine = toGlyph 0XF446
+remixInformation2Fill = toGlyph 0XF447
+remixInformation2Line = toGlyph 0XF448
+remixKanbanView2 = toGlyph 0XF449
+remixKanbanView = toGlyph 0XF44A
+remixListView = toGlyph 0XF44B
+remixLockStarFill = toGlyph 0XF44C
+remixLockStarLine = toGlyph 0XF44D
+remixPuzzle2Fill = toGlyph 0XF44E
+remixPuzzle2Line = toGlyph 0XF44F
+remixPuzzleFill = toGlyph 0XF450
+remixPuzzleLine = toGlyph 0XF451
+remixRam2Fill = toGlyph 0XF452
+remixRam2Line = toGlyph 0XF453
+remixRamFill = toGlyph 0XF454
+remixRamLine = toGlyph 0XF455
+remixReceiptFill = toGlyph 0XF456
+remixReceiptLine = toGlyph 0XF457
+remixShadowFill = toGlyph 0XF458
+remixShadowLine = toGlyph 0XF459
+remixSidebarFoldFill = toGlyph 0XF45A
+remixSidebarFoldLine = toGlyph 0XF45B
+remixSidebarUnfoldFill = toGlyph 0XF45C
+remixSidebarUnfoldLine = toGlyph 0XF45D
+remixSlideshowView = toGlyph 0XF45E
+remixSortAlphabetAsc = toGlyph 0XF45F
+remixSortAlphabetDesc = toGlyph 0XF460
+remixSortNumberAsc = toGlyph 0XF461
+remixSortNumberDesc = toGlyph 0XF462
+remixStackedView = toGlyph 0XF463
+remixStickyNoteAddFill = toGlyph 0XF464
+remixStickyNoteAddLine = toGlyph 0XF465
+remixSwap2Fill = toGlyph 0XF466
+remixSwap2Line = toGlyph 0XF467
+remixSwap3Fill = toGlyph 0XF468
+remixSwap3Line = toGlyph 0XF469
+remixTable3 = toGlyph 0XF46A
+remixTableView = toGlyph 0XF46B
+remixTextBlock = toGlyph 0XF46C
+remixTextSnippet = toGlyph 0XF46D
+remixTimelineView = toGlyph 0XF46E
+
+-- * Version 4.0.0
+
+remixBloggerFill = toGlyph 0XF46F
+remixBloggerLine = toGlyph 0XF470
+remixChatThreadFill = toGlyph 0XF471
+remixChatThreadLine = toGlyph 0XF472
+remixDiscountPercentFill = toGlyph 0XF473
+remixDiscountPercentLine = toGlyph 0XF474
+remixExchange2Fill = toGlyph 0XF475
+remixExchange2Line = toGlyph 0XF476
+remixGitForkFill = toGlyph 0XF477
+remixGitForkLine = toGlyph 0XF478
+remixInputField = toGlyph 0XF479
+remixProgress1Fill = toGlyph 0XF47A
+remixProgress1Line = toGlyph 0XF47B
+remixProgress2Fill = toGlyph 0XF47C
+remixProgress2Line = toGlyph 0XF47D
+remixProgress3Fill = toGlyph 0XF47E
+remixProgress3Line = toGlyph 0XF47F
+remixProgress4Fill = toGlyph 0XF480
+remixProgress4Line = toGlyph 0XF481
+remixProgress5Fill = toGlyph 0XF482
+remixProgress5Line = toGlyph 0XF483
+remixProgress6Fill = toGlyph 0XF484
+remixProgress6Line = toGlyph 0XF485
+remixProgress7Fill = toGlyph 0XF486
+remixProgress7Line = toGlyph 0XF487
+remixProgress8Fill = toGlyph 0XF488
+remixProgress8Line = toGlyph 0XF489
+remixRemixRunFill = toGlyph 0XF48A
+remixRemixRunLine = toGlyph 0XF48B
+remixSignpostFill = toGlyph 0XF48C
+remixSignpostLine = toGlyph 0XF48D
+remixTimeZoneFill = toGlyph 0XF48E
+remixTimeZoneLine = toGlyph 0XF48F
+
+-- * Version 4.1.0
+
+remixArrowDownWideFill = toGlyph 0XF490
+remixArrowDownWideLine = toGlyph 0XF491
+remixArrowLeftWideFill = toGlyph 0XF492
+remixArrowLeftWideLine = toGlyph 0XF493
+remixArrowRightWideFill = toGlyph 0XF494
+remixArrowRightWideLine = toGlyph 0XF495
+remixArrowUpWideFill = toGlyph 0XF496
+remixArrowUpWideLine = toGlyph 0XF497
+remixBlueskyFill = toGlyph 0XF498
+remixBlueskyLine = toGlyph 0XF499
+remixExpandHeightFill = toGlyph 0XF49A
+remixExpandHeightLine = toGlyph 0XF49B
+remixExpandWidthFill = toGlyph 0XF49C
+remixExpandWidthLine = toGlyph 0XF49D
+remixForwardEndFill = toGlyph 0XF49E
+remixForwardEndLine = toGlyph 0XF49F
+remixForwardEndMiniFill = toGlyph 0XF4A0
+remixForwardEndMiniLine = toGlyph 0XF4A1
+remixFriendicaFill = toGlyph 0XF4A2
+remixFriendicaLine = toGlyph 0XF4A3
+remixGitPrDraftFill = toGlyph 0XF4A4
+remixGitPrDraftLine = toGlyph 0XF4A5
+remixPlayReverseFill = toGlyph 0XF4A6
+remixPlayReverseLine = toGlyph 0XF4A7
+remixPlayReverseMiniFill = toGlyph 0XF4A8
+remixPlayReverseMiniLine = toGlyph 0XF4A9
+remixRewindStartFill = toGlyph 0XF4AA
+remixRewindStartLine = toGlyph 0XF4AB
+remixRewindStartMiniFill = toGlyph 0XF4AC
+remixRewindStartMiniLine = toGlyph 0XF4AD
+remixScrollToBottomFill = toGlyph 0XF4AE
+remixScrollToBottomLine = toGlyph 0XF4AF
+
+-- * Version 4.2.0
+
+remixAddLargeFill = toGlyph 0XF4B0
+remixAddLargeLine = toGlyph 0XF4B1
+remixAedElectrodesFill = toGlyph 0XF4B2
+remixAedElectrodesLine = toGlyph 0XF4B3
+remixAedFill = toGlyph 0XF4B4
+remixAedLine = toGlyph 0XF4B5
+remixAlibabaCloudFill = toGlyph 0XF4B6
+remixAlibabaCloudLine = toGlyph 0XF4B7
+remixAlignItemBottomFill = toGlyph 0XF4B8
+remixAlignItemBottomLine = toGlyph 0XF4B9
+remixAlignItemHorizontalCenterFill = toGlyph 0XF4BA
+remixAlignItemHorizontalCenterLine = toGlyph 0XF4BB
+remixAlignItemLeftFill = toGlyph 0XF4BC
+remixAlignItemLeftLine = toGlyph 0XF4BD
+remixAlignItemRightFill = toGlyph 0XF4BE
+remixAlignItemRightLine = toGlyph 0XF4BF
+remixAlignItemTopFill = toGlyph 0XF4C0
+remixAlignItemTopLine = toGlyph 0XF4C1
+remixAlignItemVerticalCenterFill = toGlyph 0XF4C2
+remixAlignItemVerticalCenterLine = toGlyph 0XF4C3
+remixApps2AddFill = toGlyph 0XF4C4
+remixApps2AddLine = toGlyph 0XF4C5
+remixCloseLargeFill = toGlyph 0XF4C6
+remixCloseLargeLine = toGlyph 0XF4C7
+remixCollapseDiagonal2Fill = toGlyph 0XF4C8
+remixCollapseDiagonal2Line = toGlyph 0XF4C9
+remixCollapseDiagonalFill = toGlyph 0XF4CA
+remixCollapseDiagonalLine = toGlyph 0XF4CB
+remixDashboardHorizontalFill = toGlyph 0XF4CC
+remixDashboardHorizontalLine = toGlyph 0XF4CD
+remixExpandDiagonal2Fill = toGlyph 0XF4CE
+remixExpandDiagonal2Line = toGlyph 0XF4CF
+remixExpandDiagonalFill = toGlyph 0XF4D0
+remixExpandDiagonalLine = toGlyph 0XF4D1
+remixFirebaseFill = toGlyph 0XF4D2
+remixFirebaseLine = toGlyph 0XF4D3
+remixFlipHorizontal2Fill = toGlyph 0XF4D4
+remixFlipHorizontal2Line = toGlyph 0XF4D5
+remixFlipHorizontalFill = toGlyph 0XF4D6
+remixFlipHorizontalLine = toGlyph 0XF4D7
+remixFlipVertical2Fill = toGlyph 0XF4D8
+remixFlipVertical2Line = toGlyph 0XF4D9
+remixFlipVerticalFill = toGlyph 0XF4DA
+remixFlipVerticalLine = toGlyph 0XF4DB
+remixFormula = toGlyph 0XF4DC
+remixFunctionAddFill = toGlyph 0XF4DD
+remixFunctionAddLine = toGlyph 0XF4DE
+remixGoblet2Fill = toGlyph 0XF4DF
+remixGoblet2Line = toGlyph 0XF4E0
+remixGolfBallFill = toGlyph 0XF4E1
+remixGolfBallLine = toGlyph 0XF4E2
+remixGroup3Fill = toGlyph 0XF4E3
+remixGroup3Line = toGlyph 0XF4E4
+remixHeartAdd2Fill = toGlyph 0XF4E5
+remixHeartAdd2Line = toGlyph 0XF4E6
+remixIdCardFill = toGlyph 0XF4E7
+remixIdCardLine = toGlyph 0XF4E8
+remixInformationOffFill = toGlyph 0XF4E9
+remixInformationOffLine = toGlyph 0XF4EA
+remixJavaFill = toGlyph 0XF4EB
+remixJavaLine = toGlyph 0XF4EC
+remixLayoutGrid2Fill = toGlyph 0XF4ED
+remixLayoutGrid2Line = toGlyph 0XF4EE
+remixLayoutHorizontalFill = toGlyph 0XF4EF
+remixLayoutHorizontalLine = toGlyph 0XF4F0
+remixLayoutVerticalFill = toGlyph 0XF4F1
+remixLayoutVerticalLine = toGlyph 0XF4F2
+remixMenuFold2Fill = toGlyph 0XF4F3
+remixMenuFold2Line = toGlyph 0XF4F4
+remixMenuFold3Fill = toGlyph 0XF4F5
+remixMenuFold3Line = toGlyph 0XF4F6
+remixMenuFold4Fill = toGlyph 0XF4F7
+remixMenuFold4Line = toGlyph 0XF4F8
+remixMenuUnfold2Fill = toGlyph 0XF4F9
+remixMenuUnfold2Line = toGlyph 0XF4FA
+remixMenuUnfold3Fill = toGlyph 0XF4FB
+remixMenuUnfold3Line = toGlyph 0XF4FC
+remixMenuUnfold4Fill = toGlyph 0XF4FD
+remixMenuUnfold4Line = toGlyph 0XF4FE
+remixMobileDownloadFill = toGlyph 0XF4FF
+remixMobileDownloadLine = toGlyph 0XF500
+remixNextjsFill = toGlyph 0XF501
+remixNextjsLine = toGlyph 0XF502
+remixNodejsFill = toGlyph 0XF503
+remixNodejsLine = toGlyph 0XF504
+remixPauseLargeFill = toGlyph 0XF505
+remixPauseLargeLine = toGlyph 0XF506
+remixPlayLargeFill = toGlyph 0XF507
+remixPlayLargeLine = toGlyph 0XF508
+remixPlayReverseLargeFill = toGlyph 0XF509
+remixPlayReverseLargeLine = toGlyph 0XF50A
+remixPoliceBadgeFill = toGlyph 0XF50B
+remixPoliceBadgeLine = toGlyph 0XF50C
+remixProhibited2Fill = toGlyph 0XF50D
+remixProhibited2Line = toGlyph 0XF50E
+remixShoppingBag4Fill = toGlyph 0XF50F
+remixShoppingBag4Line = toGlyph 0XF510
+remixSnowflakeFill = toGlyph 0XF511
+remixSnowflakeLine = toGlyph 0XF512
+remixSquareRoot = toGlyph 0XF513
+remixStopLargeFill = toGlyph 0XF514
+remixStopLargeLine = toGlyph 0XF515
+remixTailwindCssFill = toGlyph 0XF516
+remixTailwindCssLine = toGlyph 0XF517
+remixToothFill = toGlyph 0XF518
+remixToothLine = toGlyph 0XF519
+remixVideoOffFill = toGlyph 0XF51A
+remixVideoOffLine = toGlyph 0XF51B
+remixVideoOnFill = toGlyph 0XF51C
+remixVideoOnLine = toGlyph 0XF51D
+remixWebhookFill = toGlyph 0XF51E
+remixWebhookLine = toGlyph 0XF51F
+remixWeightFill = toGlyph 0XF520
+remixWeightLine = toGlyph 0XF521
+
+-- * Version 4.3.0
+
+remixBookShelfFill = toGlyph 0XF522
+remixBookShelfLine = toGlyph 0XF523
+remixBrain2Fill = toGlyph 0XF524
+remixBrain2Line = toGlyph 0XF525
+remixChatSearchFill = toGlyph 0XF526
+remixChatSearchLine = toGlyph 0XF527
+remixChatUnreadFill = toGlyph 0XF528
+remixChatUnreadLine = toGlyph 0XF529
+remixCollapseHorizontalFill = toGlyph 0XF52A
+remixCollapseHorizontalLine = toGlyph 0XF52B
+remixCollapseVerticalFill = toGlyph 0XF52C
+remixCollapseVerticalLine = toGlyph 0XF52D
+remixDnaFill = toGlyph 0XF52E
+remixDnaLine = toGlyph 0XF52F
+remixDropperFill = toGlyph 0XF530
+remixDropperLine = toGlyph 0XF531
+remixExpandDiagonalS2Fill = toGlyph 0XF532
+remixExpandDiagonalS2Line = toGlyph 0XF533
+remixExpandDiagonalSFill = toGlyph 0XF534
+remixExpandDiagonalSLine = toGlyph 0XF535
+remixExpandHorizontalFill = toGlyph 0XF536
+remixExpandHorizontalLine = toGlyph 0XF537
+remixExpandHorizontalSFill = toGlyph 0XF538
+remixExpandHorizontalSLine = toGlyph 0XF539
+remixExpandVerticalFill = toGlyph 0XF53A
+remixExpandVerticalLine = toGlyph 0XF53B
+remixExpandVerticalSFill = toGlyph 0XF53C
+remixExpandVerticalSLine = toGlyph 0XF53D
+remixGeminiFill = toGlyph 0XF53E
+remixGeminiLine = toGlyph 0XF53F
+remixResetLeftFill = toGlyph 0XF540
+remixResetLeftLine = toGlyph 0XF541
+remixResetRightFill = toGlyph 0XF542
+remixResetRightLine = toGlyph 0XF543
+remixStairsFill = toGlyph 0XF544
+remixStairsLine = toGlyph 0XF545
+remixTelegram2Fill = toGlyph 0XF546
+remixTelegram2Line = toGlyph 0XF547
+remixTriangularFlagFill = toGlyph 0XF548
+remixTriangularFlagLine = toGlyph 0XF549
+remixUserMinusFill = toGlyph 0XF54A
+remixUserMinusLine = toGlyph 0XF54B
+
+-- * Version 4.4.0
+
+remixAccountBox2Fill = toGlyph 0XF54C
+remixAccountBox2Line = toGlyph 0XF54D
+remixAccountCircle2Fill = toGlyph 0XF54E
+remixAccountCircle2Line = toGlyph 0XF54F
+remixAlarmSnoozeFill = toGlyph 0XF550
+remixAlarmSnoozeLine = toGlyph 0XF551
+remixArrowDownBoxFill = toGlyph 0XF552
+remixArrowDownBoxLine = toGlyph 0XF553
+remixArrowLeftBoxFill = toGlyph 0XF554
+remixArrowLeftBoxLine = toGlyph 0XF555
+remixArrowLeftDownBoxFill = toGlyph 0XF556
+remixArrowLeftDownBoxLine = toGlyph 0XF557
+remixArrowLeftUpBoxFill = toGlyph 0XF558
+remixArrowLeftUpBoxLine = toGlyph 0XF559
+remixArrowRightBoxFill = toGlyph 0XF55A
+remixArrowRightBoxLine = toGlyph 0XF55B
+remixArrowRightDownBoxFill = toGlyph 0XF55C
+remixArrowRightDownBoxLine = toGlyph 0XF55D
+remixArrowRightUpBoxFill = toGlyph 0XF55E
+remixArrowRightUpBoxLine = toGlyph 0XF55F
+remixArrowUpBoxFill = toGlyph 0XF560
+remixArrowUpBoxLine = toGlyph 0XF561
+remixBarChartBoxAiFill = toGlyph 0XF562
+remixBarChartBoxAiLine = toGlyph 0XF563
+remixBrushAiFill = toGlyph 0XF564
+remixBrushAiLine = toGlyph 0XF565
+remixCameraAiFill = toGlyph 0XF566
+remixCameraAiLine = toGlyph 0XF567
+remixChatAiFill = toGlyph 0XF568
+remixChatAiLine = toGlyph 0XF569
+remixChatSmileAiFill = toGlyph 0XF56A
+remixChatSmileAiLine = toGlyph 0XF56B
+remixChatVoiceAiFill = toGlyph 0XF56C
+remixChatVoiceAiLine = toGlyph 0XF56D
+remixCodeAiFill = toGlyph 0XF56E
+remixCodeAiLine = toGlyph 0XF56F
+remixColorFilterAiFill = toGlyph 0XF570
+remixColorFilterAiLine = toGlyph 0XF571
+remixCustomSize = toGlyph 0XF572
+remixFediverseFill = toGlyph 0XF573
+remixFediverseLine = toGlyph 0XF574
+remixFlagOffFill = toGlyph 0XF575
+remixFlagOffLine = toGlyph 0XF576
+remixHome9Fill = toGlyph 0XF577
+remixHome9Line = toGlyph 0XF578
+remixImageAiFill = toGlyph 0XF579
+remixImageAiLine = toGlyph 0XF57A
+remixImageCircleAiFill = toGlyph 0XF57B
+remixImageCircleAiLine = toGlyph 0XF57C
+remixInfoCardFill = toGlyph 0XF57D
+remixInfoCardLine = toGlyph 0XF57E
+remixLandscapeAiFill = toGlyph 0XF57F
+remixLandscapeAiLine = toGlyph 0XF580
+remixLetterSpacing2 = toGlyph 0XF581
+remixLineHeight2 = toGlyph 0XF582
+remixMailAiFill = toGlyph 0XF583
+remixMailAiLine = toGlyph 0XF584
+remixMic2AiFill = toGlyph 0XF585
+remixMic2AiLine = toGlyph 0XF586
+remixMicAiFill = toGlyph 0XF587
+remixMicAiLine = toGlyph 0XF588
+remixMovieAiFill = toGlyph 0XF589
+remixMovieAiLine = toGlyph 0XF58A
+remixMusicAiFill = toGlyph 0XF58B
+remixMusicAiLine = toGlyph 0XF58C
+remixNotificationSnoozeFill = toGlyph 0XF58D
+remixNotificationSnoozeLine = toGlyph 0XF58E
+remixPhpFill = toGlyph 0XF58F
+remixPhpLine = toGlyph 0XF590
+remixPixFill = toGlyph 0XF591
+remixPixLine = toGlyph 0XF592
+remixPulseAiFill = toGlyph 0XF593
+remixPulseAiLine = toGlyph 0XF594
+remixQuillPenAiFill = toGlyph 0XF595
+remixQuillPenAiLine = toGlyph 0XF596
+remixSpeakAiFill = toGlyph 0XF597
+remixSpeakAiLine = toGlyph 0XF598
+remixStarOffFill = toGlyph 0XF599
+remixStarOffLine = toGlyph 0XF59A
+remixTranslateAi2 = toGlyph 0XF59B
+remixTranslateAi = toGlyph 0XF59C
+remixUserCommunityFill = toGlyph 0XF59D
+remixUserCommunityLine = toGlyph 0XF59E
+remixVercelFill = toGlyph 0XF59F
+remixVercelLine = toGlyph 0XF5A0
+remixVideoAiFill = toGlyph 0XF5A1
+remixVideoAiLine = toGlyph 0XF5A2
+remixVideoOnAiFill = toGlyph 0XF5A3
+remixVideoOnAiLine = toGlyph 0XF5A4
+remixVoiceAiFill = toGlyph 0XF5A5
+remixVoiceAiLine = toGlyph 0XF5A6
+
+-- * Version 4.5.0
+
+remixAiGenerate2 = toGlyph 0XF5A7
+remixAiGenerateText = toGlyph 0XF5A8
+remixAnthropicFill = toGlyph 0XF5A9
+remixAnthropicLine = toGlyph 0XF5AA
+remixApps2AiFill = toGlyph 0XF5AB
+remixApps2AiLine = toGlyph 0XF5AC
+remixCameraLensAiFill = toGlyph 0XF5AD
+remixCameraLensAiLine = toGlyph 0XF5AE
+remixClapperboardAiFill = toGlyph 0XF5AF
+remixClapperboardAiLine = toGlyph 0XF5B0
+remixClaudeFill = toGlyph 0XF5B1
+remixClaudeLine = toGlyph 0XF5B2
+remixClosedCaptioningAiFill = toGlyph 0XF5B3
+remixClosedCaptioningAiLine = toGlyph 0XF5B4
+remixDvdAiFill = toGlyph 0XF5B5
+remixDvdAiLine = toGlyph 0XF5B6
+remixFilmAiFill = toGlyph 0XF5B7
+remixFilmAiLine = toGlyph 0XF5B8
+remixFontSizeAi = toGlyph 0XF5B9
+remixMixtralFill = toGlyph 0XF5BA
+remixMixtralLine = toGlyph 0XF5BB
+remixMovie2AiFill = toGlyph 0XF5BC
+remixMovie2AiLine = toGlyph 0XF5BD
+remixMvAiFill = toGlyph 0XF5BE
+remixMvAiLine = toGlyph 0XF5BF
+remixPerplexityFill = toGlyph 0XF5C0
+remixPerplexityLine = toGlyph 0XF5C1
+remixPokerClubsFill = toGlyph 0XF5C2
+remixPokerClubsLine = toGlyph 0XF5C3
+remixPokerDiamondsFill = toGlyph 0XF5C4
+remixPokerDiamondsLine = toGlyph 0XF5C5
+remixPokerHeartsFill = toGlyph 0XF5C6
+remixPokerHeartsLine = toGlyph 0XF5C7
+remixPokerSpadesFill = toGlyph 0XF5C8
+remixPokerSpadesLine = toGlyph 0XF5C9
+remixSafe3Fill = toGlyph 0XF5CA
+remixSafe3Line = toGlyph 0XF5CB
+
+-- * Version 4.6.0
+
+remixAccessibilityFill = toGlyph 0XF5CC
+remixAccessibilityLine = toGlyph 0XF5CD
+remixAlarmAddFill = toGlyph 0XF5CE
+remixAlarmAddLine = toGlyph 0XF5CF
+remixArrowDownLongFill = toGlyph 0XF5D0
+remixArrowDownLongLine = toGlyph 0XF5D1
+remixArrowLeftDownLongFill = toGlyph 0XF5D2
+remixArrowLeftDownLongLine = toGlyph 0XF5D3
+remixArrowLeftLongFill = toGlyph 0XF5D4
+remixArrowLeftLongLine = toGlyph 0XF5D5
+remixArrowLeftUpLongFill = toGlyph 0XF5D6
+remixArrowLeftUpLongLine = toGlyph 0XF5D7
+remixArrowRightDownLongFill = toGlyph 0XF5D8
+remixArrowRightDownLongLine = toGlyph 0XF5D9
+remixArrowRightLongFill = toGlyph 0XF5DA
+remixArrowRightLongLine = toGlyph 0XF5DB
+remixArrowRightUpLongFill = toGlyph 0XF5DC
+remixArrowRightUpLongLine = toGlyph 0XF5DD
+remixArrowUpLongFill = toGlyph 0XF5DE
+remixArrowUpLongLine = toGlyph 0XF5DF
+remixChessFill = toGlyph 0XF5E0
+remixChessLine = toGlyph 0XF5E1
+remixDiamondFill = toGlyph 0XF5E2
+remixDiamondLine = toGlyph 0XF5E3
+remixDiamondRingFill = toGlyph 0XF5E4
+remixDiamondRingLine = toGlyph 0XF5E5
+remixFigmaFill = toGlyph 0XF5E6
+remixFigmaLine = toGlyph 0XF5E7
+remixFirefoxBrowserFill = toGlyph 0XF5E8
+remixFirefoxBrowserLine = toGlyph 0XF5E9
+remixJewelryFill = toGlyph 0XF5EA
+remixJewelryLine = toGlyph 0XF5EB
+remixMultiImageFill = toGlyph 0XF5EC
+remixMultiImageLine = toGlyph 0XF5ED
+remixNoCreditCardFill = toGlyph 0XF5EE
+remixNoCreditCardLine = toGlyph 0XF5EF
+remixServiceBellFill = toGlyph 0XF5F0
+remixServiceBellLine = toGlyph 0XF5F1
+
+-- * Version 4.7.0
+
+remixAiAgentFill = toGlyph 0XF5F2
+remixAiAgentLine = toGlyph 0XF5F3
+remixAiGenerate2Fill = toGlyph 0XF5F4
+remixAiGenerate2Line = toGlyph 0XF5F5
+remixAiGenerate3dFill = toGlyph 0XF5F6
+remixAiGenerate3dLine = toGlyph 0XF5F7
+remixAi = toGlyph 0XF5F8
+remixAppsAiFill = toGlyph 0XF5F9
+remixAppsAiLine = toGlyph 0XF5FA
+remixAtomFill = toGlyph 0XF5FB
+remixAtomLine = toGlyph 0XF5FC
+remixBookAiFill = toGlyph 0XF5FD
+remixBookAiLine = toGlyph 0XF5FE
+remixBrain3Fill = toGlyph 0XF5FF
+remixBrain3Line = toGlyph 0XF600
+remixBrainAi3Fill = toGlyph 0XF601
+remixBrainAi3Line = toGlyph 0XF602
+remixBrushAi3Fill = toGlyph 0XF603
+remixBrushAi3Line = toGlyph 0XF604
+remixCamera4Fill = toGlyph 0XF605
+remixCamera4Line = toGlyph 0XF606
+remixCameraAi2Fill = toGlyph 0XF607
+remixCameraAi2Line = toGlyph 0XF608
+remixChatAi2Fill = toGlyph 0XF609
+remixChatAi2Line = toGlyph 0XF60A
+remixChatAi3Fill = toGlyph 0XF60B
+remixChatAi3Line = toGlyph 0XF60C
+remixChatAi4Fill = toGlyph 0XF60D
+remixChatAi4Line = toGlyph 0XF60E
+remixChatSmileAi3Fill = toGlyph 0XF60F
+remixChatSmileAi3Line = toGlyph 0XF610
+remixDeepseekFill = toGlyph 0XF611
+remixDeepseekLine = toGlyph 0XF612
+remixFileAi2Fill = toGlyph 0XF613
+remixFileAi2Line = toGlyph 0XF614
+remixFileAiFill = toGlyph 0XF615
+remixFileAiLine = toGlyph 0XF616
+remixFunctionAiFill = toGlyph 0XF617
+remixFunctionAiLine = toGlyph 0XF618
+remixGame2Fill = toGlyph 0XF619
+remixGame2Line = toGlyph 0XF61A
+remixGobletBrokenFill = toGlyph 0XF61B
+remixGobletBrokenLine = toGlyph 0XF61C
+remixLightbulbAiFill = toGlyph 0XF61D
+remixLightbulbAiLine = toGlyph 0XF61E
+remixLoopLeftAiFill = toGlyph 0XF61F
+remixLoopLeftAiLine = toGlyph 0XF620
+remixLoopRightAiFill = toGlyph 0XF621
+remixLoopRightAiLine = toGlyph 0XF622
+remixMessageAi3Fill = toGlyph 0XF623
+remixMessageAi3Line = toGlyph 0XF624
+remixPaintingAiFill = toGlyph 0XF625
+remixPaintingAiLine = toGlyph 0XF626
+remixPaintingFill = toGlyph 0XF627
+remixPaintingLine = toGlyph 0XF628
+remixPencilAi2Fill = toGlyph 0XF629
+remixPencilAi2Line = toGlyph 0XF62A
+remixPencilAiFill = toGlyph 0XF62B
+remixPencilAiLine = toGlyph 0XF62C
+remixRemixFill = toGlyph 0XF62D
+remixRemixLine = toGlyph 0XF62E
+remixSearchAi2Fill = toGlyph 0XF62F
+remixSearchAi2Line = toGlyph 0XF630
+remixSearchAi3Fill = toGlyph 0XF631
+remixSearchAi3Line = toGlyph 0XF632
+remixSearchAi4Fill = toGlyph 0XF633
+remixSearchAi4Line = toGlyph 0XF634
+remixSearchAiFill = toGlyph 0XF635
+remixSearchAiLine = toGlyph 0XF636
+remixSpeechToTextFill = toGlyph 0XF637
+remixSpeechToTextLine = toGlyph 0XF638
+remixTargetFill = toGlyph 0XF639
+remixTargetLine = toGlyph 0XF63A
+remixTextToSpeechFill = toGlyph 0XF63B
+remixTextToSpeechLine = toGlyph 0XF63C
+remixWrenchFill = toGlyph 0XF63D
+remixWrenchLine = toGlyph 0XF63E
+
+-- * Version 4.8.0
+
+remixAreaChartFill = toGlyph 0XF63F
+remixAreaChartLine = toGlyph 0XF640
+remixBaseballFill = toGlyph 0XF641
+remixBaseballLine = toGlyph 0XF642
+remixBinocularsFill = toGlyph 0XF643
+remixBinocularsLine = toGlyph 0XF644
+remixCursorHand = toGlyph 0XF645
+remixEmotionAddFill = toGlyph 0XF646
+remixEmotionAddLine = toGlyph 0XF647
+remixFileScanFill = toGlyph 0XF648
+remixFileScanLine = toGlyph 0XF649
+remixFiverrFill = toGlyph 0XF64A
+remixFiverrLine = toGlyph 0XF64B
+remixFontSerif = toGlyph 0XF64C
+remixGhost3Fill = toGlyph 0XF64D
+remixGhost3Line = toGlyph 0XF64E
+remixGiteeFill = toGlyph 0XF64F
+remixGiteeLine = toGlyph 0XF650
+remixGlobalOffFill = toGlyph 0XF651
+remixGlobalOffLine = toGlyph 0XF652
+remixImageDownloadFill = toGlyph 0XF653
+remixImageDownloadLine = toGlyph 0XF654
+remixImageUploadFill = toGlyph 0XF655
+remixImageUploadLine = toGlyph 0XF656
+remixIssuesFill = toGlyph 0XF657
+remixIssuesLine = toGlyph 0XF658
+remixIssuesReopenFill = toGlyph 0XF659
+remixIssuesReopenLine = toGlyph 0XF65A
+remixNetworkErrorFill = toGlyph 0XF65B
+remixNetworkErrorLine = toGlyph 0XF65C
+remixNetworkFill = toGlyph 0XF65D
+remixNetworkLine = toGlyph 0XF65E
+remixNetworkOffFill = toGlyph 0XF65F
+remixNetworkOffLine = toGlyph 0XF660
+remixPianoFill = toGlyph 0XF661
+remixPianoGrandFill = toGlyph 0XF662
+remixPianoGrandLine = toGlyph 0XF663
+remixPianoLine = toGlyph 0XF664
+remixPlug3Fill = toGlyph 0XF665
+remixPlug3Line = toGlyph 0XF666
+remixSendInsFill = toGlyph 0XF667
+remixSendInsLine = toGlyph 0XF668
+remixSignalCellular1Fill = toGlyph 0XF669
+remixSignalCellular1Line = toGlyph 0XF66A
+remixSignalCellular2Fill = toGlyph 0XF66B
+remixSignalCellular2Line = toGlyph 0XF66C
+remixSignalCellular3Fill = toGlyph 0XF66D
+remixSignalCellular3Line = toGlyph 0XF66E
+remixSignalCellularOffFill = toGlyph 0XF66F
+remixSignalCellularOffLine = toGlyph 0XF670
+remixStackedChartFill = toGlyph 0XF671
+remixStackedChartLine = toGlyph 0XF672
+remixUpworkFill = toGlyph 0XF673
+remixUpworkLine = toGlyph 0XF674
+
+-- * Updating this file
+--
+-- $fileUpdate
+-- You can update this file to take account of new
+-- Remix Icons by going to the 
+-- [Remix GitHub repository](https://github.com/Remix-Design/RemixIcon)
+-- and going to the @fonts/remixicon.css@ file. 
+-- In it are a bunch of lines that look like
+--
+-- @ .ri-add-box-fill:before { content: "\ea0e"; } @
+--
+-- These can be converted relatively easily to 
+-- appropriate Haskell code.
+--
+-- But first, note that, from version 3.0.0 onwards.
+-- new icons are added to the __end__ of the list;
+-- they aren't mixed in with the earlier icons. That
+-- means you can easily find the new icons that have
+-- been added since the last update; simply see what
+-- the latest icon in this file /currently/ is, and
+-- then find it in @remixicon.css@. Then, copy all
+-- icon definitions /after/ it into a new file.
+-- Then, you can run the following Haskell code on
+-- that file:
+--
+-- > {-# LANGUAGE OverloadedStrings #-}
+-- > 
+-- > module Main where
+-- > 
+-- > import qualified Data.Attoparsec.Text as AT
+-- > import qualified Data.Text as T
+-- > import qualified Data.Text.Encoding as TE
+-- > import qualified Data.ByteString as BS
+-- > import qualified Data.ByteString.Builder as BB
+-- > import Data.Char
+-- > 
+-- > parseWord :: AT.Parser T.Text
+-- > parseWord = do
+-- >   _ <- AT.char '-'
+-- >   c1 <- toUpper <$> AT.satisfy isAlphaNum
+-- >   (T.cons c1) <$> AT.takeWhile isAlphaNum
+-- >  
+-- > skipHoriz :: AT.Parser ()
+-- > skipHoriz = AT.skipWhile AT.isHorizontalSpace
+-- >  
+-- > parseDef :: AT.Parser T.Text
+-- > parseDef = do
+-- >   _ <- ".ri"
+-- >   wds <- AT.many1 parseWord
+-- >   skipHoriz
+-- >   _ <- AT.char '{'
+-- >   skipHoriz
+-- >   _ <- "content:"
+-- >   skipHoriz
+-- >   _ <- "\"\\"
+-- >   hexNum <- T.toUpper <$> AT.takeWhile isHexDigit
+-- >   _ <- "\";"
+-- >   skipHoriz
+-- >   _ <- AT.char '}'
+-- >   return $ "remix" <> (mconcat wds) <> " = toGlyph 0X" <> hexNum <> "\n"
+-- >   
+-- > parseDefs :: AT.Parser BB.Builder
+-- > parseDefs = do
+-- >   AT.skipSpace  
+-- >   mconcat <$> AT.sepBy1' (makeBuilder <$> parseDef) AT.skipSpace
+-- >   where makeBuilder = BB.byteString . TE.encodeUtf8
+-- > 
+-- > runConvert :: FilePath -> FilePath -> IO ()
+-- > runConvert inFile outFile = do
+-- >   txt <- TE.decodeUtf8 <$> BS.readFile inFile
+-- >   let eRslt = AT.parseOnly parseDefs txt
+-- >   case eRslt of
+-- >     Left err   -> putStrLn ("Error: " ++ err)
+-- >     Right rslt -> BB.writeFile outFile rslt
+-- >
+-- > main :: IO ()
+-- > main = do
+-- >   putStrLn "In file:"
+-- >   inFile <- getLine
+-- >   putStrLn "Out file:"
+-- >   outFile <- getLine
+-- >   runConvert inFile outFile
+--
+-- Then, you can add the converted
+-- code to the end of this file, preferably
+-- separated by the version the icon was
+-- introduced.
+--
+-- Also, don't forget to update the version
+-- of @remixicon.ttf@ in @assets/fonts@.
