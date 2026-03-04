@@ -363,6 +363,14 @@ newRenderer c rdpr envRef = Renderer {..} where
     req = ImageReq name def Nothing ImageDelete []
 
 loadFont :: VG.Context -> Set Text -> FontDef -> IO (Set Text)
+loadFont c fonts fontDef@FontFallback{} = do
+    res <- VG.addFallbackFont c baseName fallbackName
+    when (isNothing res) report
+    return fonts
+    where
+        baseName = fontDef ^. L.baseName
+        fallbackName = fontDef ^. L.fallbackName
+        report = putStrLnErr ("Failed to register font " ++ T.unpack fallbackName  ++ " as fallback for font " ++ T.unpack baseName)
 loadFont c fonts fontDef = do
   res <- createFont fontDef
   case res of
@@ -372,6 +380,7 @@ loadFont c fonts fontDef = do
     name = fontDef ^. L.fontName
     createFont FontDefFile{} = VG.createFont c name (VG.FileName $ fontDef ^. L.fontPath)
     createFont FontDefMem{} = VG.createFontMem c name (fontDef ^. L.fontBytes)
+    createFont FontFallback{} = fail "unreachable"
 
 setFont
   :: VG.Context

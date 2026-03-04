@@ -29,7 +29,7 @@ import Monomer.Common.BasicTypes
 import Monomer.Graphics.FFI
 import Monomer.Graphics.Types
 import Monomer.Helper (putStrLnErr)
-import Monomer.Graphics.Lens (fontName, fontPath, fontBytes)
+import Monomer.Graphics.Lens (fontName, fontPath, baseName, fallbackName, fontBytes)
 
 -- | Creates a font manager instance.
 makeFontManager
@@ -102,6 +102,14 @@ newManager ctx = FontManager {..} where
       }
 
 loadFont :: FMContext -> [Text] -> FontDef -> IO [Text]
+loadFont ctx fonts fontDef@FontFallback{} = do
+  let base = fontDef ^. baseName
+  let fallback = fontDef ^. fallbackName
+  let fontsAreOk = elem base fonts && elem fallback fonts
+  res <- fmSetFontFallback ctx base fallback
+  when (res <= 0) $ do
+    putStrLnErr ("Failed to register font " ++ T.unpack fallback  ++ " as fallback for font " ++ T.unpack base)
+  return fonts
 loadFont ctx fonts fontDef = do
   res <- createFont fontDef
   if res >= 0
@@ -111,6 +119,7 @@ loadFont ctx fonts fontDef = do
     name = fontDef ^. fontName
     createFont FontDefFile{} = fmCreateFont ctx name (fontDef ^. fontPath)
     createFont FontDefMem{} = fmCreateFontMem ctx name (fontDef ^. fontBytes)
+    createFont _ = fail "unreachable"
 
 setFont :: FMContext -> Double -> Font -> FontSize -> FontSpace -> IO ()
 setFont ctx scale (Font name) (FontSize size) (FontSpace spaceH) = do

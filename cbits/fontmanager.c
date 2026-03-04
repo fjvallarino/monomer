@@ -58,6 +58,21 @@ int fmCreateFontMem(FMcontext* ctx, const char* name, unsigned char* data, int d
 	return fonsAddFontMem(ctx->fs, name, data, dataSize, 1, 0);
 }
 
+extern int fonsAddFallbackFont(FONScontext* stash, int base, int fallback);
+
+int fmSetFontFallback(FMcontext* ctx, const char* baseName, const char* fallbackName) 
+{
+	int baseId = fonsGetFontByName(ctx->fs, baseName);
+	if (baseId == FONS_INVALID) {
+		return 0;
+	}
+	int fallbackId = fonsGetFontByName(ctx->fs, fallbackName);
+	if (fallbackId == FONS_INVALID) {
+		return 0;
+	}
+	return fonsAddFallbackFont(ctx->fs, baseId, fallbackId);
+}
+
 void fmSetScale(FMcontext* ctx, float scale) {
 	ctx->scale = scale;
 }

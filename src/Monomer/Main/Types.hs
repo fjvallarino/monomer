@@ -395,6 +395,15 @@ appFontDef name path = def {
 }
 
 {-|
+Set an available font as fallback for another available font.
+Both fonts are specified by the name used to define them
+-}
+appFontFallback :: Text -> Text -> AppConfig s e
+appFontFallback base fallback = def {
+  _apcFonts = [ FontFallback base fallback ]
+}
+
+{-|
 Available fonts to the application, loaded from the bytes in memory.
 Specifying no fonts will make it impossible to render text.
 

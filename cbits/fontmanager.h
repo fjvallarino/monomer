@@ -41,6 +41,8 @@ int fmCreateFont(FMcontext* ctx, const char* name, const char* filename);
 
 int fmCreateFontMem(FMcontext* ctx, const char* name, unsigned char* data, int dataSize);
 
+int fmSetFontFallback(FMcontext* ctx, const char* baseName, const char* fallbackName);
+
 void fmSetScale(FMcontext* ctx, float scale);
 
 void fmFontFace(FMcontext* ctx, const char* font);

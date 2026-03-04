@@ -54,6 +54,10 @@ data FontDef
     { _fntFontName :: !Text         -- ^ The logic name. Will be used when defining styles.
     , _fntFontBytes :: !ByteString  -- ^ The bytes of the loaded font.
     }
+  | FontFallback
+    { _fntBaseName :: !Text      -- ^ The name used when defining the base font
+    , _fntFallbackName :: !Text  -- ^ The name used when defining the fallback font
+    }
   deriving (Eq, Show, Generic)
 
 -- | The name of a loaded font.
